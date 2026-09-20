@@ -19,8 +19,18 @@ ROOT = Path(__file__).resolve().parent
 UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/120 Safari/537.36")
 
-# Hosts that rate-limit automated checks. A 429 from these is not a dead link.
-TOLERATE_429 = {"certificationpractice.com"}
+# Requires a signed-in session, so an anonymous check proves nothing.
+SKIP_HOSTS = {"claude.ai"}
+
+# A 403 or 429 means the host refused the robot, not that the page is gone.
+# Reported, never fatal. A 404, 410, 5xx or DNS failure is a real break.
+BLOCKED_CODES = {401, 403, 429}
+
+
+def is_placeholder(url: str) -> bool:
+    """Skip illustrative URLs in documentation samples (https://..., example.com)."""
+    return ("..." in url or url.rstrip("/.") in {"https:/", "http:/"}
+            or len(url) < 14 or "example.com" in url)
 
 
 def sources() -> dict:
@@ -55,8 +65,13 @@ def main() -> None:
     args = ap.parse_args()
 
     refs = sources()
+    skipped = [u for u in refs
+               if is_placeholder(u) or any(h in u.split("/")[2] for h in SKIP_HOSTS)]
+    for u in skipped:
+        refs.pop(u)
     urls = sorted(refs)
-    print(f"Checking {len(urls)} URLs across the study material...")
+    print(f"Checking {len(urls)} URLs across the study material"
+          f"{f' ({len(skipped)} skipped: placeholders and auth-only)' if skipped else ''}...")
 
     with ThreadPoolExecutor(max_workers=args.jobs) as pool:
         results = list(pool.map(check, urls))
@@ -65,14 +80,13 @@ def main() -> None:
     for url, status, reason in results:
         if status == 200:
             continue
-        host = url.split("/")[2] if "://" in url else ""
-        if status == 429 and any(host.endswith(h) for h in TOLERATE_429):
+        if status in BLOCKED_CODES:
             tolerated.append((url, status))
             continue
         broken.append((url, status, reason, sorted(refs[url])))
 
     for url, status in tolerated:
-        print(f"  rate-limited (not a failure)  {url}")
+        print(f"  {status} blocked the checker, not verified  {url}")
     for url, status, reason, where in broken:
         print(f"  BROKEN {status or 'ERR'}  {url}")
         print(f"         referenced by: {', '.join(where)}")
@@ -82,7 +96,7 @@ def main() -> None:
         sys.exit(1)
     if not args.quiet:
         print(f"All {len(urls)} links OK"
-              f"{f' ({len(tolerated)} rate-limited)' if tolerated else ''}.")
+              f"{f' ({len(tolerated)} unverifiable: host blocked the checker)' if tolerated else ''}.")
 
 
 if __name__ == "__main__":
