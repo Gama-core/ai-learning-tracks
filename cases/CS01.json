@@ -1,0 +1,75 @@
+{
+  "id": "CS01",
+  "title": "Insurance claims agent",
+  "scenario": "A mid-size insurer is automating first-notice-of-loss claims. The agent must validate the claim against the policy, look up coverage, compute a payout, and post a journal entry to the ledger. The sequence never varies. Today it is a single ReAct loop over four tools using a large reasoning model. In staging the team observes that the agent occasionally skips validation, and twice it posted the same journal entry twice after a tool timeout. Payouts are capped at $25,000 by policy. Regulators require the insurer to reconstruct, for any individual claim, why the agent decided what it decided.",
+  "questions": [
+    {
+      "id": "CS01-1",
+      "domain": "agent-architecture",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which change addresses both the skipped validation and the duplicate ledger posting?",
+      "choices": [
+        "Lower the temperature to zero and add an instruction listing the four steps in order",
+        "Replace the free-form loop with an explicit graph that encodes the step order, and make the ledger write a single terminal node guarded by an idempotency key",
+        "Add a reviewer agent that reads the transcript after each run and flags anomalies",
+        "Increase the step limit so the agent has room to complete all four steps"
+      ],
+      "answer": [1],
+      "explanation": "The order is known in advance, so it belongs in the orchestration layer rather than in the model's discretion; a graph guarantees validation runs. The duplicate posting is a retry-safety problem, fixed by idempotency at the write, not by better prompting. A reviewer agent detects after the money has moved, and temperature and step limits do not constrain sequence or side effects.",
+      "tags": ["state-machine", "idempotency", "determinism"],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/low_level/"
+    },
+    {
+      "id": "CS01-2",
+      "domain": "safety-ethics-compliance",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Security requires that the agent can never post a payout above the $25,000 policy cap, even if the model is manipulated. Where must that limit live?",
+      "choices": [
+        "In the system prompt, stated as an absolute rule the agent must never violate",
+        "In the ledger service, which rejects any posting above the cap regardless of what the caller sends",
+        "In the tool description for the posting tool, so the model knows the constraint when it chooses arguments",
+        "In an output rail that inspects the final response for amounts over the cap"
+      ],
+      "answer": [1],
+      "explanation": "A limit the model can talk past is not a limit. Enforcing the cap server-side in the ledger makes it structural: no prompt, injection, or model error can exceed it. Prompts and tool descriptions inform the model's choice but do not constrain it, and an output rail inspects text after the posting has already happened.",
+      "tags": ["server-side-enforcement", "least-privilege", "guardrails"],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "CS01-3",
+      "domain": "human-ai-oversight",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "The insurer wants human approval without stalling the 10,000 claims it processes daily. Which design fits?",
+      "choices": [
+        "Require approval on every claim, since payouts are irreversible",
+        "Auto-approve low-value claims that match policy cleanly, route high-value, low-confidence, or rule-flagged claims to a human, and sample-audit the auto-approved stream",
+        "Approve a random 5% before execution and let the rest through",
+        "Let all claims through and review the ones that generate complaints"
+      ],
+      "answer": [1],
+      "explanation": "Risk-tiered routing concentrates human attention where the expected cost of error is highest while sampling keeps statistical oversight of the automated path. Approving everything does not scale to the volume, random pre-approval blocks throughput without targeting risk, and complaint-driven review is purely reactive on an irreversible action.",
+      "tags": ["risk-tiering", "escalation", "sampling-audit"],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "CS01-4",
+      "domain": "run-monitor-maintain",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "To satisfy the regulator's reconstruction requirement, which TWO must be captured per claim?",
+      "choices": [
+        "The full trajectory: every tool call with arguments and results, the policy documents consulted with their version identifiers, and any human approval",
+        "The model identifier and version, the prompt version, and the guardrail decisions in force at the time",
+        "The aggregate monthly accuracy of the agent on similar claims",
+        "The model's self-reported confidence in the payout figure"
+      ],
+      "answer": [0, 1],
+      "explanation": "Reconstructing a specific decision requires the evidence used and the actions taken, plus the exact configuration that produced the reasoning — a decision cannot be explained without knowing which model, prompt and rails were live. Aggregate statistics describe the population, not the case, and self-reported confidence is neither calibrated nor evidence.",
+      "tags": ["auditability", "versioning", "traceability"],
+      "ref": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    }
+  ]
+}

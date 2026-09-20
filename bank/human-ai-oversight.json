@@ -1,0 +1,422 @@
+{
+  "domain": "human-ai-oversight",
+  "questions": [
+    {
+      "id": "HO-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What distinguishes human-in-the-loop from human-on-the-loop oversight?",
+      "choices": [
+        "In-the-loop means a human approves or acts before the system proceeds; on-the-loop means the system proceeds autonomously while a human monitors and can intervene",
+        "In-the-loop applies to training; on-the-loop applies to inference",
+        "In-the-loop requires a UI; on-the-loop requires an API",
+        "They are interchangeable terms for the same control"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The difference is whether human action is a precondition for execution. In-the-loop places a blocking approval in the critical path, suitable for irreversible or high-stakes actions. On-the-loop preserves throughput with supervisory monitoring and an intervention capability, suitable for high-volume, reversible actions.",
+      "tags": [
+        "hitl",
+        "hotl",
+        "oversight-models",
+        "definitions"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/"
+    },
+    {
+      "id": "HO-002",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent processes 10,000 refund requests daily. Requiring human approval for all of them is infeasible. Which oversight design best balances throughput and risk?",
+      "choices": [
+        "Approve a random 5% sample before execution and let the rest through",
+        "Auto-approve low-value, high-confidence, policy-conforming cases; route to humans anything above a value threshold, below a confidence threshold, or matching a risk rule; and sample-audit the auto-approved stream",
+        "Require approval only for the first 100 requests each day",
+        "Let all requests through and review complaints as they arrive"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Risk-tiered routing puts human attention where the expected cost of error is highest, while retaining statistical oversight of the automated path through sampling audits. Random pre-approval sampling blocks throughput without targeting risk, first-N approval is arbitrary, and complaint-driven review is purely reactive.",
+      "tags": [
+        "risk-tiering",
+        "escalation-thresholds",
+        "sampling-audit",
+        "scale"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "HO-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Reviewers approve nearly every action the agent proposes, including ones later found wrong. What is the most likely cause and the best remedy?",
+      "choices": [
+        "Reviewers lack domain expertise; hire more senior reviewers",
+        "Automation bias and review fatigue from too many low-information approvals; reduce approval volume to genuinely consequential cases and give reviewers the evidence, uncertainty, and a concrete rejection path for each one",
+        "The approval UI is too slow; optimize its latency",
+        "The agent is too accurate for review to add value; remove the gate"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Rubber-stamping is the classic failure of oversight design: when approvals are frequent, undifferentiated, and presented without the evidence needed to disagree, the gate becomes ceremonial. The fix is fewer, better-instrumented decisions — surface the reasoning, the sources, the confidence, and what rejection will do. Removing the gate abandons oversight, and expertise cannot compensate for missing information.",
+      "tags": [
+        "automation-bias",
+        "review-fatigue",
+        "rubber-stamping",
+        "ux"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "HO-004",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO pieces of information most improve a human reviewer's ability to make a correct accept/reject decision on an agent's proposed action?",
+      "choices": [
+        "The specific evidence the agent relied on, with links to the source documents and their versions",
+        "A precise statement of what will happen if approved, including side effects and whether the action is reversible",
+        "The agent's full chain-of-thought transcript for every step",
+        "Aggregate historical accuracy of the agent on similar tasks"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Reviewers need to verify the basis for the action and understand its consequences. Citable evidence makes verification possible, and a clear statement of effect and reversibility calibrates how much scrutiny is warranted. Full reasoning transcripts overwhelm reviewers and may not reflect the true decision process; aggregate accuracy informs policy but not this instance.",
+      "tags": [
+        "reviewer-ux",
+        "evidence-presentation",
+        "reversibility",
+        "hitl"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/"
+    },
+    {
+      "id": "HO-005",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which uncertainty signal is most trustworthy for deciding when an agent should escalate to a human?",
+      "choices": [
+        "The model's self-reported confidence percentage in its answer",
+        "Verifiable external signals: retrieval returned no sufficiently relevant evidence, tool calls failed or conflicted, answers disagreed across repeated samples, or the request matched a known out-of-scope pattern",
+        "The length of the model's reasoning trace",
+        "Whether the user's message contains a question mark"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "LLM self-reported confidence is poorly calibrated and easily inflated. Grounded signals — absence of supporting evidence, tool disagreement or failure, sampling variance across repeated attempts, scope rules — are measurable and correlate with actual error, so they make sounder escalation triggers.",
+      "tags": [
+        "uncertainty",
+        "calibration",
+        "escalation-triggers",
+        "confidence"
+      ],
+      "ref": "https://docs.ragas.io/en/stable/concepts/metrics/overview/"
+    },
+    {
+      "id": "HO-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An agent takes an action that turns out to be wrong. Which design property most limits the harm?",
+      "choices": [
+        "A detailed audit log of the action",
+        "A compensating action (undo) path plus a bounded window during which the action can be reversed before it becomes final",
+        "A confidence score recorded alongside the action",
+        "A notification sent to the user after the action"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Recoverability is the property that converts an error into an inconvenience: an explicit compensating transaction and a delay before finality (staging, cancellation window, soft delete) let mistakes be undone. Logs, scores, and notifications support detection and accountability but do not reverse the effect.",
+      "tags": [
+        "reversibility",
+        "compensating-actions",
+        "harm-limitation",
+        "design"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "HO-007",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "How should an agent hand off a conversation to a human support representative?",
+      "choices": [
+        "Send the raw conversation transcript and let the representative read it",
+        "Transfer a structured handoff package: the user's goal, actions already taken, evidence gathered, what was attempted and failed, and the specific reason for escalation",
+        "Start the representative with a fresh conversation to avoid biasing them",
+        "Ask the user to restate their problem to the representative"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A good handoff preserves context while reducing cognitive load: state the objective, what has already been done (so it is not repeated), the evidence, and precisely why the agent could not finish. Raw transcripts force reconstruction, and discarding context makes the user repeat themselves — the most common complaint about escalation.",
+      "tags": [
+        "handoff",
+        "escalation",
+        "context-transfer",
+        "ux"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/"
+    },
+    {
+      "id": "HO-008",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You want to use reviewer accept/reject decisions to improve the agent. Which use of that feedback is most defensible?",
+      "choices": [
+        "Immediately fine-tune the model on every rejected action as a negative example",
+        "Treat the decisions as a labeled dataset: analyze rejection patterns to fix prompts, tools, or retrieval, add the cases to the evaluation suite, and only then consider preference tuning once patterns are validated",
+        "Automatically lower the agent's autonomy threshold after each rejection",
+        "Discard rejections, since they represent cases the agent should not have attempted"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Reviewer decisions are valuable but noisy and confounded (reviewers differ, and rejection reasons vary). The disciplined path is to analyze them for systematic causes, fix the cheapest correct layer, and encode the cases as regression tests before contemplating weight updates. Reflexive fine-tuning on raw rejections bakes in reviewer noise and can cause regressions elsewhere.",
+      "tags": [
+        "feedback-loops",
+        "preference-data",
+        "continuous-improvement",
+        "evaluation"
+      ],
+      "ref": "https://arxiv.org/abs/2305.18290"
+    },
+    {
+      "id": "HO-009",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which transparency practice is most important when an agent answers end users directly?",
+      "choices": [
+        "Disclosing the model's parameter count",
+        "Disclosing that the user is interacting with an AI system, citing the sources behind factual claims, and making clear how to reach a human",
+        "Publishing the full system prompt",
+        "Showing the token cost of each response"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "User-facing transparency means the things that affect user decisions and rights: knowing it is an AI, being able to verify claims against sources, and having a route to human help. Model internals, prompts, and costs are operational details, and publishing system prompts can weaken safety controls.",
+      "tags": [
+        "transparency",
+        "disclosure",
+        "citations",
+        "user-rights"
+      ],
+      "ref": "https://artificialintelligenceact.eu/"
+    },
+    {
+      "id": "HO-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent's autonomy is configured per action type. Which factor should most strongly determine how much autonomy a given action receives?",
+      "choices": [
+        "How frequently the action occurs",
+        "The product of the action's potential harm and its irreversibility, weighed against the agent's measured reliability on that specific action",
+        "How long the action takes to execute",
+        "Whether the action calls an internal or external API"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Autonomy should be graduated by risk and evidence: severity and reversibility set how much a mistake costs, and measured per-action reliability sets how likely one is. Frequency and duration affect operational design, and the internal/external distinction is a weak proxy for consequence.",
+      "tags": [
+        "graduated-autonomy",
+        "risk-assessment",
+        "reversibility",
+        "policy"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "HO-011",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An approval queue shows reviewers 40 pending agent actions at once. Median review time is 4 seconds per item. What does this most likely indicate?",
+      "choices": [
+        "The reviewers are highly efficient",
+        "Review is not actually happening: 4 seconds is insufficient to verify evidence, which means the gate is providing the appearance of oversight rather than oversight",
+        "The agent is highly accurate",
+        "The queue should be made longer to batch more efficiently"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Four seconds per item cannot cover reading the evidence and judging the action. A gate that is never exercised meaningfully creates documented accountability without any actual control — arguably worse than no gate, because it manufactures a false assurance. The fix is fewer items routed to humans and better-instrumented decisions, not a bigger queue.",
+      "tags": [
+        "oversight-theater",
+        "review-quality",
+        "throughput",
+        "automation-bias"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "HO-012",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO design choices reduce automation bias in reviewers of agent output?",
+      "choices": [
+        "Present the evidence before the agent's recommendation, so the reviewer forms a view before seeing the suggested answer",
+        "Make disagreement low-friction and capture the reason, so rejecting is as easy as approving and the reason becomes data",
+        "Show the agent's confidence score prominently to help reviewers calibrate",
+        "Pre-select the agent's recommendation as the default choice"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Anchoring is the mechanism behind automation bias, so ordering matters: evidence first, recommendation second. Making rejection as cheap as approval removes the friction asymmetry that produces rubber-stamping, and captured reasons feed improvement. Prominent confidence scores and pre-selected defaults both strengthen the anchor.",
+      "tags": [
+        "automation-bias",
+        "anchoring",
+        "reviewer-ux",
+        "defaults"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "HO-013",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An agent is uncertain and must ask the user for clarification. What makes the request most useful?",
+      "choices": [
+        "A general statement that the agent needs more information",
+        "A specific question naming the ambiguity, the options it is deciding between, and what it will do with each answer",
+        "A request for the user to rephrase the whole task",
+        "A list of everything the agent has done so far"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A clarifying question is useful in proportion to how little work it leaves the user. Naming the specific ambiguity, offering the candidate interpretations, and stating the consequence of each turns an open-ended demand into a quick choice. Vague requests and full-restart prompts push the cognitive load back onto the user.",
+      "tags": [
+        "clarification-quality",
+        "ambiguity",
+        "user-effort",
+        "ux"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/"
+    },
+    {
+      "id": "HO-014",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You must decide whether an agent action requires approval before execution or review after. Which framing is correct?",
+      "choices": [
+        "Approve before execution when the action is irreversible or high-consequence; review after when it is reversible and low-consequence, since post-hoc review preserves throughput",
+        "Always approve before execution, since safety outweighs speed",
+        "Always review after, since blocking harms user experience",
+        "Decide based on how often the action occurs"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Reversibility and consequence determine whether a human must be in the path or can be on it. Irreversible or high-impact actions need pre-execution authorization because after-the-fact review cannot undo them; reversible low-stakes actions can flow and be sampled afterwards. Frequency affects the design of the review process, not whether a decision is reversible.",
+      "tags": [
+        "pre-vs-post-review",
+        "reversibility",
+        "consequence",
+        "gate-design"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/"
+    },
+    {
+      "id": "HO-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the most important property of an agent's explanation to an end user who must act on its output?",
+      "choices": [
+        "That it describes the model's internal reasoning process",
+        "That it is verifiable: it points to evidence the user can independently check, and states what the agent did not or could not verify",
+        "That it is brief",
+        "That it expresses high confidence so the user can act decisively"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A user acting on output needs to be able to check it. Verifiable evidence plus explicit acknowledgment of what remains unverified supports a real decision. Narrated reasoning is not a faithful account of the model's computation and can lend false credibility, and projecting confidence without grounds is actively harmful.",
+      "tags": [
+        "explainability",
+        "verifiability",
+        "uncertainty-disclosure",
+        "user-decisions"
+      ],
+      "ref": "https://artificialintelligenceact.eu/"
+    },
+    {
+      "id": "HO-016",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "An agent handles a task partially and hands off to a human. Which TWO measures indicate whether the handoff design is working?",
+      "choices": [
+        "Time for the human to reach a decision after receiving the handoff",
+        "Rate at which humans must re-gather context the agent already had",
+        "Number of handoffs per day",
+        "Average agent response length before handoff"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "A good handoff transfers understanding, so the measures are how quickly the human can act and how often they have to redo work the agent already did. Rework rate is the sharpest signal that the handoff package is incomplete. Raw handoff volume is a workload figure whose desirable value depends on the escalation policy, and response length says nothing.",
+      "tags": [
+        "handoff-metrics",
+        "rework",
+        "context-transfer",
+        "escalation"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/"
+    },
+    {
+      "id": "HO-017",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which feedback signal from end users is most useful for improving an agent, and why?",
+      "choices": [
+        "A thumbs-down alone, because it is easy to collect at scale",
+        "A thumbs-down paired with a structured reason category and the trace id, because it makes the failure attributable to a specific step and groupable into causes",
+        "A star rating averaged across sessions",
+        "Free-text feedback with no linkage to the session"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Unlabeled negative signal tells you something was wrong but not what or where. Pairing the rating with a reason category and a trace id makes failures attributable to a step and aggregable into patterns you can act on. Session-averaged stars and unlinked free text are almost impossible to convert into fixes.",
+      "tags": [
+        "user-feedback",
+        "attribution",
+        "trace-linkage",
+        "signal-quality"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "HO-018",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent's autonomy was raised after it hit 95% accuracy on an internal evaluation. Three weeks later errors surface in a category the evaluation did not cover. What governance step was missed?",
+      "choices": [
+        "The evaluation set should have been larger",
+        "Autonomy should be scoped to the specific action types and input distribution where reliability was measured, with an explicit boundary and a fallback for anything outside it",
+        "The model should have been fine-tuned before the change",
+        "Accuracy should have been 99% before raising autonomy"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Evidence of reliability is evidence about a measured scope, not a general licence. Raising autonomy must therefore name the action types and input distribution the measurement covers, and route anything outside that boundary to a lower-autonomy path. Without that scoping, uncovered categories inherit an autonomy level nothing justified.",
+      "tags": [
+        "autonomy-scoping",
+        "evidence-boundaries",
+        "governance",
+        "out-of-distribution"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "id": "CS02",
+  "title": "The assistant that got worse",
+  "scenario": "An internal policy assistant launched nine months ago with strong reviews. It answers HR and compliance questions over 40,000 documents using dense retrieval with top-k of 5, no reranker, and 256-token chunks with no overlap. Nothing in the stack has changed since launch: same model version, same prompt, same index configuration. Over the last quarter, satisfaction has fallen steadily. Spot checks find three distinct problems: answers that cite a 2023 policy superseded in 2025; answers that are fluent and confident but contain a claim absent from the retrieved passages; and answers that stop halfway through a multi-step procedure.",
+  "questions": [
+    {
+      "id": "CS02-1",
+      "domain": "knowledge-data",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which problem does the 256-token, no-overlap chunking most directly explain?",
+      "choices": [
+        "Citing the superseded 2023 policy",
+        "Answers that stop halfway through a multi-step procedure",
+        "Claims absent from the retrieved passages",
+        "The overall decline in satisfaction over time"
+      ],
+      "answer": [1],
+      "explanation": "Fixed-size chunking with no overlap severs documents at arbitrary boundaries, so a procedure spanning more than 256 tokens is split and only part is retrieved. The truncated-procedure symptom maps to segmentation. Stale citations are a governance problem and ungrounded claims are a grounding problem, neither caused by chunk size.",
+      "tags": ["chunking", "symptom-attribution", "procedures"],
+      "ref": "https://docs.llamaindex.ai/en/stable/module_guides/loading/node_parsers/"
+    },
+    {
+      "id": "CS02-2",
+      "domain": "knowledge-data",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What is the most reliable fix for answers citing the superseded 2023 policy?",
+      "choices": [
+        "Add a reranker so the newer document outranks the older one",
+        "Attach effective-date and status metadata at ingestion, filter on it at query time, and tombstone or remove superseded documents",
+        "Instruct the model in the system prompt to prefer the most recent source",
+        "Re-embed the corpus with a newer embedding model"
+      ],
+      "answer": [1],
+      "explanation": "Recency is not something a relevance model can infer from text — a superseded policy is often the more semantically relevant document. Versioned metadata with query-time filtering plus an explicit retirement process makes the guarantee deterministic. Rerankers and prompts both optimize for relevance, and re-embedding changes nothing about which version exists.",
+      "tags": ["freshness", "metadata-filtering", "supersession"],
+      "ref": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/metadata_extraction/"
+    },
+    {
+      "id": "CS02-3",
+      "domain": "evaluation-tuning",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which metric would have caught the ungrounded-claim problem on production traffic without labeled answers?",
+      "choices": [
+        "Context recall",
+        "Faithfulness",
+        "Exact match against reference answers",
+        "Perplexity"
+      ],
+      "answer": [1],
+      "explanation": "Faithfulness compares the answer's claims against the retrieved context and needs no ground truth, so it can run continuously on live traffic. Context recall requires a reference answer, exact match requires labels, and perplexity measures nothing about grounding.",
+      "tags": ["faithfulness", "reference-free", "production-monitoring"],
+      "ref": "https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/"
+    },
+    {
+      "id": "CS02-4",
+      "domain": "run-monitor-maintain",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "The stack is frozen, yet quality declined steadily. What is the underlying cause?",
+      "choices": [
+        "Gradual corruption of the served model weights",
+        "Drift: the questions users ask and the corpus itself both moved away from what the pipeline and its evaluation set were designed for",
+        "KV cache fragmentation accumulating over nine months",
+        "The embedding model degrading with index size"
+      ],
+      "answer": [1],
+      "explanation": "With everything pinned, the environment is what changed: new policies, new vocabulary, new question types. This is why production agents need scheduled re-evaluation against refreshed data and monitoring of the input distribution, not just a launch-time evaluation. Served weights do not decay and cache behavior does not affect correctness.",
+      "tags": ["drift", "re-evaluation", "frozen-stack"],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    }
+  ]
+}

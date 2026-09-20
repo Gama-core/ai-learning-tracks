@@ -1,0 +1,665 @@
+{
+  "domain": "evaluation-tuning",
+  "questions": [
+    {
+      "id": "ET-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A RAG agent returns an answer that is fluent and relevant to the question but contains a claim absent from the retrieved passages. Which metric is designed to catch exactly this?",
+      "choices": [
+        "Context recall",
+        "Answer relevancy",
+        "Faithfulness (groundedness)",
+        "Context precision"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "Faithfulness/groundedness measures whether every claim in the answer is supported by the retrieved context — precisely the ungrounded-claim failure. Answer relevancy only asks whether the response addresses the question. Context recall and precision evaluate the retrieved set, not the generated text.",
+      "tags": [
+        "ragas",
+        "faithfulness",
+        "rag-metrics"
+      ],
+      "ref": "https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/"
+    },
+    {
+      "id": "ET-002",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which RAGAS-style metric requires labeled ground-truth answers (reference data) rather than only the question, context, and generated answer?",
+      "choices": [
+        "Faithfulness",
+        "Answer relevancy",
+        "Context recall",
+        "Context relevance"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "Context recall asks what fraction of the ground-truth answer's claims are covered by the retrieved context, so it needs a reference answer. Faithfulness compares answer to context, and answer relevancy compares answer to question — both are reference-free, which is why they are usable on production traffic without labels.",
+      "tags": [
+        "ragas",
+        "ground-truth",
+        "reference-free",
+        "rag-metrics"
+      ],
+      "ref": "https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_recall/"
+    },
+    {
+      "id": "ET-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An agent reaches the correct final answer but takes 11 tool calls where 3 would do, sometimes calling a paid API redundantly. Which evaluation approach surfaces this problem?",
+      "choices": [
+        "Final-response (outcome) evaluation against expected answers",
+        "Trajectory evaluation that scores the sequence of steps, tool choices, and arguments",
+        "Perplexity on a held-out corpus",
+        "BLEU against reference answers"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Outcome-only evaluation is blind to how the answer was produced, so an inefficient or unsafe path scores perfectly. Trajectory evaluation inspects the step sequence — tool selection, argument correctness, redundancy, and order — which is where this defect lives. Perplexity and BLEU are irrelevant to agent process quality.",
+      "tags": [
+        "trajectory-evaluation",
+        "agent-metrics",
+        "efficiency"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "ET-004",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "You are setting up LLM-as-judge evaluation for agent answers. Which TWO practices most improve the judge's reliability?",
+      "choices": [
+        "Give the judge an explicit rubric with defined score levels and require a short justification before the score",
+        "Validate the judge against a human-labeled subset and measure agreement before trusting it at scale",
+        "Use the same model and prompt that generated the answers, to keep conditions consistent",
+        "Ask for a single 1-100 numeric score with no explanation, to reduce token cost"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Judges need an operational definition of quality (rubric with anchored levels, reasoning before the verdict) and calibration against human labels so you know the metric's error rate. Reusing the generator model and prompt invites self-preference bias, and fine-grained scores without justification are noisy and poorly calibrated.",
+      "tags": [
+        "llm-as-judge",
+        "rubrics",
+        "calibration",
+        "bias"
+      ],
+      "ref": "https://deepeval.com/docs/metrics-llm-evals"
+    },
+    {
+      "id": "ET-005",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Diagnosis shows your RAG agent's answers are unfaithful because the retriever returns passages that do not contain the answer at all. Which intervention addresses the actual bottleneck?",
+      "choices": [
+        "Fine-tune the generator model with LoRA on your domain's answer style",
+        "Improve retrieval: revisit chunking, add hybrid search and a reranker, and rewrite queries",
+        "Lower the generation temperature to reduce hallucination",
+        "Increase max output tokens so the answer can cite more context"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "If the answer is not in the retrieved context, no amount of generator tuning or decoding adjustment can produce a grounded answer. The failure is a retrieval failure, so the fix belongs in chunking, hybrid (lexical + dense) retrieval, reranking, and query rewriting. Tuning the generator on style would be solving the wrong layer.",
+      "tags": [
+        "diagnosis",
+        "retrieval",
+        "root-cause",
+        "rag"
+      ],
+      "ref": "https://docs.ragas.io/en/stable/concepts/metrics/overview/"
+    },
+    {
+      "id": "ET-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Your model follows instructions well but consistently uses the wrong internal terminology and cites no company-specific facts. You have 3,000 high-quality domain Q&A pairs. What is the most appropriate first intervention?",
+      "choices": [
+        "Full pre-training from scratch on the domain corpus",
+        "Parameter-efficient fine-tuning (LoRA) for terminology and style, combined with RAG for the factual content",
+        "RLHF with a reward model trained on the 3,000 pairs",
+        "Increase the temperature so the model varies its vocabulary"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The canonical division of labor: fine-tuning teaches form, behavior, and vocabulary; retrieval supplies volatile, verifiable facts. With a few thousand pairs, PEFT/LoRA is the right scale of intervention. Pre-training is orders of magnitude too expensive, RLHF targets preference alignment rather than terminology, and temperature is unrelated.",
+      "tags": [
+        "lora",
+        "peft",
+        "finetune-vs-rag",
+        "tuning-decisions"
+      ],
+      "ref": "https://arxiv.org/abs/2106.09685"
+    },
+    {
+      "id": "ET-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which statement correctly contrasts DPO with classic RLHF (PPO-based)?",
+      "choices": [
+        "DPO optimizes the policy directly from preference pairs without training a separate reward model or running RL rollouts",
+        "DPO requires a larger preference dataset than PPO-based RLHF to reach comparable quality",
+        "DPO trains a reward model first and then samples with PPO, but on-policy only",
+        "DPO is a form of supervised fine-tuning on the chosen responses only"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "DPO reformulates the RLHF objective so the preference data can update the policy directly with a simple classification-style loss, eliminating the separate reward model and the RL loop. That is its main practical appeal: simpler and more stable. It is not SFT on chosen responses alone, since the rejected response enters the loss.",
+      "tags": [
+        "dpo",
+        "rlhf",
+        "alignment",
+        "tuning"
+      ],
+      "ref": "https://arxiv.org/abs/2305.18290"
+    },
+    {
+      "id": "ET-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the role of NVIDIA NeMo Evaluator in an agentic development lifecycle?",
+      "choices": [
+        "Serving optimized models behind an OpenAI-compatible API",
+        "Running standardized academic and custom benchmarks plus LLM-as-judge evaluations against models and RAG/agent pipelines, as a managed service in the NeMo microservices stack",
+        "Applying input and output guardrails at inference time",
+        "Curating and deduplicating pre-training datasets at scale"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "NeMo Evaluator is the evaluation microservice: academic benchmarks, custom datasets, similarity metrics, and LLM-as-judge against endpoints and RAG pipelines. Serving is NIM, guardrails are NeMo Guardrails, and large-scale data curation is NeMo Curator.",
+      "tags": [
+        "nemo-evaluator",
+        "nvidia",
+        "tooling"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/microservices/latest/evaluate/index.html"
+    },
+    {
+      "id": "ET-009",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A new prompt scores 4% higher on your 60-example offline evaluation set. What is the most defensible next step before shipping it to all traffic?",
+      "choices": [
+        "Ship it, since the offline set is the team's agreed quality gate",
+        "Treat the result as underpowered, check whether the difference exceeds run-to-run variance, and validate with a controlled online A/B test on live traffic",
+        "Expand the offline set to 600 examples generated by the same model and re-measure",
+        "Ship it to 100% of traffic but keep the old prompt ready for rollback"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A 4% delta on 60 examples is roughly two examples and is likely within noise, especially with a stochastic judge. The rigorous path is to quantify variance (repeat runs, confidence intervals) and then confirm on real traffic with a controlled experiment. Synthetically expanding the set with the same model can import the model's own biases, and full rollout with rollback ready is still an unmeasured change.",
+      "tags": [
+        "statistical-significance",
+        "ab-testing",
+        "offline-vs-online"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "ET-010",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In the \"RAG triad\" used by TruLens, which three dimensions are assessed?",
+      "choices": [
+        "Latency, throughput, and cost",
+        "Context relevance, groundedness, and answer relevance",
+        "Precision, recall, and F1",
+        "Faithfulness, toxicity, and bias"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The RAG triad checks each hop of the pipeline: is the retrieved context relevant to the query, is the answer grounded in that context, and is the answer relevant to the query. Failing any one localizes the defect to retrieval, generation grounding, or response targeting respectively.",
+      "tags": [
+        "trulens",
+        "rag-triad",
+        "rag-metrics"
+      ],
+      "ref": "https://www.trulens.org/getting_started/core_concepts/rag_triad/"
+    },
+    {
+      "id": "ET-011",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which benchmark is specifically designed to measure an LLM's function/tool-calling accuracy?",
+      "choices": [
+        "MTEB",
+        "BFCL (Berkeley Function-Calling Leaderboard)",
+        "MMLU-Pro",
+        "HumanEval"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "BFCL evaluates tool-calling ability: correct function selection, argument construction, handling of multiple and parallel calls, and relevance detection (knowing when not to call). MTEB benchmarks embedding/retrieval models, MMLU-Pro measures knowledge and reasoning, and HumanEval measures code generation.",
+      "tags": [
+        "benchmarks",
+        "bfcl",
+        "function-calling"
+      ],
+      "ref": "https://github.com/EleutherAI/lm-evaluation-harness"
+    },
+    {
+      "id": "ET-012",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "You must build an evaluation dataset for a production agent. Which TWO sourcing strategies produce the most useful set?",
+      "choices": [
+        "Mine real production traces, prioritizing failures, escalations, and edge cases, then label them",
+        "Include a deliberately adversarial slice: prompt injections, ambiguous requests, and out-of-scope questions",
+        "Generate all examples with the same LLM that powers the agent, for volume and coverage",
+        "Use only examples the agent currently answers correctly, to establish a stable regression baseline"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Evaluation sets earn their value from distribution realism and difficulty. Real traffic (weighted toward failures) keeps the set representative, and an adversarial slice tests the properties you most need to hold. Self-generated data inherits the agent's blind spots, and a set of only-passing examples cannot detect anything except regressions on already-solved cases.",
+      "tags": [
+        "eval-datasets",
+        "adversarial-testing",
+        "data-sourcing"
+      ],
+      "ref": "https://docs.ragas.io/en/stable/concepts/test_data_generation/"
+    },
+    {
+      "id": "ET-013",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent's quality is acceptable but p95 latency is 9 seconds and users complain. Profiling shows 6.5 seconds in a reranking step that improves faithfulness by 1 point. What is the most balanced optimization decision?",
+      "choices": [
+        "Remove the reranker entirely, since latency matters more than a 1-point gain",
+        "Keep the reranker but move it to a GPU-accelerated NIM reranking endpoint and shrink the candidate set, then re-measure both metrics",
+        "Accept the latency because quality must never regress",
+        "Cache reranker outputs keyed on the full document set"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The choice is not binary. Reranking cost scales with candidate count and is highly GPU-accelerable, so serving the reranker on an optimized endpoint and reducing top-k usually recovers most of the latency while retaining most of the quality. The engineering discipline is to re-measure both axes after the change rather than trading one blindly.",
+      "tags": [
+        "latency-quality-tradeoff",
+        "reranking",
+        "profiling",
+        "nim"
+      ],
+      "ref": "https://docs.nvidia.com/nim/nemo-retriever/text-reranking/latest/index.html"
+    },
+    {
+      "id": "ET-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which evaluation signal best indicates that an agent's tool set — rather than its reasoning — is the limiting factor?",
+      "choices": [
+        "Tool-call arguments are frequently malformed against the schema",
+        "The agent selects an appropriate tool but the tool's response lacks the information needed, across many different queries",
+        "The agent's final answers are verbose",
+        "The agent occasionally exceeds its step budget"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Correct selection followed by insufficient tool output points at a capability gap in the tools or their underlying data, not at the model's planning. Malformed arguments indicate a schema/prompting problem, verbosity is a style issue, and step-budget overruns are ambiguous on their own.",
+      "tags": [
+        "diagnosis",
+        "tool-evaluation",
+        "attribution"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "ET-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is `pass@k` on a held-out task suite often reported alongside single-attempt accuracy for coding agents?",
+      "choices": [
+        "It measures token efficiency across attempts",
+        "It captures whether the agent can solve a task given k independent attempts, separating capability from single-sample reliability",
+        "It is required for statistical significance testing",
+        "It measures how well the agent's output matches a reference solution textually"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "pass@k reveals the gap between \"the agent can do this at all\" and \"the agent does this dependably on the first try.\" A high pass@8 with low pass@1 indicates a sampling/selection problem addressable with self-consistency, verification, or reranking rather than a fundamental capability gap.",
+      "tags": [
+        "pass-at-k",
+        "benchmarks",
+        "reliability"
+      ],
+      "ref": "https://github.com/EleutherAI/lm-evaluation-harness"
+    },
+    {
+      "id": "ET-016",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "The CLASSic framework for evaluating enterprise agents covers which five dimensions?",
+      "choices": [
+        "Correctness, Latency, Availability, Security, Scalability",
+        "Cost, Latency, Accuracy, Stability, Security",
+        "Compliance, Learning, Autonomy, Safety, Speed",
+        "Coverage, Load, Accuracy, Stability, Support"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "CLASSic is an industry (Aisera) framework, not an NVIDIA one, that scores agents on Cost, Latency, Accuracy, Stability, and Security. Its value for exam purposes is the idea it encodes: production agent quality is multi-dimensional, and an accuracy-only evaluation misses the operational dimensions that decide whether an agent is deployable.",
+      "tags": [
+        "classic-framework",
+        "multi-dimensional-evaluation",
+        "enterprise"
+      ],
+      "ref": "https://arxiv.org/abs/2511.14136"
+    },
+    {
+      "id": "ET-017",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your agent scores 91% on your evaluation set and 68% in production. The evaluation set was built six months ago from the first month of traffic. What is the most likely explanation?",
+      "choices": [
+        "The judge model has degraded",
+        "The evaluation set no longer represents production traffic, and repeated optimization against it has overfit the agent to that fixed distribution",
+        "Production is running a different model version",
+        "The production prompt is longer"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A large, persistent gap between a static offline set and live traffic is the signature of two compounding problems: distribution shift since the set was collected, and overfitting from repeatedly tuning against the same fixed examples. The remedy is continuous refresh from recent traffic plus a held-out slice that is never used for tuning.",
+      "tags": [
+        "overfitting",
+        "distribution-shift",
+        "eval-refresh",
+        "offline-online-gap"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "ET-018",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO metrics specifically evaluate an agent's tool use rather than its final answer?",
+      "choices": [
+        "Tool-selection correctness: did it choose the right tool for the step",
+        "Argument correctness: were the parameters well-formed and semantically right",
+        "Answer relevancy",
+        "Faithfulness"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Tool-correctness metrics decompose into choosing the right tool and calling it correctly; together they localize failures to the agent's action layer. Answer relevancy and faithfulness assess the generated response against the question and the context respectively, and can both look fine even when the agent took an inefficient or wrong path to get there.",
+      "tags": [
+        "tool-correctness",
+        "agent-metrics",
+        "deepeval"
+      ],
+      "ref": "https://deepeval.com/docs/metrics-llm-evals"
+    },
+    {
+      "id": "ET-019",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You want to compare two agent versions on open-ended tasks where no single reference answer exists. Which evaluation design is most reliable?",
+      "choices": [
+        "Score each version independently on a 1-10 scale with an LLM judge and compare the means",
+        "Pairwise comparison: show the judge both outputs for the same input in randomized order and ask which is better against a rubric",
+        "Compare average response length as a proxy for thoroughness",
+        "Compare the two versions' perplexity on the task inputs"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Absolute numeric scoring from LLM judges is poorly calibrated and drifts, so differences in the means are hard to trust. Pairwise preference with position randomization is far more reliable because the judge only has to make a relative call, and randomization controls for the well-documented position bias. Length and perplexity are not quality measures.",
+      "tags": [
+        "pairwise-evaluation",
+        "position-bias",
+        "llm-judge",
+        "ab-comparison"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "ET-020",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "When is supervised fine-tuning (SFT) preferable to few-shot prompting for an agent's behavior?",
+      "choices": [
+        "When you need the behavior on a handful of examples only",
+        "When the behavior is stable and high-volume, the few-shot examples have grown long enough to cost real latency and tokens on every call, and you have enough consistent labeled examples",
+        "When the underlying facts change weekly",
+        "When you need the model to cite sources"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Few-shot examples are prompt overhead paid on every request. Once a behavior is settled and traffic is high, folding it into weights removes that recurring cost and usually improves consistency. Volatile facts belong in retrieval rather than weights, and citation behavior depends on having sources in context, not on tuning.",
+      "tags": [
+        "sft",
+        "finetune-vs-prompt",
+        "cost",
+        "decision-criteria"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/microservices/latest/"
+    },
+    {
+      "id": "ET-021",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "After LoRA fine-tuning for domain tone, your model's general instruction-following degrades noticeably. What is this and what is the standard mitigation?",
+      "choices": [
+        "Catastrophic forgetting; mitigate by mixing a replay set of general instruction data into the fine-tuning mix and lowering the LoRA rank or learning rate",
+        "Overfitting to the validation set; mitigate by early stopping only",
+        "Quantization error; mitigate by serving in FP16",
+        "Data leakage; mitigate by deduplicating the training set"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Narrow fine-tuning shifts the model away from behaviors it is not being trained on. The usual controls are mixing in general instruction data so those capabilities keep getting signal, and reducing the capacity or step size of the adaptation (lower rank, lower learning rate, fewer epochs) so the update stays small. Evaluating general capability before and after is what makes the regression visible at all.",
+      "tags": [
+        "catastrophic-forgetting",
+        "lora",
+        "replay-data",
+        "regression"
+      ],
+      "ref": "https://arxiv.org/abs/2106.09685"
+    },
+    {
+      "id": "ET-022",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does context precision measure in a RAG evaluation, as distinct from context recall?",
+      "choices": [
+        "Whether the retrieved chunks that are relevant appear near the top of the ranked list, penalizing relevant items buried under noise",
+        "What fraction of the ground-truth answer is covered by the retrieved context",
+        "Whether the answer contains only claims supported by the context",
+        "How many chunks were retrieved in total"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Context precision is a ranking-quality measure: of what was retrieved, are the useful items ranked highly. Context recall is a coverage measure against the reference answer. A pipeline can have high recall and poor precision — it found the evidence, but buried it under noise, which matters because of position effects in long contexts.",
+      "tags": [
+        "context-precision",
+        "context-recall",
+        "ranking",
+        "ragas"
+      ],
+      "ref": "https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_precision/"
+    },
+    {
+      "id": "ET-023",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "An agent must be evaluated before release. Which TWO slices should be reported separately rather than folded into one aggregate score?",
+      "choices": [
+        "Performance on the adversarial slice (injections, out-of-scope, ambiguous requests)",
+        "Performance on high-consequence actions where an error is costly or irreversible",
+        "Performance grouped by the day of week the sample was collected",
+        "Performance grouped by response length"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Aggregate scores hide exactly the failures that matter. The adversarial slice and the high-consequence slice each have a different acceptable error rate from routine traffic, so they need their own thresholds and their own release gates. Day-of-week and response-length groupings do not correspond to a risk or capability boundary.",
+      "tags": [
+        "disaggregated-reporting",
+        "release-gates",
+        "adversarial-slice",
+        "risk"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "ET-024",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the role of NeMo Customizer within the NeMo microservices stack?",
+      "choices": [
+        "Running benchmarks and LLM-as-judge evaluations",
+        "Providing a managed service for fine-tuning models with techniques such as LoRA and SFT, producing adapters or checkpoints for deployment",
+        "Applying dialog and content rails at inference time",
+        "Extracting and embedding documents for retrieval"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Customizer is the tuning microservice: it runs SFT and PEFT jobs (LoRA among them) against a base model and emits artifacts you can then serve, commonly as multi-LoRA adapters on a NIM. Evaluation is Evaluator, rails are Guardrails, and retrieval-side extraction and embedding are Retriever.",
+      "tags": [
+        "nemo-customizer",
+        "nvidia",
+        "fine-tuning",
+        "product-mapping"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/microservices/latest/"
+    },
+    {
+      "id": "ET-025",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A judge model marks an agent's answer wrong. On inspection the answer is correct but phrased differently from the reference. What does this reveal about the evaluation setup?",
+      "choices": [
+        "The agent needs fine-tuning to match the reference style",
+        "The judge prompt is treating surface form as correctness; it should be instructed to score semantic equivalence against the rubric, and the disagreement should feed judge calibration",
+        "The reference answers are wrong",
+        "The evaluation set is too small"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A false negative of this kind is a judge defect, not an agent defect. The judge's instructions must separate meaning from wording, and every human-reviewed disagreement is calibration data for the judge prompt. Tuning the agent to imitate reference phrasing would be optimizing the metric rather than the capability.",
+      "tags": [
+        "judge-calibration",
+        "false-negatives",
+        "semantic-equivalence",
+        "metric-gaming"
+      ],
+      "ref": "https://deepeval.com/docs/metrics-llm-evals"
+    },
+    {
+      "id": "ET-026",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement about quantization-aware evaluation is correct?",
+      "choices": [
+        "If aggregate benchmark accuracy is within 1 point of the FP16 baseline, the quantized model is safe to deploy",
+        "The quantized model must be evaluated on the specific capabilities the agent depends on — tool-call schema conformance, long-context recall, instruction adherence — because aggregate scores can mask disproportionate damage to narrow behaviors",
+        "Quantization only affects throughput, never output quality",
+        "Only weights-and-activations quantization requires re-evaluation; weight-only quantization does not"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Aggregate benchmarks average across many behaviors and can look nearly unchanged while a precision-critical capability degrades badly. The discipline is to evaluate the quantized model on your agent's actual load-bearing behaviors. All quantization schemes change numerics and therefore warrant re-evaluation.",
+      "tags": [
+        "quantization-evaluation",
+        "capability-specific",
+        "int4",
+        "regression"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/reference/precision.html"
+    },
+    {
+      "id": "ET-027",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You need to measure whether an agent improved after a change, but traffic is low: only about 300 sessions per week. What is the most appropriate experimental approach?",
+      "choices": [
+        "Run an A/B test for one week and act on whichever arm is ahead",
+        "Run the change against a curated offline set for a directional read, then run a longer online test sized to the effect you care about, and state the minimum detectable effect up front",
+        "Ship to 100% and watch the dashboards",
+        "Compare this week's metrics against last week's"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "At low volume, a one-week A/B test is underpowered and a week-over-week comparison confounds the change with everything else that varied. The sound approach is to use offline evaluation for a fast directional signal and to size the online test against the effect you actually need to detect, accepting a longer run rather than a fast but meaningless result.",
+      "tags": [
+        "statistical-power",
+        "minimum-detectable-effect",
+        "low-traffic",
+        "experiment-design"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "ET-028",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO are valid reasons to prefer prompt or retrieval changes over fine-tuning as a first response to a quality problem?",
+      "choices": [
+        "They are reversible within minutes and require no training infrastructure",
+        "They keep volatile knowledge out of the weights, where it would go stale and require retraining to correct",
+        "They always produce better accuracy than fine-tuning",
+        "They eliminate the need for an evaluation suite"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Prompt and retrieval changes are cheap, fast, and reversible, and they keep changing facts in a layer you can update without touching the model. Fine-tuning remains the right answer for stable behavioral and stylistic requirements. Neither approach is universally more accurate, and both still need an evaluation suite to confirm they helped.",
+      "tags": [
+        "intervention-ordering",
+        "reversibility",
+        "knowledge-volatility",
+        "tuning-decisions"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/microservices/latest/"
+    },
+    {
+      "id": "ET-029",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent handles five distinct task types. Overall accuracy is 84%, which meets the release bar. What should you check before shipping?",
+      "choices": [
+        "Whether the 84% is stable across repeated runs",
+        "The per-task-type breakdown, because a uniformly strong average can conceal one task type performing far below the bar",
+        "Whether the evaluation set is large enough overall",
+        "Whether latency also meets its target"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A single aggregate over heterogeneous task types is the most common way a release gate passes something it should not: four types at 92% and one at 50% averages to 84%. Users of the failing task type experience an unusable product. Run stability, set size, and latency all matter too, but the disaggregation is what this number is actively hiding.",
+      "tags": [
+        "aggregate-vs-segment",
+        "release-gates",
+        "task-breakdown"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    }
+  ]
+}

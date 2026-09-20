@@ -1,0 +1,75 @@
+{
+  "id": "CS10",
+  "title": "Tune it or retrieve it",
+  "scenario": "A legal-tech team's agent drafts contract summaries. Three complaints recur. First, it uses generic commercial vocabulary instead of the firm's house terminology, and formats summaries inconsistently. Second, it cites clause numbering from an older template retired in March. Third, it occasionally returns a summary whose JSON fails the downstream parser on an enum field, emitting 'in_review' where the schema requires 'IN_REVIEW'. The team has 3,000 high-quality in-house summaries with consistent style, and a document store that is updated weekly.",
+  "questions": [
+    {
+      "id": "CS10-1",
+      "domain": "evaluation-tuning",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which intervention fits the terminology and formatting complaint?",
+      "choices": [
+        "Retrieval-augmented generation over the 3,000 summaries",
+        "Parameter-efficient fine-tuning (LoRA) on the 3,000 in-house summaries",
+        "Full pre-training on the firm's corpus",
+        "Constrained decoding against the output schema"
+      ],
+      "answer": [1],
+      "explanation": "Fine-tuning teaches form, style and vocabulary, and a few thousand consistent examples is the right scale for PEFT. Retrieval supplies facts rather than instilling a house voice, pre-training is orders of magnitude disproportionate, and constrained decoding governs structure rather than word choice.",
+      "tags": ["lora", "style-vs-facts", "intervention-choice"],
+      "ref": "https://arxiv.org/abs/2106.09685"
+    },
+    {
+      "id": "CS10-2",
+      "domain": "knowledge-data",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which intervention fits the retired-template citation complaint?",
+      "choices": [
+        "Fine-tune on documents using the current template",
+        "Retrieval with effective-date metadata and query-time filtering, and retire the old template from the index",
+        "Raise the temperature so the model varies its citations",
+        "Add the current clause numbering to the system prompt"
+      ],
+      "answer": [1],
+      "explanation": "Clause numbering is volatile, verifiable fact that changes on a schedule, which puts it firmly in the retrieval layer where it can be updated by changing the index. Folding it into weights means it goes stale and requires retraining to correct, and a static prompt listing cannot keep pace with weekly updates.",
+      "tags": ["freshness", "retrieval-vs-tuning", "metadata-filtering"],
+      "ref": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/metadata_extraction/"
+    },
+    {
+      "id": "CS10-3",
+      "domain": "agent-development",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which fix makes the enum casing failure structurally impossible rather than merely rarer?",
+      "choices": [
+        "Add the correct casing to the prompt as a few-shot example",
+        "Enumerate the exact permitted values in the schema and use guided decoding, so only conforming tokens can be emitted",
+        "Retry the call until the parser accepts the output",
+        "Change the field to a free-form string and normalize downstream"
+      ],
+      "answer": [1],
+      "explanation": "Constrained decoding against a schema that lists the literal allowed values masks any token that would violate it, eliminating the failure class. Examples and retries reduce the rate of a systematic error without removing it, and loosening the type pushes the problem downstream rather than solving it.",
+      "tags": ["constrained-decoding", "enums", "structured-output"],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/structured-generation.html"
+    },
+    {
+      "id": "CS10-4",
+      "domain": "nvidia-platform",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO NVIDIA components map to the work this team must do?",
+      "choices": [
+        "NeMo Customizer to train the LoRA adapter",
+        "NeMo Retriever for document extraction, embedding and reranking over the weekly-updated store",
+        "NeMo Curator to serve the adapter at inference time",
+        "NeMo Guardrails to enforce the JSON schema"
+      ],
+      "answer": [0, 1],
+      "explanation": "Tuning is Customizer and the retrieval pipeline is Retriever, matching the two interventions the case calls for. Curator is a data-curation tool and does not serve anything, and Guardrails governs conversational content rather than enforcing output schemas, which is the job of constrained decoding.",
+      "tags": ["product-mapping", "nemo-customizer", "nemo-retriever"],
+      "ref": "https://docs.nvidia.com/nemo/microservices/latest/"
+    }
+  ]
+}

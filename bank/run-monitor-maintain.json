@@ -1,0 +1,422 @@
+{
+  "domain": "run-monitor-maintain",
+  "questions": [
+    {
+      "id": "RM-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is distributed tracing more valuable than request-level logging for debugging a multi-step agent?",
+      "choices": [
+        "Traces are cheaper to store than logs",
+        "A trace links every LLM call, tool call, and retrieval into one causal tree with timing and token counts, so you can see which step caused a wrong or slow outcome",
+        "Traces automatically redact sensitive data",
+        "Traces replace the need for metrics"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Agent failures are path failures: the final output is wrong because of something that happened three steps earlier. A trace preserves the parent-child structure, inputs/outputs, latency, and token usage of each span, making attribution possible. Logs record events without that causal structure. Traces are typically more expensive, do not redact by default, and complement rather than replace metrics.",
+      "tags": [
+        "tracing",
+        "observability",
+        "spans",
+        "debugging"
+      ],
+      "ref": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    },
+    {
+      "id": "RM-002",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "You are defining production telemetry for an agent. Which TWO agent-specific signals should you capture that a conventional web service would not have?",
+      "choices": [
+        "Per-step token consumption (prompt/completion) and cumulative cost per task",
+        "Tool-call counts, tool error rates, and step counts per task, including runs that hit the step limit",
+        "HTTP status code distribution",
+        "Container CPU and memory utilization"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Token/cost accounting and tool-and-step trajectory metrics are the distinctive agent signals: they reveal cost regressions, loop behavior, and tool degradation that no standard web metric exposes. Status codes and container resource usage are necessary but generic infrastructure telemetry.",
+      "tags": [
+        "telemetry",
+        "cost-tracking",
+        "agent-metrics",
+        "observability"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "RM-003",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent that performed well at launch shows a slow quality decline over six months with no code or model changes. What is the most likely cause?",
+      "choices": [
+        "GPU thermal throttling degrading model quality",
+        "Drift: the distribution of user requests and the underlying knowledge base have changed away from what the prompts, retrieval, and evaluation set were designed for",
+        "KV cache fragmentation accumulating over time",
+        "Gradual weight corruption in the served model"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "With the stack frozen, the environment is what changed: new user intents, new vocabulary, new or stale documents. This is data/concept drift, and it is why production agents need periodic re-evaluation against refreshed datasets and monitoring of input distributions. Hardware throttling affects speed, not correctness, and served weights do not decay.",
+      "tags": [
+        "drift",
+        "monitoring",
+        "maintenance",
+        "re-evaluation"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "RM-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Your team wants to change a production agent's system prompt. Which practice best supports safe operation and incident response?",
+      "choices": [
+        "Edit the prompt in the running configuration and note the change in a chat channel",
+        "Version prompts as code artifacts, deploy them through canary rollout with metrics comparison, and make rollback a single reversible operation",
+        "Store prompts in a database so they can be edited without a deploy",
+        "Let each engineer maintain a personal prompt variant for their own tests"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Prompts are production behavior and deserve the same discipline as code: versioning, reviewable diffs, progressive exposure with metric gates, and instant rollback. Hot-editing configuration or databases without versioning removes the ability to correlate a regression with a change or revert it cleanly.",
+      "tags": [
+        "prompt-versioning",
+        "canary",
+        "rollback",
+        "change-management"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "RM-005",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which alerting condition is the best early warning that an agent is degrading, before users complain?",
+      "choices": [
+        "A rise in average response length",
+        "A rise in the rate of runs that terminate by hitting the maximum step limit, or in tool-error and retry rates",
+        "A rise in total GPU memory used",
+        "A rise in the number of unique users"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Step-limit terminations and rising tool-error/retry rates are leading indicators: the agent is failing to converge or its dependencies are failing, which precedes visible wrong answers and complaints. Response length and GPU memory are weak proxies, and user growth is not a health signal.",
+      "tags": [
+        "alerting",
+        "leading-indicators",
+        "sli",
+        "monitoring"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "RM-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the purpose of the OpenTelemetry GenAI semantic conventions?",
+      "choices": [
+        "To define a standard vector database schema for embeddings",
+        "To standardize span names and attributes for LLM and agent operations (model, token counts, tool names, and so on) so traces are portable across vendors and tools",
+        "To specify how to encrypt prompts in transit",
+        "To define a benchmark suite for agent quality"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The GenAI semantic conventions specify a shared vocabulary for instrumenting model and agent calls, so any compliant backend can interpret the same traces. That portability is why they are the recommended basis for agent observability instead of proprietary formats.",
+      "tags": [
+        "opentelemetry",
+        "semantic-conventions",
+        "standards",
+        "observability"
+      ],
+      "ref": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    },
+    {
+      "id": "RM-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A production incident: the agent begins giving wrong answers at 14:05. Which diagnostic sequence is most efficient?",
+      "choices": [
+        "Immediately roll back the model to the previous version and observe",
+        "Correlate the 14:05 boundary against the change and dependency timeline (prompt, model, tool, index, upstream API versions), then inspect traces from just before and just after to localize the failing span",
+        "Re-run the full offline evaluation suite and wait for results",
+        "Increase logging verbosity and wait for more examples to accumulate"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A sharp temporal boundary is the strongest evidence available: something changed at that moment. Correlating the timestamp with deployment and dependency events, then diffing traces across the boundary, localizes the cause quickly. Blind rollback may miss the actual culprit (an upstream API or reindex), and offline suites and more logging both delay diagnosis.",
+      "tags": [
+        "incident-response",
+        "diagnosis",
+        "change-correlation",
+        "traces"
+      ],
+      "ref": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    },
+    {
+      "id": "RM-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why should trace payloads containing prompts and tool arguments be treated as sensitive data?",
+      "choices": [
+        "They are large and expensive to store",
+        "They frequently contain user PII, credentials, or proprietary content, so traces need redaction, access control, and retention limits like any other sensitive datastore",
+        "They can be replayed to reconstruct model weights",
+        "They invalidate the prompt cache"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Observability data for LLM systems captures raw user input and tool payloads verbatim, which makes the tracing backend an unintentional copy of your most sensitive data. It requires redaction at instrumentation time, restricted access, and a retention policy. Storage cost is real but secondary, and traces do not expose weights.",
+      "tags": [
+        "trace-privacy",
+        "redaction",
+        "retention",
+        "compliance"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "RM-009",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which maintenance practice best protects against silent regressions when an upstream model provider updates a model behind the same alias?",
+      "choices": [
+        "Pin an explicit model version and run the regression evaluation suite before promoting any new version",
+        "Always use the `latest` alias so you benefit from improvements immediately",
+        "Increase the temperature to smooth over behavioral differences",
+        "Cache responses so old behavior persists"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Version pinning converts an uncontrolled external change into a deliberate, testable upgrade: you choose when to move, and the regression suite gates the promotion. Floating aliases make behavior change without a corresponding change on your side, which is the definition of a silent regression.",
+      "tags": [
+        "version-pinning",
+        "regression-testing",
+        "model-updates",
+        "maintenance"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/supported-models.html"
+    },
+    {
+      "id": "RM-010",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does the NeMo Agent Toolkit's profiler provide that generic APM tooling typically does not?",
+      "choices": [
+        "GPU temperature and fan-speed monitoring",
+        "Workflow-level breakdown of token usage, per-component latency, and bottleneck identification across the agent's tools and LLM calls, enabling targeted optimization",
+        "Automatic prompt rewriting to reduce cost",
+        "Network packet capture between microservices"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The toolkit instruments each function in a workflow, so profiling reports where tokens and time actually go across LLM calls, tools, and sub-agents — the agentic equivalent of a flame graph. Hardware telemetry (DCGM) and packet capture are separate concerns, and it does not rewrite prompts for you.",
+      "tags": [
+        "nemo-agent-toolkit",
+        "profiling",
+        "bottlenecks",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "RM-011",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which span structure best represents one agent task in a trace?",
+      "choices": [
+        "A single span covering the whole task with the final answer as an attribute",
+        "A root span for the task with child spans per step — each LLM call, tool call, and retrieval — carrying model name, token counts, and status",
+        "One span per LLM call with no parent, correlated by timestamp",
+        "A span per user session regardless of how many tasks it contains"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The causal tree is what makes a trace diagnostic: a root task span with nested child spans preserves which step led to which, how long each took, and what each consumed. Flat or timestamp-correlated spans lose the parent-child relationship that attribution depends on, and a single coarse span hides everything that happened inside.",
+      "tags": [
+        "span-structure",
+        "tracing",
+        "opentelemetry",
+        "attribution"
+      ],
+      "ref": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    },
+    {
+      "id": "RM-012",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO SLOs are meaningful for an agentic service, as opposed to a plain API?",
+      "choices": [
+        "Task success rate: the fraction of tasks completed to a defined acceptance criterion",
+        "p95 end-to-end task completion time, including all tool and model calls in the trajectory",
+        "p95 latency of a single LLM call",
+        "Uptime of the inference endpoint"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Users experience tasks, not calls. Task success against an explicit acceptance criterion and end-to-end completion time capture the whole trajectory, which is where agentic failures live. Per-call latency and endpoint uptime are necessary component SLIs, but both can look healthy while tasks routinely fail or take ten steps too many.",
+      "tags": [
+        "slo",
+        "task-level-metrics",
+        "agentic-sli",
+        "end-to-end"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "RM-013",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Your token-cost dashboard shows a 40% month-over-month increase with flat request volume. Which breakdown identifies the cause fastest?",
+      "choices": [
+        "Cost by time of day",
+        "Cost per task broken down by prompt versus completion tokens and by step, compared against the previous month's distribution",
+        "Total GPU hours consumed",
+        "Cost by user geography"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "With volume flat, cost per task rose, so the question is which component grew. Splitting prompt versus completion tokens and attributing to steps distinguishes a context-growth problem (longer prompts, more retrieved chunks, history not compacted) from a trajectory-length problem (more steps per task) — two different fixes.",
+      "tags": [
+        "cost-analysis",
+        "token-attribution",
+        "dashboards",
+        "diagnosis"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "RM-014",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You want to detect agent quality regressions in production without waiting for user complaints. Which approach is most practical?",
+      "choices": [
+        "Run the full evaluation suite against production traffic continuously",
+        "Sample a small slice of live traffic, score it with automated proxies (groundedness checks, tool-error rate, step-limit terminations) and a periodic human-reviewed subset, and alert on trend shifts",
+        "Ask users to rate every response",
+        "Compare production output length to the baseline"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Continuous full evaluation is too costly, and complaint-driven detection is too slow. Sampling with cheap automated proxies gives a continuous signal, and a periodic human-reviewed slice calibrates those proxies so you know what a trend shift actually means. Asking for ratings on everything gets sparse, biased responses.",
+      "tags": [
+        "production-monitoring",
+        "sampling",
+        "automated-proxies",
+        "regression-detection"
+      ],
+      "ref": "https://docs.ragas.io/en/stable/concepts/metrics/overview/"
+    },
+    {
+      "id": "RM-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which artifacts must be versioned together to reproduce an agent's behavior from a past date?",
+      "choices": [
+        "The application code only",
+        "Code, prompts, tool definitions and their schemas, model identifier and version, retrieval index version, and guardrail configuration",
+        "The model weights only",
+        "The conversation transcripts"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "An agent's behavior is the joint product of all of these. Reproducing a past decision requires knowing which prompt, which tool schemas, which model version, which index snapshot, and which rails were in force. Versioning only code leaves the majority of the behavior surface unpinned — which is why post-incident analysis so often stalls.",
+      "tags": [
+        "versioning",
+        "reproducibility",
+        "configuration-management",
+        "audit"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "RM-016",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent's tool starts returning subtly wrong data after an upstream schema change: a field was renamed and your wrapper now silently passes null. How should this have been caught?",
+      "choices": [
+        "By a larger model that would notice the missing field",
+        "By contract tests against the upstream API that fail when the response schema changes, plus strict parsing that errors on unexpected or missing fields rather than defaulting to null",
+        "By monitoring GPU utilization",
+        "By increasing the retry count"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Silent nulls are a parsing-leniency failure. Strict deserialization turns a schema change into a loud error at the boundary, and scheduled contract tests catch the upstream change before it reaches production. Relying on the model to notice missing data is not a control — and this class of bug is exactly what makes agents confidently wrong.",
+      "tags": [
+        "contract-tests",
+        "strict-parsing",
+        "schema-drift",
+        "silent-failure"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "RM-017",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO practices make an agent incident postmortem effective?",
+      "choices": [
+        "Link the incident to the exact trace ids and the change timeline so cause and effect are established from evidence rather than inference",
+        "Add the failing case to the regression evaluation suite so the specific defect cannot silently return",
+        "Retrain the model on the failure case",
+        "Increase logging verbosity globally"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Evidence-based attribution and a regression test are what convert an incident into durable improvement: the first establishes what actually happened, the second guarantees you will notice if it recurs. Retraining on a single case is disproportionate and risks new regressions, and blanket verbose logging adds cost and noise without targeting anything.",
+      "tags": [
+        "postmortem",
+        "regression-suite",
+        "trace-linkage",
+        "incident-response"
+      ],
+      "ref": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    },
+    {
+      "id": "RM-018",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You are rolling out a new model version for an agent. Which canary design gives the clearest signal with the least risk?",
+      "choices": [
+        "Route 50% of traffic to the new version for one hour",
+        "Route a small percentage to the new version, compare task success, tool-error rate, cost per task, and latency against the control on the same traffic mix, and hold long enough to cover the normal variety of requests",
+        "Route all internal users to the new version indefinitely",
+        "Deploy to a separate region and compare regional metrics"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A canary needs a small blast radius, a matched comparison on the same traffic distribution, and enough duration to see the variety of real requests rather than one hour's slice. Large immediate splits raise exposure, internal-only traffic is not representative, and cross-region comparison confounds the version change with regional differences.",
+      "tags": [
+        "canary",
+        "progressive-delivery",
+        "comparison-design",
+        "model-rollout"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/supported-models.html"
+    }
+  ]
+}

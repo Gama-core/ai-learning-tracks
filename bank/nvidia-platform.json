@@ -1,0 +1,657 @@
+{
+  "domain": "nvidia-platform",
+  "questions": [
+    {
+      "id": "NP-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Match the requirement to the NVIDIA component: you need to enforce topic boundaries and block unsafe outputs in an agent's conversations using declarative rules. Which component?",
+      "choices": [
+        "NeMo Curator",
+        "NeMo Guardrails",
+        "NeMo Customizer",
+        "NeMo Evaluator"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "NeMo Guardrails is the programmable rails layer: input, output, dialog, retrieval, and execution rails defined in Colang/YAML to constrain what an LLM application will discuss and emit. Curator prepares data, Customizer fine-tunes, and Evaluator benchmarks.",
+      "tags": [
+        "nemo-guardrails",
+        "product-mapping",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/guardrails/latest/"
+    },
+    {
+      "id": "NP-002",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which NVIDIA component is responsible for large-scale preparation, filtering, and deduplication of text datasets before training or fine-tuning?",
+      "choices": [
+        "NeMo Curator",
+        "NeMo Retriever",
+        "Triton Inference Server",
+        "NIM"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "NeMo Curator is the GPU-accelerated data curation library: download, extract, language and quality filtering, exact/fuzzy/semantic deduplication, and PII redaction at corpus scale. Retriever serves RAG-time embedding and reranking, while Triton and NIM are inference serving.",
+      "tags": [
+        "nemo-curator",
+        "data-curation",
+        "product-mapping",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nemo-framework/user-guide/latest/datacuration/index.html"
+    },
+    {
+      "id": "NP-003",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You want to try a dozen open models against your agent's prompts before committing to a deployment, without provisioning any GPUs. What is the intended NVIDIA path?",
+      "choices": [
+        "Download each model from NGC and build TensorRT-LLM engines locally",
+        "Use the hosted API endpoints on build.nvidia.com, which expose the same models as OpenAI-compatible NIM endpoints, then self-host the winner as a NIM container",
+        "Use NeMo Customizer to fine-tune each candidate first",
+        "Deploy all twelve with Triton in a single model repository"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "build.nvidia.com is the try-before-you-deploy surface: hosted, OpenAI-compatible endpoints for the NIM catalog with free credits, so prompts and agent code can be validated with a base-URL change and the selected model later self-hosted as the identical NIM container. Building engines or fine-tuning twelve candidates inverts the effort order.",
+      "tags": [
+        "build.nvidia.com",
+        "nim",
+        "model-selection",
+        "nvidia"
+      ],
+      "ref": "https://build.nvidia.com"
+    },
+    {
+      "id": "NP-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What are NVIDIA AI Blueprints?",
+      "choices": [
+        "Hardware reference designs for GPU server chassis",
+        "Reference AI workflows — packaged source, NIM microservices, and deployment assets — that implement a complete use case such as multimodal PDF extraction or an AI research assistant",
+        "Licensing agreements for enterprise model use",
+        "A benchmark suite for measuring agent performance"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "AI Blueprints are end-to-end reference workflows you can deploy and adapt: they compose NIM microservices and example code into a working implementation of a common use case, serving as a starting architecture rather than hardware specs or licensing.",
+      "tags": [
+        "ai-blueprints",
+        "reference-architectures",
+        "nvidia"
+      ],
+      "ref": "https://build.nvidia.com/blueprints"
+    },
+    {
+      "id": "NP-005",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "You must fine-tune a model with LoRA and then serve several LoRA adapters over one base model. Which TWO NVIDIA capabilities are directly relevant?",
+      "choices": [
+        "NeMo Customizer (or NeMo Framework PEFT) to train the LoRA adapters",
+        "NIM's multi-LoRA serving, which hosts multiple adapters against a single base model deployment",
+        "NeMo Curator to serve the adapters at inference time",
+        "MIG to merge the adapters into the base weights"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Training the adapters is NeMo Customizer / NeMo Framework PEFT; serving many adapters over one loaded base model is NIM's multi-LoRA feature, which avoids a full deployment per adapter. Curator is a data tool, and MIG partitions GPUs — neither has anything to do with adapters.",
+      "tags": [
+        "lora",
+        "multi-lora",
+        "nemo-customizer",
+        "nim",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/peft.html"
+    },
+    {
+      "id": "NP-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement about TensorRT-LLM is accurate?",
+      "choices": [
+        "It is a serving framework that exposes HTTP endpoints directly to clients",
+        "It is a library for building and running optimized LLM inference engines — applying kernel fusion, quantization, paged KV cache, and in-flight batching — typically served behind Triton or packaged inside a NIM",
+        "It is a fine-tuning library for parameter-efficient adaptation",
+        "It converts models to ONNX for CPU inference"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "TensorRT-LLM is the optimization and execution layer: it compiles/configures LLMs into highly tuned GPU engines with features like paged KV cache, quantization, and continuous batching. The HTTP serving surface comes from Triton or a NIM wrapper around it. It does not fine-tune, and its target is NVIDIA GPUs rather than CPU.",
+      "tags": [
+        "tensorrt-llm",
+        "inference-optimization",
+        "nvidia"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/"
+    },
+    {
+      "id": "NP-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your agentic RAG pipeline is bottlenecked on building and querying a very large vector index on CPU. Which NVIDIA technology targets this specific bottleneck?",
+      "choices": [
+        "cuVS / RAFT GPU-accelerated vector search (as integrated into vector databases such as Milvus)",
+        "NeMo Guardrails retrieval rails",
+        "Triton's dynamic batching",
+        "NVLink Switch fabric"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "cuVS (formerly RAFT's vector search) provides GPU-accelerated index construction (for example CAGRA, IVF-PQ) and search, which vector databases like Milvus integrate to cut build times and raise query throughput dramatically. Guardrails, batching, and interconnect fabrics address entirely different layers.",
+      "tags": [
+        "cuvs",
+        "raft",
+        "vector-search",
+        "rapids",
+        "nvidia"
+      ],
+      "ref": "https://docs.rapids.ai/api/cuvs/stable/"
+    },
+    {
+      "id": "NP-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "For an agent deployed on-premises in an enterprise with support and security-patch requirements, which NVIDIA offering is the relevant commercial vehicle?",
+      "choices": [
+        "NVIDIA AI Enterprise, which provides supported, secured, and certified builds of NIM, NeMo, and related software",
+        "NVIDIA Omniverse",
+        "CUDA Toolkit community edition",
+        "NGC public catalog only"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "NVIDIA AI Enterprise is the licensed software suite that packages NIM microservices, NeMo, and frameworks with enterprise support, security patching, and API stability — the answer whenever a question emphasizes production support and compliance on-prem. Omniverse targets simulation and digital twins.",
+      "tags": [
+        "nvidia-ai-enterprise",
+        "licensing",
+        "enterprise",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/ai-enterprise/index.html"
+    },
+    {
+      "id": "NP-009",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why does NVLink/NVSwitch matter for serving a very large model with tensor parallelism?",
+      "choices": [
+        "It increases each GPU's memory capacity",
+        "Tensor parallelism requires frequent all-reduce communication between GPUs on every layer, so high-bandwidth, low-latency interconnect directly determines achievable latency and scaling efficiency",
+        "It allows the model to run on CPUs when GPUs are saturated",
+        "It compresses the KV cache during transfer"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Tensor parallelism is communication-intensive: partial results must be reduced across GPUs many times per token. NVLink/NVSwitch provides an order of magnitude more bandwidth than PCIe, which is why TP is normally kept within an NVLink domain and why interconnect, not just FLOPS, governs scaling. It does not add memory or enable CPU fallback.",
+      "tags": [
+        "nvlink",
+        "nvswitch",
+        "tensor-parallelism",
+        "interconnect",
+        "nvidia"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/advanced/executor.html"
+    },
+    {
+      "id": "NP-010",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "You need to expose an existing LangGraph agent, a CrewAI crew, and a few bare Python tools as one instrumented, profilable workflow with a served endpoint and a UI. Which NVIDIA component is designed for this?",
+      "choices": [
+        "NeMo Agent Toolkit",
+        "NeMo Curator",
+        "TensorRT Model Optimizer",
+        "DCGM Exporter"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "NeMo Agent Toolkit is the framework-agnostic composition layer: it wraps components from different frameworks behind a uniform function interface, adds profiling and evaluation, and can serve a workflow with an accompanying UI. The other options handle data curation, model compression, and GPU telemetry respectively.",
+      "tags": [
+        "nemo-agent-toolkit",
+        "product-mapping",
+        "nvidia"
+      ],
+      "ref": "https://github.com/NVIDIA/NeMo-Agent-Toolkit"
+    },
+    {
+      "id": "NP-011",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent must serve a long-context model with a very large KV cache for many concurrent users. Comparing H100 (80 GB HBM3) with H200 (141 GB HBM3e), what is the main practical benefit of the H200 for this workload?",
+      "choices": [
+        "Higher peak FP16 matrix throughput, which shortens prefill",
+        "Substantially more HBM capacity and bandwidth, which allows a larger KV cache and therefore higher concurrency and longer contexts per GPU",
+        "Support for FP4 arithmetic, which halves memory use",
+        "Integrated CPU cores that reduce host round trips"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "H200 keeps the Hopper compute architecture but roughly doubles memory capacity and increases bandwidth, which is exactly what KV-cache-bound long-context serving needs: more concurrent sequences per GPU and less need for sharding. FP4 arrives with Blackwell, and integrated CPU cores describe Grace-based superchips.",
+      "tags": [
+        "h100",
+        "h200",
+        "gpu-selection",
+        "kv-cache",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/supported-models.html"
+    },
+    {
+      "id": "NP-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which NVIDIA model family is specifically positioned for safety classification tasks such as detecting unsafe content categories in agent inputs and outputs?",
+      "choices": [
+        "Llama Nemotron Safety Guard (formerly Llama Guard / Nemotron safety models) used as a guardrail classifier",
+        "NV-Embed",
+        "Nemotron-Mini for function calling",
+        "Cosmos Nemotron for video understanding"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Safety-guard model variants are content-safety classifiers used as input/output rails, commonly wired into NeMo Guardrails to label prompts and responses against unsafe categories. NV-Embed is an embedding model, and the other families target function calling and multimodal video understanding.",
+      "tags": [
+        "safety-models",
+        "guardrails",
+        "nemotron",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/guardrails/get-started/tutorials/nemotron-safety-guard-deployment"
+    },
+    {
+      "id": "NP-013",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is NVIDIA NemoClaw?",
+      "choices": [
+        "A quantization format for consumer GPUs",
+        "An open-source reference stack for running AI agents more safely on local NVIDIA hardware, packaging an agent framework, a tuned Nemotron profile, and the OpenShell sandboxing runtime",
+        "A replacement for the NeMo Agent Toolkit",
+        "A managed cloud service for hosting agents"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "NemoClaw is NVIDIA's open stack for running agents locally with policy and safety boundaries, combining LangChain Deep Agents, a tuned Nemotron 3 profile, and NVIDIA OpenShell for sandboxing, credential management, and network proxying. It targets local, always-on agents on RTX PCs, workstations, and DGX Spark-class systems rather than cloud hosting.",
+      "tags": [
+        "nemoclaw",
+        "openshell",
+        "local-agents",
+        "nvidia"
+      ],
+      "ref": "https://developer.nvidia.com/blog/build-a-secure-always-on-local-ai-agent-with-nvidia-nemoclaw-and-openclaw/"
+    },
+    {
+      "id": "NP-014",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which combination of NVIDIA components would you assemble for an enterprise RAG agent that must run on-premises with content safety and auditable evaluation?",
+      "choices": [
+        "NIM for model serving, NeMo Retriever for extraction/embedding/reranking, NeMo Guardrails for rails, NeMo Evaluator for benchmarking, under NVIDIA AI Enterprise support",
+        "NeMo Curator for serving, Triton for guardrails, cuVS for evaluation",
+        "TensorRT-LLM for retrieval, NIM for curation, Dynamo for safety",
+        "NeMo Agent Toolkit alone, which includes all of the above"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Each requirement maps to one component: serving to NIM, the retrieval pipeline to NeMo Retriever, content and topic control to NeMo Guardrails, measurement to NeMo Evaluator, and the supported, patched on-prem distribution to NVIDIA AI Enterprise. The NeMo Agent Toolkit composes and profiles such a system but does not replace the individual services.",
+      "tags": [
+        "stack-assembly",
+        "product-mapping",
+        "on-prem",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/ai-enterprise/index.html"
+    },
+    {
+      "id": "NP-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Under which license are Nemotron 3 model weights released, and what does that imply?",
+      "choices": [
+        "Apache 2.0, so the weights are public domain",
+        "The NVIDIA Open Model License, which makes the weights openly available for commercial use under its stated terms rather than fully unrestricted",
+        "A research-only license prohibiting commercial use",
+        "They are closed weights available only through NIM"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Nemotron 3 weights ship under the NVIDIA Open Model License — open-weight and usable commercially under the license's terms, which is different both from a permissive OSI license and from a research-only restriction. The distinction matters for enterprise procurement and for self-hosting decisions.",
+      "tags": [
+        "open-model-license",
+        "nemotron-3",
+        "licensing",
+        "nvidia"
+      ],
+      "ref": "https://developer.nvidia.com/blog/inside-nvidia-nemotron-3-techniques-tools-and-data-that-make-it-efficient-and-accurate/"
+    },
+    {
+      "id": "NP-016",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent team wants to profile which component of a multi-framework workflow consumes the most tokens and time, then optimize it. Which NVIDIA capability targets this directly?",
+      "choices": [
+        "DCGM Exporter GPU metrics",
+        "The NeMo Agent Toolkit profiler, which instruments each function in the workflow and reports per-component latency and token usage to locate bottlenecks",
+        "Triton's model analyzer",
+        "NeMo Curator's data statistics"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The toolkit's uniform function interface is what makes workflow-level profiling possible: every agent, tool, and sub-workflow is instrumented identically, so the profile attributes tokens and time across framework boundaries. DCGM reports hardware telemetry and Triton's model analyzer tunes a single model's serving configuration — neither sees the agent's call graph.",
+      "tags": [
+        "nemo-agent-toolkit",
+        "profiling",
+        "bottlenecks",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "NP-017",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the purpose of NeMo Data Designer in NVIDIA's model development tooling?",
+      "choices": [
+        "Designing the neural network architecture",
+        "Generating and shaping synthetic datasets for training and evaluation",
+        "Laying out GPU cluster topology",
+        "Designing prompts for production agents"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "NeMo Data Designer is part of the data-side tooling released around Nemotron 3, aimed at producing synthetic data for post-training and evaluation. It sits alongside NeMo Curator (curating and filtering real corpora) and NeMo Gym (interactive RL environments) in the data and training pipeline.",
+      "tags": [
+        "nemo-data-designer",
+        "synthetic-data",
+        "nvidia",
+        "tooling"
+      ],
+      "ref": "https://developer.nvidia.com/blog/inside-nvidia-nemotron-3-techniques-tools-and-data-that-make-it-efficient-and-accurate/"
+    },
+    {
+      "id": "NP-018",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO statements about deploying models on NVIDIA infrastructure are accurate?",
+      "choices": [
+        "A NIM exposes an OpenAI-compatible API, so client code can move between hosted build.nvidia.com endpoints and self-hosted containers with a base-URL change",
+        "TensorRT-LLM engines are built for a specific model, precision, and GPU architecture, so an engine built for one GPU generation is not portable to another",
+        "NIM containers run on any accelerator including AMD and Intel GPUs",
+        "Triton can only serve one model per deployment"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "API compatibility is the property that makes prototype-to-production migration cheap, and engine specificity is the constraint teams most often trip over: TensorRT-LLM builds are tied to the target architecture and precision, so hardware changes require a rebuild. NIM targets NVIDIA GPUs, and Triton is explicitly a multi-model server.",
+      "tags": [
+        "nim",
+        "tensorrt-llm",
+        "portability",
+        "openai-compatible",
+        "nvidia"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/"
+    },
+    {
+      "id": "NP-019",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which NVIDIA offering would you point a team to for a ready-made, deployable reference implementation of an agentic use case such as multimodal PDF extraction or a research assistant?",
+      "choices": [
+        "NGC container registry",
+        "NVIDIA AI Blueprints",
+        "NVIDIA Omniverse",
+        "CUDA samples"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "AI Blueprints are packaged reference workflows — source, composed NIM microservices, and deployment assets — that implement a complete use case and are meant to be customized. NGC is the registry that hosts containers and models; Omniverse targets simulation and digital twins.",
+      "tags": [
+        "ai-blueprints",
+        "reference-workflows",
+        "nvidia",
+        "ngc"
+      ],
+      "ref": "https://build.nvidia.com/blueprints"
+    },
+    {
+      "id": "NP-020",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent must run entirely on a developer workstation with no cloud calls, serving a mid-sized open model plus an embedder. Which NVIDIA path fits?",
+      "choices": [
+        "Deploy Dynamo across a multi-node cluster",
+        "Run NIM containers locally on the workstation GPU (or use the NemoClaw stack for a sandboxed local agent), keeping all inference and data on the machine",
+        "Use build.nvidia.com hosted endpoints",
+        "Use NVIDIA AI Enterprise cloud tenancy"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Local, no-cloud deployment is exactly what self-hosted NIM containers and the NemoClaw local-agent stack address: models and data stay on the workstation. build.nvidia.com is a hosted service and therefore not no-cloud, and Dynamo's disaggregated serving targets multi-node scale-out rather than a single workstation.",
+      "tags": [
+        "local-deployment",
+        "workstation",
+        "nemoclaw",
+        "nim",
+        "nvidia"
+      ],
+      "ref": "https://developer.nvidia.com/blog/build-a-secure-always-on-local-ai-agent-with-nvidia-nemoclaw-and-openclaw/"
+    },
+    {
+      "id": "NP-021",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does multi-token prediction (MTP) aim to improve during inference?",
+      "choices": [
+        "Training convergence speed only",
+        "Decode throughput, by having the model predict several future tokens in one forward pass so more tokens are produced per step",
+        "Retrieval accuracy",
+        "Memory footprint of the KV cache"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Multi-token prediction trains the model to emit several future tokens per forward pass, which — like speculative decoding, and often combined with it — increases tokens produced per step and therefore decode throughput. NVIDIA cited MTP among the techniques applied to the larger Nemotron 3 variants. It does not change KV cache size or retrieval.",
+      "tags": [
+        "multi-token-prediction",
+        "decode-throughput",
+        "nemotron-3",
+        "nvidia"
+      ],
+      "ref": "https://developer.nvidia.com/blog/inside-nvidia-nemotron-3-techniques-tools-and-data-that-make-it-efficient-and-accurate/"
+    },
+    {
+      "id": "NP-022",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO NVIDIA components are specifically part of the retrieval path rather than the generation path?",
+      "choices": [
+        "NeMo Retriever text embedding NIM",
+        "NeMo Retriever text reranking NIM",
+        "NeMo Guardrails dialog rails",
+        "TensorRT-LLM engine builder"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Embedding and reranking microservices operate on the retrieval side: turning text into vectors and reordering candidate passages before generation. Dialog rails govern conversational behavior around the model, and the TensorRT-LLM engine builder is generation-side inference optimization.",
+      "tags": [
+        "nemo-retriever",
+        "retrieval-path",
+        "product-mapping",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nim/nemo-retriever/text-reranking/latest/index.html"
+    },
+    {
+      "id": "NP-023",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A team asks why they should use NIM rather than running vLLM themselves with the same open weights. What is the most accurate answer?",
+      "choices": [
+        "NIM produces higher-quality outputs from the same weights",
+        "NIM packages a tuned engine, runtime, and standardized API as a supported, versioned container so teams skip engine-building and configuration tuning; running vLLM yourself is a valid choice that trades that packaging for more control",
+        "vLLM cannot serve NVIDIA models",
+        "NIM is free while vLLM requires a license"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The honest comparison is packaging and support versus control: a NIM ships a pre-optimized configuration behind a standard API with enterprise support under AI Enterprise, while self-managed vLLM gives more control and requires you to own tuning and operations. Output quality from identical weights is not the differentiator, and vLLM is open source.",
+      "tags": [
+        "nim-vs-vllm",
+        "packaging",
+        "tradeoffs",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/introduction.html"
+    },
+    {
+      "id": "NP-024",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which NVIDIA library would you reach for to accelerate the dataframe and preprocessing stage of a large document-ingestion pipeline?",
+      "choices": [
+        "RAPIDS (cuDF and related libraries) for GPU-accelerated dataframe and ETL operations",
+        "NeMo Guardrails",
+        "Triton Inference Server",
+        "TensorRT Model Optimizer"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "RAPIDS provides GPU-accelerated dataframe and ETL primitives (cuDF, and cuVS for vector search), which is what speeds up the data-wrangling stage of ingestion at scale. Guardrails, Triton, and Model Optimizer all operate on models rather than on the data pipeline.",
+      "tags": [
+        "rapids",
+        "cudf",
+        "etl",
+        "ingestion",
+        "nvidia"
+      ],
+      "ref": "https://docs.rapids.ai/api/cuvs/stable/"
+    },
+    {
+      "id": "NP-025",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement about NVIDIA's agentic safety dataset released alongside Nemotron 3 is most relevant to an agent developer?",
+      "choices": [
+        "It is a benchmark that must be run before deploying any NIM",
+        "It provides agentic safety traces usable for post-training and evaluating safety behavior in tool-using, multi-step settings, rather than single-turn content safety alone",
+        "It is a list of prohibited prompts to block at the guardrail layer",
+        "It replaces the need for NeMo Guardrails"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The point of an agentic safety dataset is that agent safety is trajectory-level: unsafe behavior shows up in which tools get called and in what sequence, not only in a single response. Such traces support post-training and evaluation of that behavior. It complements runtime rails rather than replacing them.",
+      "tags": [
+        "agentic-safety-dataset",
+        "trajectory-safety",
+        "nemotron-3",
+        "nvidia"
+      ],
+      "ref": "https://developer.nvidia.com/blog/inside-nvidia-nemotron-3-techniques-tools-and-data-that-make-it-efficient-and-accurate/"
+    },
+    {
+      "id": "NP-026",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You must choose between DGX-class systems and cloud GPU instances for an agent platform with steady, high, predictable utilization and strict data residency. Which reasoning is sound?",
+      "choices": [
+        "Cloud is always cheaper because you pay only for what you use",
+        "On-premises DGX-class infrastructure tends to win on cost at sustained high utilization and satisfies residency directly, while cloud wins on elasticity and low upfront commitment for variable demand",
+        "On-premises is required for any GPU workload over 8 GPUs",
+        "Cloud cannot satisfy data residency under any circumstances"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The deciding variables are utilization pattern and data control. Steady high utilization amortizes owned hardware well and residency is satisfied by construction; bursty or uncertain demand favors cloud elasticity. Cloud providers do offer region-pinned deployments, so residency is a constraint to verify rather than an automatic disqualifier.",
+      "tags": [
+        "dgx",
+        "on-prem-vs-cloud",
+        "utilization",
+        "residency",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/ai-enterprise/index.html"
+    },
+    {
+      "id": "NP-027",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which NeMo Guardrails capability would you use to stop an agent from discussing topics outside its supported scope?",
+      "choices": [
+        "Retrieval rails",
+        "Topic control via dialog rails (optionally backed by a topic-control safety model)",
+        "Execution rails",
+        "Output rails only"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Scope enforcement is a dialog-level concern: the rails define which topics the assistant engages with and how it declines otherwise, and a topic-control classifier can back that decision. Retrieval rails filter fetched context, execution rails wrap actions, and output rails filter generated text — useful adjuncts but not the mechanism for topic boundaries.",
+      "tags": [
+        "topic-control",
+        "dialog-rails",
+        "nemo-guardrails",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/guardrails/get-started/tutorials/nemoguard-topiccontrol-deployment"
+    },
+    {
+      "id": "NP-028",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent needs a small, fast model for routing and a large model for reasoning, both self-hosted. Which Nemotron 3 property makes the family well suited to this?",
+      "choices": [
+        "All variants share identical weights",
+        "The family spans Nano, Super, and Ultra sizes with a consistent architecture and licensing, so a cascade can be built from one family with comparable behavior and one operational toolchain",
+        "Only the smallest variant supports tool calling",
+        "The variants cannot be deployed together"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A model cascade is easier to operate when the tiers come from one family: consistent prompting and tool-calling behavior, one license, and one serving toolchain reduce the variance a routing architecture has to absorb. Nemotron 3's Nano/Super/Ultra spread is designed for that kind of tiering.",
+      "tags": [
+        "model-cascade",
+        "nemotron-3",
+        "family-tiering",
+        "routing",
+        "nvidia"
+      ],
+      "ref": "https://developer.nvidia.com/nemotron"
+    }
+  ]
+}

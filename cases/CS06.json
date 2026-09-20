@@ -1,0 +1,75 @@
+{
+  "id": "CS06",
+  "title": "Leaving the hosted API",
+  "scenario": "A fintech prototypes on a hosted model API and now must move to self-hosted inference: their regulator requires that customer prompts never leave the company's own network, and last month the provider silently updated the model behind the same alias, changing behavior overnight. The agent depends on reliable tool calling and strict JSON output. The team has H100 capacity, wants to serve four customer-specific fine-tuned variants, and would like to keep their existing client code.",
+  "questions": [
+    {
+      "id": "CS06-1",
+      "domain": "nvidia-platform",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO properties of a self-hosted NIM directly address the regulator's requirement and the silent-update incident?",
+      "choices": [
+        "It runs as a container on your own infrastructure, so prompts and outputs never leave your network boundary",
+        "You control which model version is deployed, so no upstream provider can change behavior underneath you",
+        "It guarantees lower cost per token than any hosted API",
+        "It removes the need to evaluate the model before deployment"
+      ],
+      "answer": [0, 1],
+      "explanation": "Data locality and version control are exactly the two properties a shared hosted endpoint cannot give you, and they map one-to-one onto the two problems described. Cost depends entirely on utilization — a lightly used dedicated GPU is more expensive per token — and evaluation is required either way.",
+      "tags": ["nim", "data-residency", "version-control"],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/introduction.html"
+    },
+    {
+      "id": "CS06-2",
+      "domain": "agent-development",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What lets the team keep their existing client code through the migration?",
+      "choices": [
+        "NIM exposes an OpenAI-compatible API, so moving from a hosted endpoint to a self-hosted container is largely a base-URL change",
+        "NIM automatically translates any client SDK to its native protocol",
+        "The team must rewrite the client against Triton's gRPC interface",
+        "NIM requires the client to be rewritten but provides a migration tool"
+      ],
+      "answer": [0],
+      "explanation": "API compatibility is what makes prototype-to-production migration cheap: the same OpenAI-compatible surface is exposed by hosted build.nvidia.com endpoints and by the self-hosted container, so the client keeps its request shapes including the tools parameter.",
+      "tags": ["openai-compatible", "migration", "nim"],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/function-calling.html"
+    },
+    {
+      "id": "CS06-3",
+      "domain": "deployment-scaling",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "How should the four customer-specific variants be served?",
+      "choices": [
+        "Four independent full-weight model deployments, one per customer",
+        "Train them as LoRA adapters and use multi-LoRA serving against a single loaded base model, selecting the adapter per request by tenant",
+        "Merge all four adapters into one set of base weights",
+        "Serve one variant and prompt-engineer the differences per customer"
+      ],
+      "answer": [1],
+      "explanation": "Adapters are a small fraction of the parameters, so loading the base model once and selecting an adapter per request avoids multiplying GPU cost by the number of customers. Merging adapters collapses the per-customer behavior the tuning created, and four full deployments is the cost mistake multi-LoRA exists to prevent.",
+      "tags": ["multi-lora", "multi-tenancy", "serving-efficiency"],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/peft.html"
+    },
+    {
+      "id": "CS06-4",
+      "domain": "evaluation-tuning",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "To cut cost, the team quantizes to INT4. Aggregate benchmark accuracy drops under a point, but in staging tool calls start failing schema validation. What should they conclude?",
+      "choices": [
+        "The quantization is faulty and should be redone",
+        "Aggregate benchmarks average over many behaviors and hid disproportionate damage to precise structured output; quantized models must be evaluated on the specific capabilities the agent depends on",
+        "INT4 models cannot perform tool calling",
+        "The inference server stopped applying the chat template"
+      ],
+      "answer": [1],
+      "explanation": "A near-flat aggregate score is compatible with severe degradation of a narrow, low-entropy behavior like exact schema adherence. The discipline is capability-specific evaluation of the quantized model — and constrained decoding is a good mitigation here, since it makes conforming output structural.",
+      "tags": ["quantization-evaluation", "structured-output", "capability-specific"],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/reference/precision.html"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "id": "CS08",
+  "title": "Where did the budget go",
+  "scenario": "Finance flags that an agent platform's monthly model spend rose 40% while request volume stayed flat. The platform serves twelve internal agents. Observability captures request counts, p95 latency, error rates and GPU utilization, but no token accounting. One agent was changed last month: its retriever top-k went from 5 to 20 to improve recall, and its team reports the change worked. Another agent was not changed but has always had a 47-tool catalog and its tool-selection accuracy has been slowly falling.",
+  "questions": [
+    {
+      "id": "CS08-1",
+      "domain": "run-monitor-maintain",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "With volume flat, which breakdown identifies the cause fastest?",
+      "choices": [
+        "Cost by time of day",
+        "Cost per task split into prompt versus completion tokens and attributed per step, compared against last month",
+        "Total GPU hours consumed",
+        "Error rate by agent"
+      ],
+      "answer": [1],
+      "explanation": "Flat volume with rising spend means cost per task grew, so the question is which component grew. Splitting prompt from completion tokens and attributing to steps separates a context-growth problem from a trajectory-length problem, which have different fixes. GPU hours and error rates do not decompose the token bill.",
+      "tags": ["cost-attribution", "token-accounting", "diagnosis"],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "CS08-2",
+      "domain": "evaluation-tuning",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "The top-k change from 5 to 20 improved recall. What is the likely trade-off the team did not measure?",
+      "choices": [
+        "Embedding quality degraded",
+        "Prompt tokens per request roughly quadrupled, raising cost and latency, and the extra passages dilute attention through position effects",
+        "The vector index became inconsistent",
+        "Faithfulness necessarily improved with more context"
+      ],
+      "answer": [1],
+      "explanation": "Retrieval quantity is paid for in prompt tokens on every call, and more passages do not straightforwardly improve answers: models attend less reliably to middle-of-context content, so additional low-ranked passages can dilute the useful evidence. Recall improved; cost, latency and possibly precision were the untracked cost.",
+      "tags": ["top-k-tradeoff", "prompt-cost", "position-effects"],
+      "ref": "https://arxiv.org/abs/2307.03172"
+    },
+    {
+      "id": "CS08-3",
+      "domain": "agent-architecture",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "The 47-tool agent shows falling tool-selection accuracy. What addresses the root cause?",
+      "choices": [
+        "Raise the per-request timeout",
+        "Partition the tools across specialized sub-agents, or retrieve a small relevant subset of tool definitions per turn",
+        "Repeat the tool list in every user message for redundancy",
+        "Switch to a model with a larger context window"
+      ],
+      "answer": [1],
+      "explanation": "The cause is tool-space overload: many similar schemas in one context degrade selection and inflate prompt tokens on every call. Partitioning behind sub-agents or retrieving candidate tools shrinks the decision space. Duplicating the catalog makes both problems worse and a larger window accommodates the bloat rather than removing it.",
+      "tags": ["tool-overload", "tool-retrieval", "sub-agents"],
+      "ref": "https://modelcontextprotocol.io/docs/learn/architecture"
+    },
+    {
+      "id": "CS08-4",
+      "domain": "run-monitor-maintain",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO telemetry additions would have surfaced both problems before finance did?",
+      "choices": [
+        "Per-step prompt and completion token counts, rolled up to cost per completed task",
+        "Tool-call counts, tool-error rates, and step counts per task including runs that hit the step limit",
+        "HTTP status code distribution per agent",
+        "Container CPU and memory utilization"
+      ],
+      "answer": [0, 1],
+      "explanation": "Token and cost accounting per task would have shown the top-k change's true price immediately, and tool-and-step trajectory metrics would have exposed the selection degradation as rising retries and step counts. Status codes and container metrics are generic infrastructure signals that stay healthy through both failures.",
+      "tags": ["telemetry", "agent-metrics", "leading-indicators"],
+      "ref": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    }
+  ]
+}

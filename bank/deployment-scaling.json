@@ -1,0 +1,675 @@
+{
+  "domain": "deployment-scaling",
+  "questions": [
+    {
+      "id": "DS-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which technique most directly increases LLM serving throughput under many concurrent requests of differing lengths?",
+      "choices": [
+        "Static batching with a fixed batch size and padding to the longest sequence",
+        "In-flight (continuous) batching, which admits new requests and evicts finished ones at each decode iteration",
+        "Increasing the model's context window",
+        "Raising temperature to shorten responses"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Static batching wastes GPU cycles because the whole batch waits for its longest member. Continuous/in-flight batching keeps the GPU saturated by swapping completed sequences out and new ones in every iteration, which is why it is the default in TensorRT-LLM and vLLM. Context size and temperature are unrelated to batch efficiency.",
+      "tags": [
+        "continuous-batching",
+        "throughput",
+        "tensorrt-llm",
+        "vllm"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/advanced/gpt-attention.html"
+    },
+    {
+      "id": "DS-002",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "During long-context agent sessions your serving tier starts rejecting requests with out-of-memory errors even though model weights fit comfortably. What is the most likely memory consumer?",
+      "choices": [
+        "The tokenizer vocabulary",
+        "The KV cache, which grows with batch size times sequence length times layers",
+        "CUDA kernel binaries",
+        "The optimizer state"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "At inference, KV cache is the memory term that scales with concurrency and sequence length and routinely exceeds the weights for long contexts. Optimizer state only exists during training. Tokenizer tables and kernels are negligible and fixed.",
+      "tags": [
+        "kv-cache",
+        "memory",
+        "long-context",
+        "oom"
+      ],
+      "ref": "https://arxiv.org/abs/2309.06180"
+    },
+    {
+      "id": "DS-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the primary value proposition of NVIDIA NIM microservices for deploying an agent's models?",
+      "choices": [
+        "They train models on your proprietary data automatically",
+        "They package an optimized inference engine, runtime, and OpenAI-compatible API into a portable container you can deploy on any supported GPU environment",
+        "They replace the need for Kubernetes in production",
+        "They provide a vector database for retrieval"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A NIM is a prebuilt, GPU-optimized inference container exposing standard (typically OpenAI-compatible) endpoints, so teams get tuned TensorRT-LLM/backend performance without hand-building engines, and can run the same artifact in cloud, data center, or workstation. It does not train models, replace orchestration, or serve as a vector store.",
+      "tags": [
+        "nim",
+        "nvidia",
+        "deployment",
+        "containers"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/introduction.html"
+    },
+    {
+      "id": "DS-004",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A 70B-parameter model in FP16 must be served on GPUs with 80 GB of memory each. Which parallelism strategy is the standard first choice to fit and serve it with low latency on a single NVLink-connected node?",
+      "choices": [
+        "Data parallelism across 4 GPUs",
+        "Tensor parallelism across multiple GPUs within the node",
+        "Pipeline parallelism across 4 separate nodes",
+        "Expert parallelism"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Roughly 140 GB of weights plus KV cache exceeds one 80 GB GPU, so the model must be sharded. Tensor parallelism splits individual layers across GPUs and, over high-bandwidth NVLink inside a node, adds the least latency. Data parallelism replicates rather than shards. Pipeline parallelism adds bubble overhead and is used mainly across nodes. Expert parallelism applies only to MoE models.",
+      "tags": [
+        "tensor-parallelism",
+        "model-sharding",
+        "nvlink",
+        "sizing"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/advanced/executor.html"
+    },
+    {
+      "id": "DS-005",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Your agent is interactive and users judge it by responsiveness. Which TWO metrics should you make primary SLOs?",
+      "choices": [
+        "Time to first token (TTFT)",
+        "Inter-token latency / tokens per second per user (TPOT)",
+        "Aggregate cluster tokens per second",
+        "GPU utilization percentage"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Perceived responsiveness is governed by how soon output starts (TTFT, dominated by prefill) and how fast it streams (TPOT/ITL, dominated by decode). Aggregate throughput and GPU utilization are capacity and efficiency indicators that can look excellent while individual users wait.",
+      "tags": [
+        "slo",
+        "ttft",
+        "tpot",
+        "latency-metrics"
+      ],
+      "ref": "https://docs.nvidia.com/nim/benchmarking/llm/latest/metrics.html"
+    },
+    {
+      "id": "DS-006",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You quantize a function-calling model from FP16 to INT4 to cut cost. Benchmarks show a small drop in general accuracy, but in production the agent's tool calls start failing schema validation frequently. What is the most likely explanation?",
+      "choices": [
+        "INT4 weights cannot represent JSON characters",
+        "Quantization degraded the precise, low-entropy structured-output behavior more than aggregate accuracy benchmarks reveal, because those benchmarks do not measure schema conformance",
+        "The inference server stopped applying the chat template after quantization",
+        "INT4 models cannot use constrained decoding"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Aggregate accuracy benchmarks average over many behaviors and can mask disproportionate damage to narrow, high-precision capabilities like exact schema adherence and argument formatting. The lesson is to evaluate quantized models on the specific capabilities your agent depends on. INT4 models can still use chat templates and constrained decoding; the latter is in fact a good mitigation here.",
+      "tags": [
+        "quantization",
+        "structured-output",
+        "evaluation-gap",
+        "int4"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/reference/precision.html"
+    },
+    {
+      "id": "DS-007",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What problem does disaggregated serving (as in NVIDIA Dynamo) address?",
+      "choices": [
+        "Prefill and decode have different compute and memory profiles, so running them on the same GPUs forces a poor compromise; disaggregation schedules them on separate resource pools",
+        "It splits the model's weights across nodes to fit larger models",
+        "It removes the need for a KV cache",
+        "It compresses embeddings to reduce vector database size"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Prefill is compute-bound and bursty; decode is memory-bandwidth-bound and long-lived. Co-locating them means interference and unavoidable tuning trade-offs. Disaggregated serving separates the two phases onto independently scaled pools, with KV cache transferred between them, and adds KV-aware routing. It is a scheduling architecture, not model sharding or cache elimination.",
+      "tags": [
+        "dynamo",
+        "disaggregated-serving",
+        "prefill-decode",
+        "nvidia"
+      ],
+      "ref": "https://github.com/ai-dynamo/dynamo"
+    },
+    {
+      "id": "DS-008",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agentic workload has bursty traffic: near-zero for hours, then 50x spikes. Cold-starting a NIM container takes about 4 minutes because of model loading. Which approach best balances cost and responsiveness?",
+      "choices": [
+        "Scale to zero and accept the 4-minute cold start on the first request of a burst",
+        "Keep a small warm baseline of replicas, pre-pull images and cache model weights on fast local storage, and scale out on a leading indicator such as queue depth",
+        "Over-provision for peak at all times to guarantee latency",
+        "Increase the readiness-probe timeout so Kubernetes does not kill slow-starting pods"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The practical pattern is a warm floor plus fast scale-out: a minimum replica count absorbs the first requests, cached images and local weight storage cut start time, and scaling on queue depth or pending requests reacts before latency degrades. Scale-to-zero pushes a 4-minute wait onto users, peak provisioning wastes the idle hours, and probe timeouts only prevent restarts.",
+      "tags": [
+        "autoscaling",
+        "cold-start",
+        "kubernetes",
+        "bursty-traffic"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/deploy-helm.html"
+    },
+    {
+      "id": "DS-009",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement about NVIDIA Triton Inference Server in an agentic stack is accurate?",
+      "choices": [
+        "It only serves TensorRT engines",
+        "It is a multi-framework, multi-model serving platform that can host LLM backends alongside embedding, reranking, and classical models, with features like model ensembles and dynamic batching",
+        "It is the same product as NIM, under an older name",
+        "It performs fine-tuning as well as inference"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Triton is a general serving platform supporting many backends (TensorRT, TensorRT-LLM, PyTorch, ONNX Runtime, Python, vLLM), useful in agentic stacks where LLM, embedder, reranker, and guardrail models coexist, with ensembles/business-logic scripting and dynamic batching. NIM is a higher-level packaged microservice that may use Triton or TensorRT-LLM internally; they are not the same product.",
+      "tags": [
+        "triton",
+        "nvidia",
+        "multi-model-serving"
+      ],
+      "ref": "https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html"
+    },
+    {
+      "id": "DS-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A multi-turn agent re-sends a 6,000-token system prompt and tool catalog on every step of a 10-step task. Which serving feature reduces the cost of this pattern most directly?",
+      "choices": [
+        "Speculative decoding",
+        "Prefix KV-cache reuse across requests that share the same leading tokens",
+        "INT8 weight-only quantization",
+        "Tensor parallelism"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The waste is repeated prefill of an identical prefix. Prefix caching (KV-cache reuse) recognizes the shared prefix and skips recomputing it, cutting prefill cost and TTFT on every subsequent step. Speculative decoding accelerates decode, quantization reduces weight memory and bandwidth, and tensor parallelism addresses fitting and scaling — none of them eliminate redundant prefill.",
+      "tags": [
+        "prefix-caching",
+        "kv-cache-reuse",
+        "multi-turn",
+        "cost"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/advanced/kv-cache-reuse.html"
+    },
+    {
+      "id": "DS-011",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "How does speculative decoding improve inference latency?",
+      "choices": [
+        "By skipping layers of the target model for easy tokens",
+        "By having a small draft model (or extra heads) propose several tokens that the target model verifies in one forward pass, accepting the longest correct prefix",
+        "By reducing the precision of activations during decode",
+        "By caching complete responses for repeated prompts"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Speculative decoding exploits the fact that verifying k proposed tokens costs about one target-model forward pass. A cheap drafter proposes, the target verifies, and accepted tokens come nearly free — preserving the target model's output distribution. It is not layer skipping, quantization, or response caching.",
+      "tags": [
+        "speculative-decoding",
+        "latency",
+        "draft-model"
+      ],
+      "ref": "https://arxiv.org/abs/2211.17192"
+    },
+    {
+      "id": "DS-012",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "You must cut cost per agent task by half without degrading quality on hard tasks. Which TWO levers are most likely to deliver that?",
+      "choices": [
+        "Route easy sub-steps to a smaller model and reserve the large model for hard reasoning steps",
+        "Eliminate redundant context re-sends and enable prefix caching for the static prompt and tool catalog",
+        "Reduce the retriever's top-k from 20 to 1 for all queries",
+        "Set the step limit to 2 for every task"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Model cascading and context/prefill efficiency both remove cost from the cheap majority of work while leaving the hard path intact. Collapsing top-k to 1 and hard-capping steps at 2 cut cost by cutting capability, which violates the stated constraint.",
+      "tags": [
+        "cost-optimization",
+        "model-cascade",
+        "prefix-caching"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "DS-013",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is MIG (Multi-Instance GPU) relevant when deploying the smaller supporting models of an agentic pipeline?",
+      "choices": [
+        "It combines multiple GPUs into one logical device for large models",
+        "It partitions a single GPU into isolated instances with dedicated memory and compute slices, so small models such as embedders, rerankers, and guardrail classifiers can be co-hosted with hardware-level isolation",
+        "It enables FP4 arithmetic on older GPUs",
+        "It migrates running inference sessions between GPUs"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "MIG carves one physical GPU into several hardware-isolated instances, giving predictable QoS for multiple small models on one card — a good fit for the embedder/reranker/guardrail tier. Aggregating GPUs is NVLink/NVSwitch territory; MIG neither adds numeric formats nor migrates sessions.",
+      "tags": [
+        "mig",
+        "gpu-partitioning",
+        "nvidia",
+        "small-models"
+      ],
+      "ref": "https://docs.nvidia.com/datacenter/tesla/mig-user-guide/"
+    },
+    {
+      "id": "DS-014",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent service has p50 latency of 1.2 s but p99 of 22 s. Traces show the slow tail is dominated by requests with very long retrieved contexts sharing GPUs with short requests. Which mitigation is most appropriate?",
+      "choices": [
+        "Raise the global timeout to 30 s so fewer requests fail",
+        "Separate long-context requests into their own serving pool (or apply chunked prefill and priority scheduling) so large prefills stop blocking short requests",
+        "Reduce the number of replicas to increase per-replica batch efficiency",
+        "Switch to greedy decoding to make latency deterministic"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "This is head-of-line blocking: one enormous prefill monopolizes the GPU while short requests queue. Workload isolation, chunked prefill, and priority-aware scheduling all break that coupling. Higher timeouts merely tolerate the tail, fewer replicas worsen queuing, and decoding strategy does not change prefill contention.",
+      "tags": [
+        "tail-latency",
+        "head-of-line-blocking",
+        "chunked-prefill",
+        "scheduling"
+      ],
+      "ref": "https://github.com/ai-dynamo/dynamo"
+    },
+    {
+      "id": "DS-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "When deploying an agent that must meet strict data-residency requirements, which NIM property is most relevant?",
+      "choices": [
+        "NIM containers are self-hosted, so models and inference traffic can run entirely inside your own VPC, data center, or region",
+        "NIM automatically encrypts prompts before sending them to NVIDIA-hosted endpoints",
+        "NIM anonymizes PII in prompts by default",
+        "NIM stores all traffic in NVIDIA's compliance audit log"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The compliance-relevant property is deployment locality: because a NIM is a container you run on your own infrastructure, prompts and outputs need never leave your boundary. NIM does not provide automatic PII redaction (that is guardrails/pipeline work) and does not route traffic to NVIDIA-hosted logs when self-hosted.",
+      "tags": [
+        "nim",
+        "data-residency",
+        "compliance",
+        "self-hosting"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/introduction.html"
+    },
+    {
+      "id": "DS-016",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the operational significance of Nemotron 3's mixture-of-experts design, where only about a tenth of total parameters activate per token?",
+      "choices": [
+        "The model's memory footprint at inference equals only the active parameters",
+        "Compute per token resembles a much smaller dense model while all experts must still be resident in memory, so it buys throughput and cost, not memory savings",
+        "MoE models cannot be quantized",
+        "It removes the need for a KV cache"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "MoE decouples capacity from per-token compute: routing activates a small fraction of experts, so FLOPs per token resemble a far smaller model, but every expert must be loaded, so memory capacity is sized by total parameters. Getting this backwards is the classic MoE sizing mistake. KV cache and quantization are unaffected by the routing scheme.",
+      "tags": [
+        "moe",
+        "nemotron-3",
+        "sizing",
+        "memory-vs-compute"
+      ],
+      "ref": "https://developer.nvidia.com/blog/inside-nvidia-nemotron-3-techniques-tools-and-data-that-make-it-efficient-and-accurate/"
+    },
+    {
+      "id": "DS-017",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why does a hybrid Mamba-Transformer architecture like Nemotron 3's matter specifically for long-context agentic workloads?",
+      "choices": [
+        "Mamba layers remove the need for training data",
+        "State-space (Mamba) layers scale with sequence length far better than full attention, so interleaving them with a smaller number of attention layers keeps very long contexts tractable while retaining attention's precise recall",
+        "It eliminates the need for retrieval entirely",
+        "It allows the model to run on CPUs"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Full attention costs grow quadratically with sequence length, which is what makes million-token contexts expensive. Interleaving state-space layers, whose cost grows linearly, with a reduced number of attention layers preserves the precise token-level recall attention provides while making long sequences affordable — directly relevant to agents carrying long histories and large retrieved contexts.",
+      "tags": [
+        "mamba",
+        "hybrid-architecture",
+        "long-context",
+        "nemotron-3"
+      ],
+      "ref": "https://developer.nvidia.com/blog/inside-nvidia-nemotron-3-techniques-tools-and-data-that-make-it-efficient-and-accurate/"
+    },
+    {
+      "id": "DS-018",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "You are writing the Kubernetes deployment for a NIM container. Which TWO configuration details matter most for a model server with a long startup?",
+      "choices": [
+        "A startup probe (or a readiness probe with a generous failure threshold) so the pod is not killed while weights load",
+        "GPU resource requests and limits plus a node selector or taint toleration so the pod lands on a GPU node",
+        "A high CPU limit so the model loads faster",
+        "A liveness probe with a one-second period for fast failure detection"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Model servers load for minutes, so the probe configuration must tolerate that or Kubernetes restarts the pod forever; and GPU scheduling must be explicit or the pod schedules onto a node with no accelerator. An aggressive liveness probe makes the restart loop worse, and CPU limits do not materially speed GPU weight loading.",
+      "tags": [
+        "kubernetes",
+        "probes",
+        "gpu-scheduling",
+        "nim"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/deploy-helm.html"
+    },
+    {
+      "id": "DS-019",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your agent service autoscales on CPU utilization and never scales out, even when users report queuing. Why?",
+      "choices": [
+        "CPU is the wrong signal for a GPU-bound inference service; scale on a workload signal such as pending requests, queue depth, or GPU utilization",
+        "The HPA needs a longer stabilization window",
+        "The pods need more memory",
+        "Autoscaling does not work with GPUs"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "An LLM server can sit at low CPU while the GPU is saturated and requests queue, so CPU-based autoscaling is blind to the actual bottleneck. Scaling on queue depth, pending requests, or GPU metrics exported by DCGM ties capacity to the real constraint. Autoscaling works fine with GPUs given the right signal.",
+      "tags": [
+        "autoscaling",
+        "hpa",
+        "wrong-signal",
+        "queue-depth"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/deploy-helm.html"
+    },
+    {
+      "id": "DS-020",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement about vLLM's PagedAttention is accurate?",
+      "choices": [
+        "It compresses KV cache entries to half precision",
+        "It manages KV cache in fixed-size blocks like virtual-memory pages, eliminating the fragmentation and over-reservation caused by contiguous per-sequence allocation and enabling prefix sharing",
+        "It replaces attention with a linear-time approximation",
+        "It batches requests by padding them to equal length"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "PagedAttention applies paging to the KV cache: blocks are allocated on demand and need not be contiguous, so memory is not reserved for a sequence's maximum possible length and fragmentation largely disappears. Blocks can also be shared across sequences with a common prefix, which is what makes prefix caching cheap.",
+      "tags": [
+        "pagedattention",
+        "vllm",
+        "kv-cache",
+        "memory-fragmentation"
+      ],
+      "ref": "https://arxiv.org/abs/2309.06180"
+    },
+    {
+      "id": "DS-021",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent's per-task cost is dominated by input tokens, not output. Which optimization is most likely to be wasted effort?",
+      "choices": [
+        "Enabling prefix caching for the static system prompt and tool catalog",
+        "Trimming redundant retrieved context and repeated document re-reads",
+        "Enabling speculative decoding",
+        "Routing simple steps to a smaller model"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "Speculative decoding accelerates the decode phase, which is where output tokens are produced. If the cost is concentrated in the prompt, it addresses the wrong half of the workload. Prefix caching and context trimming attack prefill directly, and model routing reduces both.",
+      "tags": [
+        "cost-attribution",
+        "prefill-vs-decode",
+        "speculative-decoding",
+        "optimization-targeting"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/advanced/kv-cache-reuse.html"
+    },
+    {
+      "id": "DS-022",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO are genuine advantages of deploying a self-hosted NIM over calling a third-party hosted model API for an enterprise agent?",
+      "choices": [
+        "Prompts and outputs never leave your network boundary, satisfying data-residency and confidentiality requirements",
+        "Model version is under your control, so an upstream provider cannot change behavior underneath you",
+        "It is always cheaper per token than a hosted API",
+        "It removes the need to evaluate the model"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Self-hosting buys data locality and version control — the two properties enterprises most often need and cannot get from a shared hosted endpoint. Cost depends entirely on utilization: a lightly used dedicated GPU is far more expensive per token than a hosted API, and evaluation is required either way.",
+      "tags": [
+        "self-hosting",
+        "data-residency",
+        "version-control",
+        "nim"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/introduction.html"
+    },
+    {
+      "id": "DS-023",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A multi-turn agent session is routed to a different replica on each turn, and you observe that time-to-first-token is much worse than in single-replica testing. What is the likely cause?",
+      "choices": [
+        "Network latency between replicas",
+        "The prefix KV cache is per-replica, so a session landing on a replica that has not seen its prefix must recompute the entire prefill; session-affinity or KV-aware routing restores the cache hits",
+        "The replicas are running different model versions",
+        "The load balancer is adding overhead per request"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Prefix caching is local to the replica that built it. Round-robin routing therefore scatters a conversation across replicas that each have a cold prefix, and every turn pays full prefill. Session affinity, or KV-aware routing of the kind Dynamo provides, sends the request where the cache already lives.",
+      "tags": [
+        "kv-aware-routing",
+        "session-affinity",
+        "prefix-cache",
+        "dynamo"
+      ],
+      "ref": "https://github.com/ai-dynamo/dynamo"
+    },
+    {
+      "id": "DS-024",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does NVFP4 refer to in the context of NVIDIA's model training and inference stack?",
+      "choices": [
+        "A four-bit floating-point format used to reduce compute and memory cost, applied in training as well as inference on supporting hardware",
+        "A four-way tensor parallelism configuration",
+        "A network protocol for GPU-to-GPU transfer",
+        "A file format for model checkpoints"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "NVFP4 is a 4-bit floating-point numeric format supported by newer NVIDIA hardware, notable because it has been applied to training and not only to post-training quantization — NVIDIA cited NVFP4 training among the techniques used for the larger Nemotron 3 variants. It is a precision format, not a parallelism scheme or transport.",
+      "tags": [
+        "nvfp4",
+        "precision",
+        "low-bit-training",
+        "nvidia"
+      ],
+      "ref": "https://developer.nvidia.com/blog/inside-nvidia-nemotron-3-techniques-tools-and-data-that-make-it-efficient-and-accurate/"
+    },
+    {
+      "id": "DS-025",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You must serve an embedding model, a reranker, a guardrail classifier, and a 70B chat model for one agent. Which deployment topology is most sensible?",
+      "choices": [
+        "One large pod running all four models to minimize network hops",
+        "Serve the 70B model on its own GPUs with tensor parallelism, and co-host the three small models on a separate, independently scaled tier (MIG partitions or a shared Triton deployment)",
+        "Run all four on CPU except the 70B model",
+        "Deploy four identical replicas each running all four models"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The models have entirely different resource profiles and scaling curves: the large model is memory- and bandwidth-bound and needs sharding, while the small ones are cheap and called at different rates. Separating the tiers lets each scale on its own demand; co-locating everything couples their scaling and wastes GPU on whichever model is idle.",
+      "tags": [
+        "topology",
+        "tiering",
+        "mig",
+        "triton",
+        "independent-scaling"
+      ],
+      "ref": "https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html"
+    },
+    {
+      "id": "DS-026",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is a 1M-token context window not a substitute for retrieval in an agentic system?",
+      "choices": [
+        "Models cannot attend to more than 100k tokens in practice",
+        "Filling a very long context costs prefill compute and money on every call and still suffers position effects, whereas retrieval selects only what is relevant — long context complements retrieval rather than replacing it",
+        "Long contexts cannot be cached",
+        "Retrieval is always more accurate than long context"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Long context changes what is feasible but not the economics or the attention characteristics: every token in the prompt is paid for on every call, and recall of middle-of-context material remains weaker. The practical pattern is retrieval to select, long context to accommodate what selection returns without aggressive chunking.",
+      "tags": [
+        "long-context",
+        "retrieval-tradeoff",
+        "prefill-cost",
+        "position-effects"
+      ],
+      "ref": "https://arxiv.org/abs/2307.03172"
+    },
+    {
+      "id": "DS-027",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Your agent platform must serve 40 fine-tuned variants for 40 customers. Which TWO approaches keep this tractable?",
+      "choices": [
+        "Train the variants as LoRA adapters and serve them with multi-LoRA against a single loaded base model",
+        "Route requests to the correct adapter by tenant id at the serving layer, keeping one base-model deployment",
+        "Deploy 40 independent full-weight model servers",
+        "Merge all 40 adapters into one set of weights"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Multi-LoRA exists for exactly this: adapters are small, the base model is loaded once, and the serving layer selects the adapter per request. Forty full deployments multiplies GPU cost by forty for models that differ by a fraction of a percent of parameters, and merging adapters collapses the per-customer behavior the tuning created.",
+      "tags": [
+        "multi-lora",
+        "multi-tenancy",
+        "serving-efficiency",
+        "nim"
+      ],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/peft.html"
+    },
+    {
+      "id": "DS-028",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the practical effect of setting an overly large maximum batch size on an interactive LLM service?",
+      "choices": [
+        "Throughput and per-user latency both improve",
+        "Aggregate throughput may improve while per-user inter-token latency degrades, because decode work per iteration is shared across more sequences",
+        "Memory use falls because batching is more efficient",
+        "It has no effect once continuous batching is enabled"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Batch size is the throughput-versus-latency dial. A larger batch amortizes weight reads across more sequences and raises aggregate tokens per second, but each sequence advances more slowly per iteration and the KV cache grows. For interactive agents the batch ceiling should be tuned against the inter-token latency SLO, not maximized.",
+      "tags": [
+        "batch-size",
+        "throughput-latency-tradeoff",
+        "tuning",
+        "slo"
+      ],
+      "ref": "https://docs.nvidia.com/nim/benchmarking/llm/latest/metrics.html"
+    },
+    {
+      "id": "DS-029",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent deployment passes load testing at 200 requests per second but fails in production at 60. Traces show most time in a tool that calls an internal service. What did the load test miss?",
+      "choices": [
+        "The production model is slower",
+        "The load test exercised the LLM path but used stubbed or unrealistically fast tool responses, so the real dependency's capacity and latency were never in the test",
+        "Production has fewer GPUs",
+        "The load generator was misconfigured"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Agent capacity is bounded by the whole call graph, not the model alone. A load test that stubs the tools measures only the inference tier and will overstate capacity whenever a downstream dependency is the real constraint. Realistic load testing must include the dependencies, or at least model their latency and concurrency limits.",
+      "tags": [
+        "load-testing",
+        "dependency-capacity",
+        "call-graph",
+        "capacity-planning"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    }
+  ]
+}

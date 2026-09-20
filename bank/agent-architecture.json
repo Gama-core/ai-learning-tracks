@@ -1,0 +1,781 @@
+{
+  "domain": "agent-architecture",
+  "questions": [
+    {
+      "id": "AA-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A team builds a claims-processing agent whose steps are fixed: validate the claim, look up policy coverage, compute payout, then write to the ledger. They currently implement it as a single ReAct loop and observe that the LLM sometimes skips the validation step and occasionally writes to the ledger twice. What architectural change most directly eliminates both failures?",
+      "choices": [
+        "Increase the temperature so the model explores more tool orderings before committing",
+        "Replace the free-form ReAct loop with an explicit graph/state machine that encodes the step order and marks the ledger write as a terminal node",
+        "Add a second reviewer agent that re-reads the transcript and retries the whole workflow when it detects a missing step",
+        "Move the four tools into a single composite tool so the model only has one function to call"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "When the control flow is known in advance, encoding it in the orchestration layer removes it from the model's discretion. A state machine/graph guarantees ordering and lets the ledger write be a single-entry terminal transition, which fixes both skipping and duplication. A reviewer agent detects the problem after the side effect has already happened. Collapsing tools hides the sequence from the model but does not make it idempotent, and raising temperature makes non-determinism worse.",
+      "tags": [
+        "state-machine",
+        "orchestration",
+        "determinism",
+        "langgraph"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/low_level/"
+    },
+    {
+      "id": "AA-002",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In a supervisor (orchestrator-worker) multi-agent topology, what is the supervisor's defining responsibility?",
+      "choices": [
+        "Executing every tool call on behalf of the workers so credentials stay in one place",
+        "Deciding which worker handles the next unit of work and when the overall task is complete",
+        "Holding the only copy of conversation memory so workers remain stateless",
+        "Running the same prompt across all workers and majority-voting the results"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A supervisor is a routing and termination authority: it reads state, selects the next agent (or finishes), and aggregates results. Centralizing tool execution is an optional security pattern, not the definition. Majority voting across identical workers is self-consistency/ensembling, a different pattern. Workers commonly keep scratch state of their own.",
+      "tags": [
+        "multi-agent",
+        "supervisor",
+        "routing"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/multi_agent/"
+    },
+    {
+      "id": "AA-003",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "A single agent with 47 registered tools shows rising tool-selection errors and latency. Which TWO architectural remedies address the root cause rather than the symptom?",
+      "choices": [
+        "Split the tools across specialized sub-agents and route to them from a supervisor",
+        "Retrieve a small relevant subset of tool definitions per turn instead of passing all 47 every call",
+        "Raise the per-request timeout so slow tool selection no longer fails",
+        "Append the full tool list to every user message as well as the system prompt for redundancy"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "The root cause is tool-space overload: too many similar schemas in one context degrade selection accuracy and inflate prompt tokens. Partitioning tools behind specialized agents and dynamically retrieving only candidate tools (tool RAG) both shrink the decision space. Raising timeouts hides latency, and duplicating the tool list makes the context problem strictly worse.",
+      "tags": [
+        "tool-selection",
+        "context-engineering",
+        "multi-agent",
+        "scaling"
+      ],
+      "ref": "https://modelcontextprotocol.io/docs/learn/architecture"
+    },
+    {
+      "id": "AA-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which problem is the Model Context Protocol (MCP) primarily designed to solve?",
+      "choices": [
+        "Standardizing how weights are quantized before deployment on NVIDIA GPUs",
+        "Providing a standard client-server interface so any agent can discover and use external tools, resources, and prompts without bespoke integration code",
+        "Defining a wire format for one agent to delegate tasks to another agent",
+        "Enforcing token budgets across concurrent agent sessions"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "MCP standardizes the agent-to-tool/context boundary: servers expose tools, resources, and prompts; clients (agents/hosts) discover and invoke them over a defined transport. Agent-to-agent delegation is the concern of protocols like A2A. Quantization and token budgeting are unrelated.",
+      "tags": [
+        "mcp",
+        "tool-integration",
+        "protocols"
+      ],
+      "ref": "https://modelcontextprotocol.io/"
+    },
+    {
+      "id": "AA-005",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A research agent must gather information from 8 independent sources and synthesize one report. Latency is the top constraint; the sources do not depend on one another. Which topology fits best?",
+      "choices": [
+        "A sequential chain that visits each source in turn and carries findings forward",
+        "A hierarchical debate in which two agents argue over each source before accepting it",
+        "A parallel fan-out to 8 workers followed by a single aggregator (map-reduce / scatter-gather)",
+        "A single ReAct agent that decides at each step which source to query next"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "Independent subtasks with a synthesis step is the canonical map-reduce/scatter-gather shape: wall-clock time becomes roughly the slowest branch instead of the sum of all branches. Sequential chains and single-agent loops serialize the work unnecessarily. Debate adds quality at a large latency cost, which contradicts the stated constraint.",
+      "tags": [
+        "parallelism",
+        "fan-out",
+        "latency",
+        "topology"
+      ],
+      "ref": "https://arxiv.org/abs/2402.01680"
+    },
+    {
+      "id": "AA-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Two agents in a pipeline exchange results by pasting free-form natural-language summaries into each other's prompts. Downstream parsing breaks intermittently. What is the most robust fix?",
+      "choices": [
+        "Define a typed message contract (for example a JSON schema) for inter-agent handoffs and validate against it at each boundary",
+        "Instruct the upstream agent in its system prompt to always be clear and unambiguous",
+        "Increase the downstream agent's context window so truncation is not an issue",
+        "Have the downstream agent retry with a higher temperature until parsing succeeds"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Inter-agent communication is an interface, and interfaces need schemas. A validated typed contract turns an intermittent semantic failure into a deterministic, catchable validation error at the boundary. Prompt exhortation is unenforceable; context size and temperature do not address a missing contract.",
+      "tags": [
+        "agent-communication",
+        "structured-output",
+        "contracts",
+        "reliability"
+      ],
+      "ref": "https://docs.crewai.com/concepts/tasks"
+    },
+    {
+      "id": "AA-007",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement best distinguishes an agentic system from a conventional LLM workflow (a chain)?",
+      "choices": [
+        "Agentic systems always use more than one model, workflows use one",
+        "Agentic systems let the model decide the control flow and tool use at runtime; workflows follow a predetermined path",
+        "Agentic systems require vector retrieval, workflows do not",
+        "Agentic systems run on GPUs, workflows can run on CPUs"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The accepted distinction is who owns control flow. In a workflow, code orchestrates a fixed sequence of LLM calls. In an agent, the model dynamically chooses actions, tools, and when to stop. Model count, retrieval, and hardware are orthogonal.",
+      "tags": [
+        "definitions",
+        "agency",
+        "control-flow"
+      ],
+      "ref": "https://www.anthropic.com/engineering/building-effective-agents"
+    },
+    {
+      "id": "AA-008",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent orchestrates 5 tools. One tool, a third-party pricing API, fails or times out roughly 4% of the time and its failures currently abort the entire run. Which architectural pattern best contains this blast radius?",
+      "choices": [
+        "Wrap the pricing call in a circuit breaker with a cached or degraded fallback, and let the agent continue on a documented degraded path",
+        "Retry the pricing call indefinitely until it returns",
+        "Remove the pricing tool and ask the model to estimate prices from parametric knowledge",
+        "Move the pricing call to the very end of the workflow so earlier work is not wasted"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Failure isolation for a flaky dependency means bounded retries plus a circuit breaker and an explicit degraded path, so one unreliable edge cannot take down the graph. Unbounded retries convert a fast failure into a hang. Letting the model hallucinate prices trades an availability error for a correctness error. Reordering reduces wasted work but the run still fails.",
+      "tags": [
+        "resilience",
+        "circuit-breaker",
+        "failure-isolation",
+        "graceful-degradation"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "AA-009",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the primary purpose of the NVIDIA NeMo Agent Toolkit?",
+      "choices": [
+        "To replace LangGraph, LlamaIndex, and CrewAI with a single proprietary agent framework",
+        "To provide a framework-agnostic layer for connecting, profiling, and optimizing agents and tools built in existing frameworks",
+        "To fine-tune small language models specifically for function calling",
+        "To serve quantized LLMs over an OpenAI-compatible HTTP endpoint"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "NeMo Agent Toolkit (formerly AgentIQ) is explicitly framework-agnostic: it treats agents, tools, and workflows as composable, instrumented functions so teams can reuse existing LangChain/LlamaIndex/CrewAI components while gaining profiling, evaluation, and observability. Serving quantized models over an OpenAI-compatible API is NIM's role.",
+      "tags": [
+        "nemo-agent-toolkit",
+        "nvidia",
+        "framework-agnostic"
+      ],
+      "ref": "https://github.com/NVIDIA/NeMo-Agent-Toolkit"
+    },
+    {
+      "id": "AA-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A multi-agent customer-support system shows agents ping-ponging a ticket between each other until the step limit is hit, producing no resolution. Which design change addresses the underlying cause?",
+      "choices": [
+        "Raise the maximum step limit so the agents have room to converge",
+        "Give every agent access to every tool so any of them can finish the job",
+        "Define explicit, non-overlapping responsibilities plus a termination condition and an escalation path when no agent can accept the ticket",
+        "Lower temperature to zero so handoff decisions become deterministic"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "Ping-ponging is a symptom of ambiguous role boundaries and a missing terminal condition. Disjoint responsibilities tell each agent when a ticket is not theirs, and an explicit termination/escalation rule guarantees the loop ends. Raising limits extends the loop, universal tool access blurs boundaries further, and determinism can lock the system into looping forever rather than fix the routing logic.",
+      "tags": [
+        "multi-agent",
+        "role-design",
+        "termination",
+        "loop-prevention"
+      ],
+      "ref": "https://arxiv.org/abs/2308.00352"
+    },
+    {
+      "id": "AA-011",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "In the reflection (evaluator-optimizer) pattern, what is the role of the second LLM call?",
+      "choices": [
+        "To generate an alternative answer that is averaged with the first",
+        "To critique the first output against criteria and return actionable feedback that drives a revision",
+        "To translate the first output into a structured schema",
+        "To cache the first output for later reuse"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Reflection pairs a generator with an evaluator that produces targeted critique, and the generator revises. The value comes from the feedback signal, not from averaging or reformatting. It works best when there are clear, checkable criteria.",
+      "tags": [
+        "reflection",
+        "evaluator-optimizer",
+        "patterns"
+      ],
+      "ref": "https://arxiv.org/abs/2303.11366"
+    },
+    {
+      "id": "AA-012",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO conditions most strongly justify choosing a multi-agent architecture over a single well-prompted agent?",
+      "choices": [
+        "The task decomposes into subtasks needing genuinely different tools, context, or permissions",
+        "Subtasks are independent enough to run concurrently for a real latency win",
+        "The single-agent prompt has grown long and is hard to read",
+        "Stakeholders want per-department ownership of the prompt text"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Multi-agent designs pay for themselves when they buy separation of concerns that is real (distinct tools, context windows, or privilege scopes) or genuine parallelism. Prompt length alone is usually solved by better prompt organization or sub-prompts, and organizational politics is not an architectural driver — both add inter-agent coordination cost for no technical return.",
+      "tags": [
+        "multi-agent",
+        "design-tradeoffs",
+        "when-to-use"
+      ],
+      "ref": "https://www.anthropic.com/engineering/building-effective-agents"
+    },
+    {
+      "id": "AA-013",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent must perform a 12-step data migration that takes about 40 minutes. The process must survive a pod restart and resume where it left off. Which architectural capability is essential?",
+      "choices": [
+        "A larger context window so the entire history fits in one prompt",
+        "Durable checkpointing of graph state after each step, with a thread/run identifier used to resume",
+        "Streaming token output so progress is visible to the operator",
+        "A higher max-tokens setting so the final summary is not truncated"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Long-running, restart-tolerant agents need persistence: state is serialized to a durable checkpointer after each node, keyed by a thread id, so a new process can rehydrate and continue. Context size, streaming, and max tokens affect a single invocation and provide no durability.",
+      "tags": [
+        "durability",
+        "checkpointing",
+        "long-running",
+        "state"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/persistence/"
+    },
+    {
+      "id": "AA-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A tool named `get_data(query: str)` is described as \"Fetches data. Use when you need data.\" The agent calls it for nearly every user turn, including simple greetings. What is the best first correction?",
+      "choices": [
+        "Rewrite the tool description to state precisely what data it returns, when to use it, and when not to, and give the parameter a typed, documented schema",
+        "Add a rule to the system prompt telling the model to think carefully before calling tools",
+        "Move the tool to a sub-agent so the main agent cannot see it",
+        "Lower the temperature to reduce spurious tool calls"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Tool descriptions are prompt surface consumed by the model at selection time. A vague, over-general description invites over-invocation. Precise scope, positive and negative usage guidance, and typed parameters are the primary lever. The other options are workarounds that leave the ambiguous contract in place.",
+      "tags": [
+        "tool-design",
+        "schemas",
+        "tool-descriptions"
+      ],
+      "ref": "https://modelcontextprotocol.io/docs/learn/server-concepts"
+    },
+    {
+      "id": "AA-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which description best characterizes the A2A (Agent2Agent) protocol's scope compared with MCP?",
+      "choices": [
+        "A2A governs how agents advertise capabilities and collaborate with other agents; MCP governs how an agent connects to tools and context sources",
+        "A2A is a replacement for MCP with broader tool support",
+        "A2A defines GPU scheduling for multi-agent inference; MCP defines prompt templates",
+        "A2A is NVIDIA's proprietary protocol; MCP is the open equivalent"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The two protocols address adjacent layers: MCP is the agent-to-tool/resource boundary, A2A is the agent-to-agent boundary (capability discovery via agent cards, task delegation, and status exchange between opaque peer agents). They compose rather than compete, and neither is NVIDIA-proprietary.",
+      "tags": [
+        "a2a",
+        "mcp",
+        "protocols",
+        "interoperability"
+      ],
+      "ref": "https://modelcontextprotocol.io/"
+    },
+    {
+      "id": "AA-016",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agentic system routes simple FAQ turns and complex multi-step troubleshooting through the same large reasoning model. Cost per conversation is unacceptable. Which architectural pattern gives the biggest saving with the least quality risk?",
+      "choices": [
+        "Quantize the large model to 4-bit and keep routing everything to it",
+        "Add a lightweight classifier/router that sends simple intents to a small fast model and escalates complex ones to the reasoning model",
+        "Cap the reasoning model's max output tokens for all requests",
+        "Cache all model responses keyed on the exact user string"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Model routing (cascading) matches request difficulty to model capability and typically removes the large majority of traffic from the expensive path without touching hard-case quality. Blanket quantization or token caps degrade the complex cases too. Exact-string caching has a very low hit rate on natural conversation.",
+      "tags": [
+        "routing",
+        "model-cascade",
+        "cost-optimization"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "AA-017",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In the perceive-reason-act-learn framing NVIDIA uses for agentic AI, which component distinguishes an agentic system from a purely reactive one?",
+      "choices": [
+        "Perception, because it converts raw input into tokens",
+        "Action, because it invokes external tools",
+        "The feedback loop in which outcomes of actions update the agent's state or policy for subsequent decisions",
+        "Reasoning, because it uses chain-of-thought"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "Perception, reasoning, and action can all exist in a single-shot reactive system. What makes the system agentic is that the result of acting feeds back and conditions the next decision — an iterative loop over an environment rather than one pass.",
+      "tags": [
+        "nvidia-framing",
+        "agentic-loop",
+        "definitions"
+      ],
+      "ref": "https://learn.nvidia.com/courses/course-detail?course_id=course-v1%3ADLI+S-FX-39+V1"
+    },
+    {
+      "id": "AA-018",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A finance agent can read ledgers, draft journal entries, and post them. Security requires that posting is never performed with the same credentials used for reading. Which architectural approach satisfies this cleanly?",
+      "choices": [
+        "Give the agent a single service account with all permissions and log every action for audit",
+        "Separate the posting capability behind its own least-privilege tool/service boundary with distinct credentials, invoked only from a dedicated node after validation",
+        "Ask the model in its system prompt to only post after validating and to avoid misusing its read access",
+        "Encrypt the credentials in the agent's environment variables"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Privilege separation must be enforced outside the model. Isolating the write capability as its own narrowly scoped service with separate credentials, reachable only from a specific validated step, makes the guarantee structural. A single all-powerful service account plus logging is detection, not prevention; prompt instructions are not a security control; and encrypting credentials does not limit what they can do.",
+      "tags": [
+        "least-privilege",
+        "security-architecture",
+        "tool-scoping"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "AA-019",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "How does the Plan-and-Execute pattern differ from ReAct in its use of the planning model?",
+      "choices": [
+        "Plan-and-Execute produces a complete multi-step plan in one call and then executes steps with a cheaper model, while ReAct re-invokes the reasoning model before every action",
+        "Plan-and-Execute uses no tools, while ReAct does",
+        "Plan-and-Execute runs steps in parallel, while ReAct runs them sequentially",
+        "Plan-and-Execute requires a fine-tuned planner model, while ReAct works with any model"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The structural difference is how often the expensive reasoning call happens. Plan-and-Execute front-loads planning into a single call and then executes the resulting steps cheaply, which cuts cost and keeps the global goal explicit; ReAct re-reasons at every step, which adapts better to surprises but costs a model call per action. Both use tools, neither mandates parallelism or a special planner model.",
+      "tags": [
+        "plan-and-execute",
+        "react",
+        "planning",
+        "cost"
+      ],
+      "ref": "https://arxiv.org/abs/2305.04091"
+    },
+    {
+      "id": "AA-020",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An early-generation autonomous agent (AutoGPT style) is given an open-ended goal and left to run. It spends 200 steps and produces nothing useful. Which characteristic of that design is the primary cause?",
+      "choices": [
+        "It used too small a model for the task",
+        "It had no bounded task specification, no verifiable success criterion, and no external check on progress, so the loop had nothing to terminate on",
+        "It lacked access to a web search tool",
+        "It stored its memory in files rather than a vector database"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Fully open-ended autonomy fails because there is no definition of done. Without a bounded objective, a checkable success criterion, and a progress signal external to the model's own judgment, the loop cannot distinguish advancing from spinning. The durable lesson is to scope agents to tasks with verifiable outcomes rather than to increase model size or tool count.",
+      "tags": [
+        "autogpt",
+        "autonomy-limits",
+        "termination",
+        "goal-specification"
+      ],
+      "ref": "https://arxiv.org/abs/2308.11432"
+    },
+    {
+      "id": "AA-021",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In CrewAI, what is the practical difference between a sequential process and a hierarchical process?",
+      "choices": [
+        "Sequential runs tasks in a fixed declared order; hierarchical introduces a manager agent that decides delegation and ordering at runtime",
+        "Sequential uses one agent; hierarchical uses many",
+        "Sequential is synchronous; hierarchical is asynchronous",
+        "Sequential supports tools; hierarchical does not"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The distinction is who owns ordering. A sequential crew executes its declared task list in order with outputs feeding forward. A hierarchical crew adds a manager that assigns work to agents dynamically and decides when the goal is met — the same supervisor concept other frameworks expose. Both support multiple agents and tools.",
+      "tags": [
+        "crewai",
+        "process-types",
+        "delegation",
+        "multi-agent"
+      ],
+      "ref": "https://docs.crewai.com/concepts/processes"
+    },
+    {
+      "id": "AA-022",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "In an AutoGen-style group chat, three agents converse to solve a task but conversations frequently run to the maximum turn count without a decision. Which mechanism most directly fixes this?",
+      "choices": [
+        "Increase the maximum turn count",
+        "Define an explicit termination condition (a terminating message or a checkable completion predicate) and a speaker-selection policy rather than free-for-all turn taking",
+        "Give every agent the same system prompt so they agree faster",
+        "Reduce the group to two agents"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Group chat needs an exit and a turn policy. A terminating message pattern or an evaluated completion predicate ends the conversation on a real condition rather than exhaustion, and a defined speaker-selection strategy stops agents from talking past each other. Raising limits extends the failure, identical prompts destroy the diversity that motivated the group, and shrinking the group is unrelated to the missing terminal state.",
+      "tags": [
+        "autogen",
+        "group-chat",
+        "termination",
+        "speaker-selection"
+      ],
+      "ref": "https://arxiv.org/abs/2308.08155"
+    },
+    {
+      "id": "AA-023",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "A fraud-review agent must decide in under 400 ms whether to hold a transaction, and only escalates ambiguous cases to a slower multi-step investigation. Which TWO architectural choices fit this requirement?",
+      "choices": [
+        "A fast deterministic rules-and-model tier handles the latency-bound decision, with the LLM agent invoked only on the escalation path",
+        "The escalation path runs asynchronously, writing its findings back to the case rather than blocking the transaction",
+        "A single LLM agent handles every transaction with a short system prompt to keep it fast",
+        "All transactions wait for the multi-step investigation to complete before settling"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "A hard real-time budget and open-ended agentic reasoning do not belong on the same path. The standard shape is a fast synchronous tier for the decision and an asynchronous agentic tier for the cases worth investigating, with results written back out of band. Putting an LLM loop in the 400 ms path, or making every transaction wait for it, violates the latency requirement outright.",
+      "tags": [
+        "latency-budget",
+        "tiered-architecture",
+        "fraud-detection",
+        "async"
+      ],
+      "ref": "https://www.anthropic.com/engineering/building-effective-agents"
+    },
+    {
+      "id": "AA-024",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What problem does a semantic cache solve in front of an agent's LLM calls that an exact-match cache does not?",
+      "choices": [
+        "It stores responses on GPU memory for faster retrieval",
+        "It matches semantically equivalent requests that differ in wording, so paraphrased repeat questions hit the cache",
+        "It guarantees the cached answer is still factually current",
+        "It reduces the model's output token count"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Natural-language traffic almost never repeats verbatim, so exact-string caching has a poor hit rate. A semantic cache embeds the request and returns a stored response when a prior request is close enough, capturing paraphrases. It says nothing about freshness, which is why semantic caches need explicit TTLs and invalidation.",
+      "tags": [
+        "semantic-cache",
+        "cost",
+        "latency",
+        "caching"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/guardrails/latest/"
+    },
+    {
+      "id": "AA-025",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent must execute model-generated Python to analyze user-uploaded data. Which architecture is appropriate?",
+      "choices": [
+        "Run the code with `exec()` in the agent process after scanning it for dangerous imports",
+        "Execute it in an isolated sandbox with no credentials, a read-only mount of just the input data, no network egress, and enforced CPU/memory/time limits",
+        "Ask the model to confirm the code is safe before running it",
+        "Run it in a container that shares the host network so the code can fetch needed packages"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Model-generated code is untrusted code. The control is isolation with least privilege: a separate execution boundary, no ambient credentials, minimal filesystem exposure, blocked egress, and hard resource limits. Static scanning and model self-attestation are trivially bypassed, and sharing host network reintroduces the exfiltration path the sandbox exists to close.",
+      "tags": [
+        "code-execution",
+        "sandboxing",
+        "isolation",
+        "security-architecture"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "AA-026",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does NVIDIA OpenShell, as shipped in the NemoClaw stack, provide to a locally running agent?",
+      "choices": [
+        "A quantization toolkit for running models on consumer GPUs",
+        "A sandboxed runtime that enforces safety boundaries, manages credentials, and proxies network and API calls so the agent runs without exposing secrets or gaining unrestricted web access",
+        "A vector database optimized for local storage",
+        "A replacement for the operating system shell that the agent types into"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "OpenShell is the containment layer of NemoClaw: it sandboxes the agent, brokers credentials so they are never handed to the model, and proxies outbound calls so egress is policy-controlled. That is what makes an always-on local agent defensible — enforcement outside the model rather than trust in it.",
+      "tags": [
+        "openshell",
+        "nemoclaw",
+        "sandboxing",
+        "nvidia",
+        "credentials"
+      ],
+      "ref": "https://developer.nvidia.com/blog/build-a-secure-always-on-local-ai-agent-with-nvidia-nemoclaw-and-openclaw/"
+    },
+    {
+      "id": "AA-027",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Two agents each hold part of the state needed to complete a booking, and each waits for the other to confirm before proceeding. What is this failure and what is the structural fix?",
+      "choices": [
+        "A race condition; add locking around the shared state",
+        "A distributed deadlock caused by symmetric waiting; give one participant authority to decide, or make the protocol asymmetric with a timeout and a compensating rollback",
+        "A memory leak; bound the conversation history",
+        "A rate limit; add exponential backoff"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Symmetric mutual waiting is deadlock. Multi-agent protocols avoid it the same way distributed systems do: designate a coordinator with decision authority, or break the symmetry with timeouts plus compensating actions so a stuck participant cannot hold the transaction open. Locking does not help when both parties are waiting rather than contending.",
+      "tags": [
+        "deadlock",
+        "coordination",
+        "protocol-design",
+        "multi-agent"
+      ],
+      "ref": "https://arxiv.org/abs/2402.01680"
+    },
+    {
+      "id": "AA-028",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A clinical decision support agent surfaces treatment suggestions to physicians. Which architectural constraint is most important given the domain?",
+      "choices": [
+        "The agent must respond within one second to fit clinical workflow",
+        "Every suggestion must carry traceable citations to the source guideline or record, and the system must be positioned as advisory with the clinician as the decision-maker",
+        "The agent should be fine-tuned rather than retrieval-based so it does not depend on an index",
+        "The agent should auto-populate the order set to save clinician time"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "In a high-risk clinical setting the architecture must support verification and preserve human decision authority: traceable evidence for every claim, and advisory framing rather than autonomous action. Auto-populating orders moves the system toward autonomous clinical decision-making, which is precisely what regulation and safe design push against.",
+      "tags": [
+        "clinical-decision-support",
+        "traceability",
+        "advisory-design",
+        "high-risk"
+      ],
+      "ref": "https://artificialintelligenceact.eu/"
+    },
+    {
+      "id": "AA-029",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO statements accurately describe how tools should be exposed to an agent through a microservice boundary?",
+      "choices": [
+        "The service validates and authorizes every request independently, never trusting that the agent has already checked",
+        "The service exposes coarse business operations rather than raw database or infrastructure primitives",
+        "The service should accept a free-form instruction string so the agent can express any intent",
+        "The service should skip authentication because the agent is an internal caller"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "A tool service is a security and semantic boundary. It must authorize independently, because the model is an untrusted caller whose input may be attacker-influenced, and it should expose business-meaningful operations so the model reasons about intent rather than implementation. Free-form instruction strings and implicit trust of internal callers are the two classic ways this boundary is lost.",
+      "tags": [
+        "microservices",
+        "tool-boundaries",
+        "authorization",
+        "api-design"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "AA-030",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your agent calls four independent read-only tools before it can answer. Latency is the complaint. Which change helps most, and what must be true for it to be safe?",
+      "choices": [
+        "Issue the four tool calls in parallel; safe because they are independent and side-effect-free",
+        "Cache the tool results indefinitely; safe because reads never change",
+        "Replace the four tools with one that the model calls once; safe because fewer calls is always faster",
+        "Reduce the model's max tokens; safe because tool calls are short"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Independent, side-effect-free calls are exactly the case where parallel (fan-out) execution is both correct and valuable: wall-clock becomes the slowest call instead of the sum. Independence and absence of side effects are the preconditions — parallelizing calls that depend on one another or that mutate state introduces ordering bugs. Indefinite caching ignores freshness, and token caps do not touch tool latency.",
+      "tags": [
+        "parallel-tool-calls",
+        "latency",
+        "independence",
+        "side-effects"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "AA-031",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In the OpenAI Agents SDK and similar frameworks, what does a 'handoff' represent architecturally?",
+      "choices": [
+        "A transfer of the conversation and its context to a different agent with its own instructions and tools, modeled as a tool call the current agent can make",
+        "A transfer of the model's weights to a different GPU",
+        "A serialization of agent state to durable storage",
+        "An escalation to a human operator"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "A handoff is delegation expressed as a callable: the active agent can transfer control to another agent with different instructions and tool access, carrying the conversation forward. Representing it as a tool call lets the model decide routing with the same mechanism it uses for everything else. Escalation to a human is a distinct concept, and weights and checkpointing are unrelated.",
+      "tags": [
+        "handoff",
+        "delegation",
+        "agents-sdk",
+        "routing"
+      ],
+      "ref": "https://docs.crewai.com/concepts/processes"
+    },
+    {
+      "id": "AA-032",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An enterprise wants one agent per department, each owning its own tools and data, but users should ask a single assistant. Users complain that questions spanning two departments fail. What is the architectural gap?",
+      "choices": [
+        "The departmental agents need larger context windows",
+        "There is no orchestration layer able to decompose a cross-cutting request, dispatch sub-questions to multiple departmental agents, and synthesize their answers",
+        "The departmental agents should share a single vector index",
+        "The assistant should be fine-tuned on departmental data"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Routing to exactly one specialist handles single-domain questions and fails on anything spanning two. The missing piece is an orchestrator that decomposes the request, fans out to the relevant agents, and composes their results — routing plus synthesis, not just routing. Merging indexes would destroy the data ownership boundaries the design exists to preserve.",
+      "tags": [
+        "orchestration",
+        "decomposition",
+        "synthesis",
+        "routing"
+      ],
+      "ref": "https://arxiv.org/abs/2402.01680"
+    },
+    {
+      "id": "AA-033",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement best describes when an agent should be stateless between requests?",
+      "choices": [
+        "Always, because statelessness is a cloud-native best practice",
+        "When each request is independently meaningful and any needed continuity is carried in an external store keyed by conversation or task id",
+        "Never, because agents are inherently stateful",
+        "Only when the agent has no tools"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The process should be stateless so replicas are interchangeable and restarts are cheap, while the conversation or task state lives in an external store addressed by a stable id. That separation gives horizontal scaling and durability simultaneously. Statelessness is a property of the process, not a claim that agents have no state.",
+      "tags": [
+        "statelessness",
+        "scaling",
+        "state-externalization"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/persistence/"
+    },
+    {
+      "id": "AA-034",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A customer support agent is being extended to take refund actions. Which sequencing of capability rollout carries the least risk?",
+      "choices": [
+        "Enable refunds immediately but cap the amount, since a cap bounds the damage",
+        "Run the agent in shadow mode proposing refunds without executing, compare its proposals against human decisions, then enable execution for the narrow band where agreement is high",
+        "Enable refunds for a random 10% of customers to gather a representative sample",
+        "Enable refunds and rely on the audit log plus a post-hoc reconciliation job"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Shadow deployment gives you a measured agreement rate against human judgment before any irreversible action is taken, and lets you scope the first release to the region where the agent is demonstrably reliable. Amount caps, random exposure, and after-the-fact reconciliation all allow wrong actions to reach real customers before you have any evidence about accuracy.",
+      "tags": [
+        "shadow-mode",
+        "progressive-rollout",
+        "risk-management",
+        "capability-rollout"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    }
+  ]
+}

@@ -1,0 +1,420 @@
+{
+  "domain": "safety-ethics-compliance",
+  "questions": [
+    {
+      "id": "SE-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In NeMo Guardrails, which rail type inspects and can filter content retrieved from a knowledge base before it reaches the LLM?",
+      "choices": [
+        "Input rails",
+        "Output rails",
+        "Retrieval rails",
+        "Execution rails"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "Retrieval rails act on retrieved chunks, allowing filtering or rejection of untrusted or sensitive context before it is inserted into the prompt — an important defense against indirect prompt injection via documents. Input rails handle user messages, output rails handle model responses, and execution rails wrap custom action/tool invocation.",
+      "tags": [
+        "nemo-guardrails",
+        "retrieval-rails",
+        "rail-types",
+        "nvidia"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/guardrails/latest/user-guides/guardrails-process.html"
+    },
+    {
+      "id": "SE-002",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent summarizes web pages. A page contains hidden text instructing the agent to email its conversation history to an external address. The agent has an email tool. Which control would have prevented the exfiltration most reliably?",
+      "choices": [
+        "A system prompt instruction to ignore instructions found in web content",
+        "Removing the agent's ability to send email to unapproved recipients — least-privilege tool scoping with an allowlist — combined with treating fetched content as untrusted data",
+        "A larger model that is better at detecting manipulation",
+        "Logging all outbound emails for later review"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Indirect prompt injection cannot be reliably prevented at the prompt layer, so the defense must limit what a compromised agent can do: scope the email tool to an approved recipient set (or require approval), and mark fetched content as data rather than instructions. Prompt instructions are bypassable, model capability is not a security boundary, and logging is detection after the loss.",
+      "tags": [
+        "indirect-prompt-injection",
+        "exfiltration",
+        "least-privilege",
+        "allowlist"
+      ],
+      "ref": "https://arxiv.org/abs/2302.12173"
+    },
+    {
+      "id": "SE-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Under the EU AI Act's risk-based structure, how is an AI system used to screen job applicants generally treated?",
+      "choices": [
+        "Prohibited outright",
+        "High-risk, triggering obligations such as risk management, data governance, technical documentation, logging, human oversight, and conformity assessment",
+        "Minimal risk, requiring only voluntary codes of conduct",
+        "Exempt because it supports rather than replaces human decisions"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Employment and worker-management uses, including recruitment and candidate screening, are listed as high-risk. That classification brings substantive obligations across the lifecycle — risk management, data quality, documentation, record-keeping, transparency, and meaningful human oversight — rather than a ban or a light-touch regime. Having a human in the loop does not remove the classification.",
+      "tags": [
+        "eu-ai-act",
+        "high-risk",
+        "regulation",
+        "compliance"
+      ],
+      "ref": "https://artificialintelligenceact.eu/"
+    },
+    {
+      "id": "SE-004",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "An agent with database write access is exposed to public user input. Which TWO controls most reduce the risk of excessive agency?",
+      "choices": [
+        "Grant the agent's database credentials the minimum privileges required, scoped to specific tables and operations",
+        "Require out-of-band human approval for irreversible or high-value actions, enforced by the orchestrator rather than the model",
+        "Instruct the agent to confirm with itself before writing",
+        "Increase the model's context window so it understands the full schema"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Excessive agency is mitigated by reducing permissions and by interposing authorization the model cannot bypass. Least-privilege credentials bound the worst case; orchestrator-enforced approval gates put a human decision in the path of consequential actions. Self-confirmation is still the model deciding, and schema visibility does not limit authority.",
+      "tags": [
+        "excessive-agency",
+        "least-privilege",
+        "approval-gates",
+        "owasp"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "SE-005",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which of the following is the best description of defense in depth for an agentic application's safety architecture?",
+      "choices": [
+        "Choosing the single most effective guardrail and applying it consistently",
+        "Layering independent controls — input filtering, retrieval filtering, tool-level authorization, output filtering, and monitoring — so that bypassing one does not compromise the system",
+        "Running two different models and comparing their answers",
+        "Encrypting all data at rest and in transit"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Defense in depth assumes each individual control will sometimes fail, and places independent controls at different layers so a single bypass is not sufficient for harm. Model redundancy and encryption are useful techniques but address specific concerns rather than layered containment.",
+      "tags": [
+        "defense-in-depth",
+        "layered-controls",
+        "architecture"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "SE-006",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your agent must be auditable for a regulated deployment. Which record set is minimally sufficient to reconstruct why a specific decision was made?",
+      "choices": [
+        "The final response and a timestamp",
+        "The full trajectory: inputs, retrieved sources with identifiers and versions, every tool call with arguments and results, model and prompt versions, guardrail decisions, and any human approvals",
+        "Aggregate accuracy metrics for the month in which the decision was made",
+        "The model's confidence score for the final answer"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Auditability requires reproducible causal detail: which evidence was used (and which version of it), what actions were taken, which model and prompt produced the reasoning, what the guardrails decided, and who approved what. Outputs, aggregate metrics, and confidence scores cannot reconstruct a specific decision.",
+      "tags": [
+        "auditability",
+        "traceability",
+        "regulated-deployment",
+        "record-keeping"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "SE-007",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What are the four core functions of the NIST AI Risk Management Framework?",
+      "choices": [
+        "Plan, Build, Test, Deploy",
+        "Govern, Map, Measure, Manage",
+        "Identify, Protect, Detect, Respond",
+        "Collect, Curate, Train, Evaluate"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The NIST AI RMF is organized around Govern (cross-cutting culture, policies, accountability), Map (context and risk identification), Measure (analysis and tracking), and Manage (prioritization and response). Identify/Protect/Detect/Respond belongs to the NIST Cybersecurity Framework.",
+      "tags": [
+        "nist-ai-rmf",
+        "governance",
+        "frameworks",
+        "compliance"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "SE-008",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A third-party MCP server your agent uses is updated, and its tool description now includes hidden text instructing the agent to forward credentials. What class of risk is this, and what is the appropriate mitigation?",
+      "choices": [
+        "Model hallucination; mitigate with better prompting",
+        "Supply-chain / tool-poisoning risk; mitigate by pinning and reviewing tool definitions, verifying server provenance, and monitoring for changes in tool metadata",
+        "Data drift; mitigate by re-evaluating the model",
+        "Denial of service; mitigate with rate limiting"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Tool descriptions are trusted prompt content, so a compromised or malicious server can inject instructions through metadata — a supply-chain attack. Mitigations are supply-chain mitigations: pin versions, review definitions as code, verify provenance, restrict which servers are permitted, and alert on metadata changes.",
+      "tags": [
+        "tool-poisoning",
+        "supply-chain",
+        "mcp",
+        "provenance"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "SE-009",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is it insufficient to rely solely on an output-filtering guardrail to prevent an agent from taking a harmful action?",
+      "choices": [
+        "Output filters add too much latency",
+        "By the time an output is filtered, tool calls made during the run may already have caused irreversible side effects — actions must be authorized before execution",
+        "Output filters cannot detect toxic language reliably",
+        "Output filters require a separate GPU"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Output filtering protects what the user sees, not what the system did. An agent that deleted records or sent money has already caused harm regardless of how its final message is filtered. Consequential actions need pre-execution authorization at the tool boundary.",
+      "tags": [
+        "output-filtering",
+        "pre-authorization",
+        "side-effects",
+        "guardrails"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/guardrails/latest/"
+    },
+    {
+      "id": "SE-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A hiring-support agent recommends candidates. Which evaluation practice is most important for detecting discriminatory behavior?",
+      "choices": [
+        "Measuring overall recommendation accuracy against past hiring decisions",
+        "Disaggregated evaluation: measuring outcome rates and error rates separately across protected groups, including counterfactual tests that vary only group-correlated attributes",
+        "Asking the model to explain each recommendation and reviewing the explanations",
+        "Ensuring the training data contains no explicit demographic fields"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Bias is visible only when metrics are broken out by group and probed counterfactually — holding qualifications constant while varying names, schools, or other proxies. Aggregate accuracy hides disparate impact, and benchmarking against historical decisions can encode past discrimination as the target. Removing explicit demographic fields does not remove proxies, and model-generated explanations are not reliable evidence of the actual decision basis.",
+      "tags": [
+        "bias",
+        "disaggregated-evaluation",
+        "counterfactual-testing",
+        "fairness"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "SE-011",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which approach to jailbreak detection is most robust in a production agent?",
+      "choices": [
+        "A denylist of known jailbreak phrases",
+        "A layered approach: a classifier model scoring input intent, output-side safety checks, and — most importantly — tool-level authorization so a successful jailbreak still cannot perform a privileged action",
+        "Instructing the model to refuse jailbreak attempts",
+        "Rejecting any prompt over a length threshold"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Jailbreak phrasings are unbounded and adversaries adapt, so detection alone will always have a false-negative rate. The layered posture assumes some attempts succeed and ensures the consequences are bounded by authorization the model cannot influence. Denylists, self-refusal instructions, and length heuristics are all trivially evaded.",
+      "tags": [
+        "jailbreak-detection",
+        "layered-defense",
+        "authorization",
+        "assume-breach"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/guardrails/get-started/tutorials/nemoguard-jailbreakdetect-deployment"
+    },
+    {
+      "id": "SE-012",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Under GDPR, an agent logs full prompts including customer messages to a tracing backend retained for two years. Which issues does this raise?",
+      "choices": [
+        "None, since tracing is a legitimate operational need",
+        "Purpose limitation, data minimization, and storage limitation: the trace store holds personal data beyond what operations require, so it needs redaction at capture, a lawful basis, access controls, and a defensible retention period",
+        "Only an access-control issue",
+        "Only an encryption issue"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Traces are a personal-data store even when nobody intended them to be. The obligations follow: collect only what debugging requires (redact at instrumentation time), have a lawful basis and purpose, restrict access, and set a retention period you can justify. Encryption and access control are necessary but do not address minimization or retention.",
+      "tags": [
+        "gdpr",
+        "trace-retention",
+        "data-minimization",
+        "purpose-limitation"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "SE-013",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO are appropriate uses of a content-safety classifier in an agent pipeline?",
+      "choices": [
+        "Screening user input before it reaches the model, to catch harmful requests early",
+        "Screening model output before it reaches the user, to catch harmful generations",
+        "Deciding whether a tool call is authorized",
+        "Validating that JSON output matches a schema"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Safety classifiers operate on natural-language content at the input and output boundaries. Authorization is a policy decision that belongs to the tool layer and must not depend on a probabilistic text classifier, and schema conformance is a structural check handled by validation or constrained decoding.",
+      "tags": [
+        "safety-classifier",
+        "input-output-rails",
+        "scope-of-controls"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/guardrails/about-nemo-guardrails-library/rail-types"
+    },
+    {
+      "id": "SE-014",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Under the EU AI Act, what obligation is triggered when an AI system interacts directly with people?",
+      "choices": [
+        "The system must be registered as high-risk regardless of use",
+        "People must be informed that they are interacting with an AI system, unless it is obvious from the circumstances",
+        "The system must publish its training data",
+        "The system must have a human approve every response"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Transparency obligations apply to systems that interact with people: disclosure that the counterpart is an AI, unless obvious from context. This applies independently of risk classification — a minimal-risk chatbot still carries it — and is separate from the substantive obligations that attach to high-risk systems.",
+      "tags": [
+        "eu-ai-act",
+        "transparency-obligation",
+        "disclosure",
+        "interaction"
+      ],
+      "ref": "https://artificialintelligenceact.eu/"
+    },
+    {
+      "id": "SE-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An agent has access to a tool that can read any file on a shared drive. A user asks it to summarize 'the latest HR document'. What is the design flaw?",
+      "choices": [
+        "The prompt is ambiguous about which document",
+        "The tool's scope is the whole drive rather than the requesting user's authorized subset, so the agent can surface documents the user is not entitled to read",
+        "The agent should summarize rather than read",
+        "The tool should return the file path instead of contents"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The flaw is authorization scope, not phrasing. A tool whose reach exceeds the requesting user's entitlements will eventually return something it should not, and no prompt fixes that. The tool must enforce the end user's permissions at query time, which is the same principle as document-level access control in RAG.",
+      "tags": [
+        "tool-scope",
+        "user-permissions",
+        "confused-deputy",
+        "authorization"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "SE-016",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which scenario best illustrates the confused-deputy problem in an agentic system?",
+      "choices": [
+        "An agent calls a tool with malformed arguments",
+        "An agent with broad privileges is manipulated by a low-privilege user's input into performing an action that user could not perform directly",
+        "An agent exceeds its token budget",
+        "An agent retrieves stale documents"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A confused deputy holds authority and is tricked into exercising it on someone else's behalf. Agents are natural deputies: they run with service credentials while acting on untrusted input. The mitigation is to act with the requesting user's authority rather than the agent's, and to require explicit authorization for privileged operations.",
+      "tags": [
+        "confused-deputy",
+        "privilege-escalation",
+        "delegated-authority",
+        "security"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "SE-017",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO belong in an AI risk register entry for a production agent, per NIST AI RMF thinking?",
+      "choices": [
+        "The specific harm scenario, who it affects, and its severity and likelihood",
+        "The controls in place, the residual risk after those controls, and the named owner accountable for it",
+        "The model's parameter count",
+        "The framework used to build the agent"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "A risk register entry must describe the harm concretely (what, to whom, how bad, how likely) and the mitigation posture (controls, what risk remains, who owns it). That is the Map-Measure-Manage sequence made operational. Technical facts like parameter count and framework choice are implementation details, not risk statements.",
+      "tags": [
+        "risk-register",
+        "nist-ai-rmf",
+        "accountability",
+        "residual-risk"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "SE-018",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your agent's retrieval corpus is user-contributed. What attack does this enable and what is the mitigation?",
+      "choices": [
+        "Model inversion; mitigate with differential privacy",
+        "Knowledge-base poisoning, where crafted documents are retrieved and either inject instructions or supply false facts; mitigate by treating retrieved content as untrusted data, validating and moderating contributions, tracking provenance, and filtering at the retrieval rail",
+        "Denial of service; mitigate with rate limiting",
+        "Prompt leaking; mitigate by hiding the system prompt"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A writable corpus is an attacker-controlled input to the prompt, enabling both indirect injection and factual poisoning. Defenses span the lifecycle: moderate and attribute contributions at ingestion, keep provenance so suspect sources can be traced and revoked, filter at the retrieval rail, and never let retrieved text carry instruction authority.",
+      "tags": [
+        "knowledge-base-poisoning",
+        "untrusted-corpus",
+        "provenance",
+        "retrieval-rails"
+      ],
+      "ref": "https://arxiv.org/abs/2302.12173"
+    }
+  ]
+}

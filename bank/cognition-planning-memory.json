@@ -1,0 +1,553 @@
+{
+  "domain": "cognition-planning-memory",
+  "questions": [
+    {
+      "id": "CP-001",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "What are the three repeating elements of the ReAct pattern?",
+      "choices": [
+        "Retrieve, Augment, Generate",
+        "Thought, Action, Observation",
+        "Plan, Execute, Reflect",
+        "Perceive, Decide, Learn"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "ReAct interleaves reasoning traces with tool use: the model produces a Thought, emits an Action (tool call), receives an Observation, and repeats. Interleaving is the key idea — reasoning conditions the next action and each observation conditions the next thought.",
+      "tags": [
+        "react",
+        "reasoning",
+        "patterns"
+      ],
+      "ref": "https://arxiv.org/abs/2210.03629"
+    },
+    {
+      "id": "CP-002",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent handles a 20-step task. With a single ReAct loop it frequently loses track of the overall goal after step 8 and starts optimizing locally. Which change most directly addresses this?",
+      "choices": [
+        "Increase the recursion/step limit so it has room to recover",
+        "Adopt a planner-executor split: generate an explicit plan up front, keep it in state, and have the executor work through it while a re-planning step revises it on failure",
+        "Add a reflection pass only at the very end of the run",
+        "Switch to a model with a longer context window"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Goal drift over long horizons is a planning-representation problem. Externalizing the plan into durable state gives every step a stable reference to the global objective and makes progress checkable, while a re-planning step handles deviation. Longer contexts and higher step limits give the loop more room to drift; end-of-run reflection is too late to steer.",
+      "tags": [
+        "planner-executor",
+        "goal-drift",
+        "long-horizon",
+        "replanning"
+      ],
+      "ref": "https://arxiv.org/abs/2305.04091"
+    },
+    {
+      "id": "CP-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which memory type does a skill library — reusable, verified procedures an agent has learned and can call later — most closely correspond to?",
+      "choices": [
+        "Episodic memory",
+        "Semantic memory",
+        "Procedural memory",
+        "Working memory"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "Procedural memory stores how-to knowledge: executable skills and routines. This is the Voyager-style skill library, where verified code is stored and retrieved for reuse. Episodic memory holds specific past events, semantic memory holds facts and concepts, and working memory is the transient contents of the current context.",
+      "tags": [
+        "memory-types",
+        "procedural-memory",
+        "skill-library",
+        "voyager"
+      ],
+      "ref": "https://arxiv.org/abs/2305.16291"
+    },
+    {
+      "id": "CP-004",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "A conversational agent must remember user preferences across sessions that span months. Which TWO design elements are required?",
+      "choices": [
+        "An external persistent store for memories, keyed by user identity and written deliberately rather than as raw transcript",
+        "A retrieval step that selects only the memories relevant to the current turn and injects them into context",
+        "A context window large enough to hold every past session verbatim",
+        "Re-running fine-tuning nightly on each user's transcripts"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Cross-session memory is a write-then-retrieve system: durable storage of distilled, user-scoped memories, plus relevance-based recall into the working context. Stuffing all history into context does not scale in cost or attention quality, and per-user nightly fine-tuning is impractical and the wrong tool for volatile preferences.",
+      "tags": [
+        "long-term-memory",
+        "personalization",
+        "memory-retrieval"
+      ],
+      "ref": "https://arxiv.org/abs/2304.03442"
+    },
+    {
+      "id": "CP-005",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What is the central idea of Reflexion as applied to an agent that failed a task?",
+      "choices": [
+        "Sampling multiple answers and taking the majority vote",
+        "Converting the failure signal into verbal self-feedback that is stored in memory and conditions the next attempt",
+        "Updating the model weights through reinforcement learning after each failure",
+        "Exploring multiple reasoning branches in parallel and pruning the weakest"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Reflexion performs verbal reinforcement: the agent reflects on why it failed, writes that reflection into episodic memory, and retries with the reflection in context. No weight updates occur — the learning is in the memory, not the parameters. Majority voting is self-consistency, and parallel branch exploration is Tree of Thoughts.",
+      "tags": [
+        "reflexion",
+        "self-improvement",
+        "verbal-reinforcement",
+        "episodic-memory"
+      ],
+      "ref": "https://arxiv.org/abs/2303.11366"
+    },
+    {
+      "id": "CP-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "When is Tree of Thoughts preferable to plain chain-of-thought?",
+      "choices": [
+        "When the task requires exploring and evaluating multiple candidate reasoning paths with backtracking, and per-token cost is acceptable",
+        "When latency is the dominant constraint",
+        "When the task is a single-step factual lookup",
+        "When the output must conform to a strict JSON schema"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "ToT generalizes CoT into a search over partial solutions with explicit state evaluation and backtracking, which pays off on problems where early commitments can be wrong (planning, puzzles, proof search). It multiplies inference cost and latency, so it is inappropriate for latency-sensitive or trivial tasks and orthogonal to output formatting.",
+      "tags": [
+        "tree-of-thoughts",
+        "search",
+        "test-time-compute"
+      ],
+      "ref": "https://arxiv.org/abs/2305.10601"
+    },
+    {
+      "id": "CP-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent's context is nearing its limit mid-task. Which compaction strategy best preserves task capability?",
+      "choices": [
+        "Truncate the oldest messages until the context fits",
+        "Summarize older turns into a structured digest while preserving verbatim the current goal, open sub-tasks, key identifiers, and recent tool outputs",
+        "Drop all tool outputs and keep only natural-language messages",
+        "Keep only the last two messages and restart reasoning from there"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Good compaction is selective, not positional: lossy-compress narrative history but keep the state the agent needs to act correctly — the objective, outstanding work, exact identifiers, and the most recent observations. Blind truncation and dropping tool outputs discard precisely the load-bearing details, especially identifiers that cannot be reconstructed.",
+      "tags": [
+        "context-compaction",
+        "summarization",
+        "state-preservation"
+      ],
+      "ref": "https://arxiv.org/abs/2310.08560"
+    },
+    {
+      "id": "CP-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What distinguishes a reasoning model's test-time compute scaling from ordinary chain-of-thought prompting?",
+      "choices": [
+        "The model is trained to produce and use extended internal reasoning, and quality improves as it is allotted more reasoning tokens at inference",
+        "It requires no tokens because reasoning occurs in the weights",
+        "It replaces the need for tools and retrieval",
+        "It only applies to models under 10B parameters"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Reasoning models are post-trained so that spending more inference tokens on deliberation reliably improves accuracy, making compute a tunable dial at serving time. CoT prompting coaxes similar behavior from a non-reasoning model without that training. Reasoning still consumes tokens, does not obviate retrieval of facts the model lacks, and is not size-limited.",
+      "tags": [
+        "reasoning-models",
+        "test-time-compute",
+        "inference-scaling"
+      ],
+      "ref": "https://arxiv.org/abs/2201.11903"
+    },
+    {
+      "id": "CP-009",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A planning agent decomposes requests into sub-tasks, but roughly 15% of plans contain a step that depends on information only available after a later step runs. What is the most robust fix?",
+      "choices": [
+        "Ask the model to double-check its plan before executing",
+        "Adopt interleaved/adaptive planning: plan only to the next decision point, execute, then re-plan with the new observations, rather than committing to a full plan up front",
+        "Increase the plan's step count so more detail is available",
+        "Execute the plan steps in parallel so ordering no longer matters"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The defect is committing to a complete plan under incomplete information. Interleaving planning with execution (plan-act-replan) lets each decision use observations that did not exist at planning time. Self-checking cannot conjure the missing information, more detail compounds the error, and parallel execution breaks genuine data dependencies.",
+      "tags": [
+        "adaptive-planning",
+        "replanning",
+        "dependencies",
+        "interleaved-planning"
+      ],
+      "ref": "https://arxiv.org/abs/2205.10625"
+    },
+    {
+      "id": "CP-010",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement about self-consistency is correct?",
+      "choices": [
+        "It samples multiple reasoning paths at non-zero temperature and selects the most common final answer",
+        "It requires a separate verifier model to score each path",
+        "It reduces inference cost relative to a single greedy sample",
+        "It is only valid for open-ended generation tasks"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Self-consistency marginalizes over diverse reasoning paths by sampling several and taking the majority answer, which improves accuracy on tasks with a single correct answer. It needs no verifier, costs proportionally more than one sample, and depends on answers being comparable — so it suits closed-form rather than open-ended outputs.",
+      "tags": [
+        "self-consistency",
+        "majority-vote",
+        "sampling"
+      ],
+      "ref": "https://arxiv.org/abs/2203.11171"
+    },
+    {
+      "id": "CP-011",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "An agent stores every conversational turn as a memory and retrieves the top 10 by embedding similarity. Users report it surfaces stale, contradicted preferences. Which TWO improvements address this?",
+      "choices": [
+        "Write memories deliberately (extract durable facts and preferences) instead of storing raw turns, and update or supersede existing entries on conflict",
+        "Include recency and importance in the retrieval score rather than similarity alone",
+        "Increase top-k from 10 to 50 so the correct memory is more likely included",
+        "Lower the embedding dimension to sharpen similarity"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Two separate defects: an ingestion problem (raw turns produce many near-duplicate, mutually contradictory memories with no invalidation) and a ranking problem (pure similarity is blind to which memory is current or significant). Generative-agents-style retrieval combines relevance, recency, and importance. Raising top-k adds more stale entries, and shrinking embedding dimensions degrades retrieval quality.",
+      "tags": [
+        "memory-writes",
+        "memory-invalidation",
+        "retrieval-scoring",
+        "recency"
+      ],
+      "ref": "https://arxiv.org/abs/2304.03442"
+    },
+    {
+      "id": "CP-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In agent design, what is the practical difference between working (short-term) memory and long-term memory?",
+      "choices": [
+        "Working memory is the model's parameters; long-term memory is the context window",
+        "Working memory is the active context for the current task and is bounded by the context window; long-term memory is external storage that outlives the task and is selectively retrieved into context",
+        "Working memory is stored in a vector database; long-term memory is stored in the prompt",
+        "They are the same mechanism with different retention settings"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Working memory is what is in the context right now — bounded, volatile, and expensive per token. Long-term memory lives outside the model in files, databases, or vector stores, persists beyond the session, and enters working memory only when retrieved. Parameters encode parametric knowledge, which is a third, distinct category.",
+      "tags": [
+        "memory-architecture",
+        "working-memory",
+        "definitions"
+      ],
+      "ref": "https://arxiv.org/abs/2308.11432"
+    },
+    {
+      "id": "CP-013",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An agent needs to remember that a user prefers metric units. Which memory design is appropriate?",
+      "choices": [
+        "Append the full conversation to a vector store and retrieve by similarity each turn",
+        "Extract the preference as a durable structured fact scoped to the user, store it, and inject it into the system context on every session",
+        "Fine-tune a per-user adapter nightly",
+        "Keep the whole conversation in context indefinitely"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A small, stable, always-relevant preference is not a retrieval problem — it is a profile fact. Extracting it once and injecting it deterministically guarantees it is present, whereas similarity retrieval may simply not surface it on a turn where the query is about something else. Per-user tuning is wildly disproportionate for a single preference.",
+      "tags": [
+        "profile-memory",
+        "always-inject",
+        "memory-design",
+        "personalization"
+      ],
+      "ref": "https://arxiv.org/abs/2304.03442"
+    },
+    {
+      "id": "CP-014",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which statement best captures why chain-of-thought can make an agent's answers less reliable rather than more?",
+      "choices": [
+        "Reasoning tokens always increase latency beyond acceptable limits",
+        "Generated reasoning is a post-hoc narrative that need not reflect the computation that produced the answer, so a confident, fluent chain can rationalize a wrong conclusion and mislead reviewers",
+        "Chain-of-thought disables tool calling",
+        "Chain-of-thought requires a reasoning-tuned model to work at all"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "CoT reliably helps on multi-step problems, but the trace is not a faithful account of the model's internal process. That matters operationally: a plausible chain can lend unwarranted confidence to a wrong answer, which is why reasoning traces are weak evidence for human reviewers and why verification should rest on checkable outputs instead.",
+      "tags": [
+        "chain-of-thought",
+        "faithfulness-of-reasoning",
+        "reviewer-risk"
+      ],
+      "ref": "https://arxiv.org/abs/2201.11903"
+    },
+    {
+      "id": "CP-015",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "An agent's context regularly reaches its limit mid-task. Which TWO strategies preserve capability better than truncation?",
+      "choices": [
+        "Offload detail to an external store and keep a compact index or pointer set in context",
+        "Summarize completed sub-tasks into outcomes while retaining open sub-tasks and identifiers verbatim",
+        "Drop the system prompt, since the model has already read it",
+        "Reduce the max output tokens to leave room"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Both work by separating what must be exactly present from what can be compressed or stored elsewhere. Externalizing detail with retrievable pointers, and compressing finished work while preserving live state, keep the agent able to act. Dropping the system prompt removes the instructions governing behavior, and shrinking output limits does not reclaim input space.",
+      "tags": [
+        "context-management",
+        "offloading",
+        "selective-compression",
+        "memgpt"
+      ],
+      "ref": "https://arxiv.org/abs/2310.08560"
+    },
+    {
+      "id": "CP-016",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent repeatedly attempts the same failing action across a long session, each time slightly rephrased. What is the missing cognitive component?",
+      "choices": [
+        "A larger context window",
+        "A record of attempted approaches and their outcomes that is consulted before choosing the next action, so failed strategies are recognized as already tried",
+        "A higher temperature to encourage variety",
+        "More tools"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Repeating a failed strategy is an episodic-memory gap: without an accessible record of what was tried and what happened, each attempt starts from the same reasoning and reaches the same conclusion. Maintaining and consulting an attempt log — the mechanism Reflexion formalizes — is what breaks the cycle.",
+      "tags": [
+        "episodic-memory",
+        "attempt-log",
+        "loop-prevention",
+        "reflexion"
+      ],
+      "ref": "https://arxiv.org/abs/2303.11366"
+    },
+    {
+      "id": "CP-017",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In a planner-executor architecture, what should trigger re-planning?",
+      "choices": [
+        "A fixed number of executed steps",
+        "An observation that invalidates an assumption the plan depended on, a step failure, or the discovery of information that changes the remaining work",
+        "Every step, to stay adaptive",
+        "Only when the user intervenes"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Re-planning is event-driven, keyed to evidence that the current plan is no longer valid. Replanning on every step collapses the architecture back into a per-step reasoning loop and discards the efficiency that motivated the split; a fixed cadence is arbitrary and can either waste calls or miss an invalidation.",
+      "tags": [
+        "replanning",
+        "triggers",
+        "planner-executor",
+        "adaptivity"
+      ],
+      "ref": "https://arxiv.org/abs/2305.04091"
+    },
+    {
+      "id": "CP-018",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which description correctly distinguishes parametric knowledge from retrieved knowledge in an agent?",
+      "choices": [
+        "Parametric knowledge lives in the model's weights, is fixed at training time, cannot be cited, and cannot be updated without retraining; retrieved knowledge is external, current, citable, and updated by changing the index",
+        "Parametric knowledge is stored in the vector database; retrieved knowledge is in the prompt",
+        "Parametric knowledge is always more accurate",
+        "They are the same thing accessed by different means"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The distinction governs design: anything that must be current, auditable, or correctable belongs in retrieval, because parametric knowledge has a training cutoff, no provenance, and no update path short of retraining. Conflicts between the two are a known failure mode, which is why grounding instructions tell the model to prefer the provided context.",
+      "tags": [
+        "parametric-vs-retrieved",
+        "provenance",
+        "knowledge-cutoff",
+        "grounding"
+      ],
+      "ref": "https://arxiv.org/abs/2005.11401"
+    },
+    {
+      "id": "CP-019",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does least-to-most prompting add over standard chain-of-thought?",
+      "choices": [
+        "It samples multiple chains and votes",
+        "It explicitly decomposes the problem into ordered sub-problems and solves them in sequence, feeding each answer into the next, which helps when later steps depend on earlier results",
+        "It searches over a tree of partial solutions with backtracking",
+        "It removes the need for examples"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Least-to-most makes decomposition an explicit first stage and then solves sub-problems in dependency order, carrying results forward. That structure generalizes better to problems harder than the demonstrations than a single undifferentiated reasoning chain. Voting is self-consistency and tree search with backtracking is Tree of Thoughts.",
+      "tags": [
+        "least-to-most",
+        "decomposition",
+        "dependency-order",
+        "prompting"
+      ],
+      "ref": "https://arxiv.org/abs/2205.10625"
+    },
+    {
+      "id": "CP-020",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "You must decide what an agent writes to long-term memory. Which TWO criteria make a good memory-write policy?",
+      "choices": [
+        "Write facts that are durable and likely to be relevant to future sessions, not transient task state",
+        "Write with an explicit supersession rule so a new fact invalidates or updates a contradicting older one",
+        "Write every turn, since storage is cheap and retrieval will filter",
+        "Write only what the user explicitly asks to be remembered"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Memory quality is decided at write time. Storing only durable, future-relevant facts keeps the store dense in signal, and an explicit supersession rule prevents the accumulation of mutually contradictory entries that later surface as stale advice. Writing everything shifts an unsolvable filtering burden onto retrieval; restricting to explicit requests misses most of what makes memory useful.",
+      "tags": [
+        "memory-write-policy",
+        "supersession",
+        "durability",
+        "curation"
+      ],
+      "ref": "https://arxiv.org/abs/2304.03442"
+    },
+    {
+      "id": "CP-021",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An agent is given a reasoning-capable model and a thinking-token budget. What is the correct way to set that budget?",
+      "choices": [
+        "Always set it to the maximum for best quality",
+        "Tune it per task class, since additional reasoning tokens show diminishing returns and on easy tasks buy nothing while costing latency and money",
+        "Set it to zero for tool-calling tasks",
+        "Set it equal to the expected output length"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Test-time compute is a dial with a task-dependent return curve: hard multi-step problems benefit substantially, routine ones plateau almost immediately. Treating the budget as a per-task-class setting — and measuring where the curve flattens — is what turns it into a cost control rather than a flat tax.",
+      "tags": [
+        "thinking-budget",
+        "test-time-compute",
+        "diminishing-returns",
+        "tuning"
+      ],
+      "ref": "https://arxiv.org/abs/2201.11903"
+    },
+    {
+      "id": "CP-022",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Two agents in a system hold contradictory beliefs about an order's status because each read the database at a different time. What is the architectural lesson?",
+      "choices": [
+        "Agents should share a single memory store",
+        "Derived state should be read from the system of record at the point of use rather than cached in agent memory, or cached entries must carry a freshness bound",
+        "One agent should be designated authoritative",
+        "The agents should exchange their beliefs each turn"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The problem is caching mutable external state inside agent memory without an invalidation story. Facts owned by an external system of record should be read when needed, or held only with an explicit TTL. Sharing a memory store or reconciling beliefs each turn propagates the staleness rather than removing it.",
+      "tags": [
+        "state-freshness",
+        "system-of-record",
+        "caching-mutable-state",
+        "consistency"
+      ],
+      "ref": "https://arxiv.org/abs/2402.01680"
+    },
+    {
+      "id": "CP-023",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the main risk of letting an agent write its own reflections into long-term memory unsupervised over many sessions?",
+      "choices": [
+        "Storage cost growth",
+        "Error compounding: an incorrect inference stored as a fact is retrieved and reinforced in later sessions, so a single mistake becomes persistent and self-confirming",
+        "Retrieval latency increase",
+        "The reflections will contradict the system prompt"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Self-written memory is a feedback loop without an error-correction term. A wrong conclusion, once stored, is retrieved as established fact, shapes later reasoning, and may spawn further reflections built on it. Mitigations are confidence-tagging, provenance, periodic revalidation against sources, and a path to correct or expire entries.",
+      "tags": [
+        "error-compounding",
+        "self-written-memory",
+        "feedback-loops",
+        "validation"
+      ],
+      "ref": "https://arxiv.org/abs/2303.11366"
+    },
+    {
+      "id": "CP-024",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent must decide between answering from parametric knowledge and calling a retrieval tool. Which policy is most defensible for an enterprise assistant?",
+      "choices": [
+        "Always retrieve, accepting the latency cost, because any enterprise-specific or time-sensitive claim must be grounded and citable",
+        "Always answer from parametric knowledge first and retrieve only if unsure",
+        "Let the model decide with no guidance",
+        "Retrieve only when the question contains a date"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "In an enterprise context the cost of an ungrounded, uncitable claim about internal or current information far exceeds the latency of a retrieval call, and the model's own sense of whether it knows something is poorly calibrated. Adaptive retrieval policies exist, but defaulting to grounded-and-cited is the defensible baseline; heuristics like date-detection miss most of the cases that matter.",
+      "tags": [
+        "retrieval-policy",
+        "grounding-default",
+        "calibration",
+        "enterprise"
+      ],
+      "ref": "https://arxiv.org/abs/2310.11511"
+    }
+  ]
+}

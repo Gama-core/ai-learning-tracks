@@ -1,0 +1,37 @@
+name: checks
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Weekly, so doc restructures surface before you hit them mid-study.
+    - cron: "0 6 * * 1"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate question bank, cases and cheat sheets
+        run: python3 tests.py
+      - name: Check generated files are in sync with their sources
+        run: |
+          python3 build_md.py
+          python3 build_web.py
+          git diff --exit-code -- CHEATSHEET.md web/simulator.html \
+            || { echo "::error::Generated files are stale. Run build_md.py and build_web.py."; exit 1; }
+
+  links:
+    runs-on: ubuntu-latest
+    # A dead upstream doc should not block a commit, only report.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check every reference still resolves
+        run: python3 check_links.py

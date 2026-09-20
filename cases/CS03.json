@@ -1,0 +1,75 @@
+{
+  "id": "CS03",
+  "title": "Peak season capacity",
+  "scenario": "A retailer's support agent handles 40 requests per second in normal trading. For four days in November they expect 15x that, arriving in spikes over minutes. The agent runs a 70B model in FP16 on H100 GPUs behind Kubernetes, autoscaled on pod CPU utilization. Each conversation re-sends a 6,000-token system prompt and tool catalog on every one of roughly eight steps. Load testing reached 200 requests per second, but the last rehearsal collapsed at 60, with traces showing most wall-clock time inside a tool that calls the internal order service. The team has four weeks.",
+  "questions": [
+    {
+      "id": "CS03-1",
+      "domain": "deployment-scaling",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why did the rehearsal collapse at 60 requests per second when load testing reached 200?",
+      "choices": [
+        "The rehearsal used a different GPU type",
+        "The load test stubbed the order-service tool, so the real dependency's latency and concurrency limits were never exercised",
+        "Kubernetes throttled the pods",
+        "The model version changed between the test and the rehearsal"
+      ],
+      "answer": [1],
+      "explanation": "Agent capacity is bounded by the whole call graph, not the inference tier alone. A load test that stubs tools measures only the model path and overstates capacity whenever a downstream dependency is the real constraint — which the traces confirm here.",
+      "tags": ["load-testing", "dependency-capacity", "call-graph"],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "CS03-2",
+      "domain": "deployment-scaling",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "The autoscaler never scales out even while users queue. What is wrong?",
+      "choices": [
+        "The stabilization window is too long",
+        "CPU utilization is the wrong signal for a GPU-bound inference service; scale on queue depth, pending requests, or GPU utilization",
+        "The pods need larger memory limits",
+        "Horizontal autoscaling does not work with GPU workloads"
+      ],
+      "answer": [1],
+      "explanation": "An LLM server can sit at low CPU while the GPU is saturated and requests queue, so CPU-based scaling is blind to the actual bottleneck. Tying capacity to queue depth or GPU metrics connects scaling to the real constraint.",
+      "tags": ["autoscaling", "wrong-signal", "queue-depth"],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/deploy-helm.html"
+    },
+    {
+      "id": "CS03-3",
+      "domain": "deployment-scaling",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO changes give the largest cost and latency reduction for the repeated 6,000-token prefix?",
+      "choices": [
+        "Enable prefix KV-cache reuse so the unchanged leading tokens are not recomputed on every step",
+        "Route conversations to the replica already holding their prefix, via session affinity or KV-aware routing",
+        "Enable speculative decoding",
+        "Reduce max output tokens per step"
+      ],
+      "answer": [0, 1],
+      "explanation": "The waste is repeated prefill of an identical prefix, so the fixes are caching it and making sure requests land where the cache lives — round-robin routing scatters a conversation across replicas that each pay full prefill. Speculative decoding accelerates decode, and output caps do not touch input cost.",
+      "tags": ["prefix-caching", "kv-aware-routing", "prefill"],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/advanced/kv-cache-reuse.html"
+    },
+    {
+      "id": "CS03-4",
+      "domain": "deployment-scaling",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "For the four-day spike pattern, which capacity approach is most appropriate?",
+      "choices": [
+        "Scale to zero between spikes to control cost",
+        "Keep a warm baseline of replicas with images and weights cached locally, and scale out on a leading indicator before latency degrades",
+        "Provision for the 15x peak for the entire quarter",
+        "Increase readiness-probe timeouts so pods are not killed during spikes"
+      ],
+      "answer": [1],
+      "explanation": "Model servers take minutes to load, so a warm floor absorbs the first requests of a spike while pre-cached images and weights shorten scale-out, and scaling on a leading indicator reacts before users feel it. Scale-to-zero puts a multi-minute wait in front of the spike, and peak provisioning for a quarter wastes the other 86 days.",
+      "tags": ["autoscaling", "cold-start", "bursty-traffic"],
+      "ref": "https://docs.nvidia.com/nim/large-language-models/latest/deploy-helm.html"
+    }
+  ]
+}

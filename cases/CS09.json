@@ -1,0 +1,75 @@
+{
+  "id": "CS09",
+  "title": "Giving the support agent a wallet",
+  "scenario": "A subscription company's support agent currently answers questions only. Product wants it to issue refunds. Refunds are irreversible once settled, average $40, and occasionally reach $2,000. The team has an offline evaluation set of 60 examples built at launch eight months ago, on which a new prompt scores 4 points higher than the current one. Traffic is about 300 support sessions per week. Leadership wants refunds live in two weeks.",
+  "questions": [
+    {
+      "id": "CS09-1",
+      "domain": "human-ai-oversight",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which rollout sequence carries the least risk?",
+      "choices": [
+        "Enable refunds with a $100 cap, since a cap bounds the damage",
+        "Run in shadow mode proposing refunds without executing, compare proposals against human decisions, then enable execution only for the band where agreement is high",
+        "Enable refunds for a random 10% of customers to gather a representative sample",
+        "Enable refunds and rely on the audit log plus a nightly reconciliation job"
+      ],
+      "answer": [1],
+      "explanation": "Shadow mode produces a measured agreement rate against human judgment before any irreversible action reaches a customer, and lets the first release be scoped to where the agent is demonstrably reliable. Caps, random exposure and after-the-fact reconciliation all let wrong irreversible actions happen before any evidence exists.",
+      "tags": ["shadow-mode", "progressive-rollout", "irreversibility"],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "CS09-2",
+      "domain": "evaluation-tuning",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "How much confidence should the 4-point gain on the 60-example set carry?",
+      "choices": [
+        "High: it is the team's agreed quality gate",
+        "Low: 4 points on 60 examples is about two examples and likely within run-to-run variance, and the set is eight months stale",
+        "High, provided the judge model is the same one that generated the answers",
+        "Low, but only because the set is too small; staleness does not matter"
+      ],
+      "answer": [1],
+      "explanation": "The result is underpowered and the measurement instrument is also suspect: a set built at launch no longer represents current traffic, and repeated tuning against a fixed set overfits to it. Both problems matter. Reusing the generator model as judge would add self-preference bias rather than confidence.",
+      "tags": ["statistical-power", "stale-eval-set", "overfitting"],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "CS09-3",
+      "domain": "evaluation-tuning",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "At 300 sessions per week, how should the prompt change be validated online?",
+      "choices": [
+        "Run an A/B test for one week and ship whichever arm is ahead",
+        "State the minimum effect worth detecting, size the test against it, and accept a longer run rather than a fast but underpowered result",
+        "Ship to 100% and watch the dashboards",
+        "Compare this week's metrics against last week's"
+      ],
+      "answer": [1],
+      "explanation": "At this volume a one-week test cannot resolve a small effect, and week-over-week comparison confounds the change with everything else that varied. Declaring the minimum detectable effect in advance and sizing the experiment to it is what makes the eventual result mean something.",
+      "tags": ["minimum-detectable-effect", "low-traffic", "experiment-design"],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "CS09-4",
+      "domain": "human-ai-oversight",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "For refunds that do go to a human approver, what most improves decision quality?",
+      "choices": [
+        "The agent's full reasoning transcript for the session",
+        "The evidence the agent relied on with links to the source records, plus a precise statement of what will happen on approval and whether it can be reversed",
+        "The agent's confidence score, shown prominently",
+        "The agent's historical accuracy on refunds of similar size"
+      ],
+      "answer": [1],
+      "explanation": "An approver needs to verify the basis for the action and calibrate scrutiny to its consequences, which requires citable evidence and a clear statement of effect and reversibility. Reasoning transcripts overwhelm reviewers and are not a faithful account of the decision, and a prominent confidence score strengthens the anchor that produces rubber-stamping.",
+      "tags": ["reviewer-ux", "evidence", "reversibility"],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/"
+    }
+  ]
+}

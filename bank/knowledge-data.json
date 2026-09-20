@@ -1,0 +1,557 @@
+{
+  "domain": "knowledge-data",
+  "questions": [
+    {
+      "id": "KD-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Users ask questions whose answers require a full procedure, but your retriever returns fragments that cut procedures in half. Chunk size is 256 tokens with no overlap. Which change best addresses this?",
+      "choices": [
+        "Reduce chunk size to 128 tokens to increase precision",
+        "Use structure-aware chunking that respects document sections, with overlap, and retrieve parent or neighboring context around the matched chunk",
+        "Increase top-k from 5 to 50 and let the model sort it out",
+        "Switch to a larger embedding model"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The failure is boundary-induced loss of coherence. Splitting on semantic/structural boundaries with overlap, and expanding a hit to its parent section (small-to-big or parent-document retrieval), returns complete procedures. Smaller chunks worsen fragmentation, a huge top-k floods the context with noise, and a better embedder cannot recover text that was severed at ingestion.",
+      "tags": [
+        "chunking",
+        "parent-document-retrieval",
+        "ingestion"
+      ],
+      "ref": "https://docs.llamaindex.ai/en/stable/module_guides/loading/node_parsers/"
+    },
+    {
+      "id": "KD-002",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your semantic search misses documents when users search for exact product codes like \"XT-4429-B\". Which retrieval change most directly fixes this?",
+      "choices": [
+        "Fine-tune the embedding model on product descriptions",
+        "Add lexical (BM25/sparse) retrieval and fuse it with dense results — hybrid search",
+        "Increase the vector index's number of probes",
+        "Lower the similarity threshold"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Dense embeddings generalize semantically and are weak on rare exact tokens such as SKUs and identifiers, which lexical matching handles natively. Hybrid retrieval with score fusion covers both regimes. Index tuning and threshold changes affect recall within the dense space but cannot make it token-exact, and embedding fine-tuning does not reliably create exact-match behavior.",
+      "tags": [
+        "hybrid-search",
+        "bm25",
+        "exact-match",
+        "retrieval"
+      ],
+      "ref": "https://docs.nvidia.com/nim/nemo-retriever/text-embedding/latest/index.html"
+    },
+    {
+      "id": "KD-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does a cross-encoder reranker do that a bi-encoder embedding retriever cannot?",
+      "choices": [
+        "Encode documents once, offline, for fast lookup",
+        "Jointly attend over the query and candidate document together, producing a far more accurate relevance score at higher per-pair cost",
+        "Generate an answer from the retrieved documents",
+        "Compress documents to reduce storage"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Bi-encoders embed query and document independently, which enables precomputed indexes and fast approximate search but loses query-document interaction. Cross-encoders process the pair jointly and score it directly, giving much better ordering — which is why the standard architecture retrieves broadly with a bi-encoder and reranks a shortlist with a cross-encoder.",
+      "tags": [
+        "reranking",
+        "cross-encoder",
+        "bi-encoder",
+        "architecture"
+      ],
+      "ref": "https://docs.nvidia.com/nim/nemo-retriever/text-reranking/latest/index.html"
+    },
+    {
+      "id": "KD-004",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Users phrase questions vaguely and with pronouns referring to earlier turns, and retrieval quality suffers. Which TWO techniques address this at the query stage?",
+      "choices": [
+        "Query rewriting that resolves coreference and expands the question into a standalone, self-contained query using conversation history",
+        "Generating multiple query variants (or a hypothetical answer document, HyDE) and retrieving with each, then fusing results",
+        "Increasing the chunk overlap during ingestion",
+        "Switching the vector index from HNSW to a flat index"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Both fixes belong at query transformation. Rewriting turns \"does it support that?\" into a fully specified query, and multi-query or HyDE expansion covers vocabulary mismatch between question and document phrasing. Chunk overlap is an ingestion parameter, and index type affects recall/latency, not query ambiguity.",
+      "tags": [
+        "query-rewriting",
+        "hyde",
+        "multi-query",
+        "coreference"
+      ],
+      "ref": "https://arxiv.org/abs/2212.10496"
+    },
+    {
+      "id": "KD-005",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A question requires connecting facts across three documents (\"which supplier of the component used in product X was acquired in 2023?\"). Standard top-k vector retrieval fails consistently. Which approach is most suitable?",
+      "choices": [
+        "Increase top-k to 100 so all three documents are retrieved",
+        "A graph-based retrieval approach (GraphRAG) that extracts entities and relations so multi-hop connections can be traversed",
+        "Use a larger generation model",
+        "Reduce chunk size so each fact lands in its own chunk"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Multi-hop questions fail under similarity search because no single chunk is similar to the whole question — the answer exists only in the relationships between documents. Knowledge-graph construction plus traversal (or community summaries) makes those links explicit and queryable. Flooding the context or enlarging the generator does not supply the missing structure.",
+      "tags": [
+        "graphrag",
+        "multi-hop",
+        "knowledge-graph"
+      ],
+      "ref": "https://arxiv.org/abs/2404.16130"
+    },
+    {
+      "id": "KD-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the role of NVIDIA NeMo Retriever in a RAG pipeline?",
+      "choices": [
+        "It is a vector database that stores and indexes embeddings",
+        "It is a collection of GPU-accelerated NIM microservices for document extraction, embedding, and reranking that feed a vector store of your choice",
+        "It fine-tunes embedding models on your corpus automatically",
+        "It replaces the LLM with a retrieval-only question answering system"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "NeMo Retriever provides the retrieval-side building blocks as microservices — multimodal document extraction/parsing, text and multimodal embedding, and reranking — while the vector index itself remains a separate component (Milvus, Elasticsearch, pgvector, and others). It is neither a database nor a substitute for generation.",
+      "tags": [
+        "nemo-retriever",
+        "nvidia",
+        "rag-pipeline"
+      ],
+      "ref": "https://docs.nvidia.com/nim/nemo-retriever/text-embedding/latest/index.html"
+    },
+    {
+      "id": "KD-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your knowledge base contains both a 2023 policy and its 2025 replacement. The agent sometimes answers from the obsolete document. Which fix is most reliable?",
+      "choices": [
+        "Instruct the model in the system prompt to prefer newer information",
+        "Attach effective-date and status metadata at ingestion and filter or boost on it at query time, removing or tombstoning superseded documents",
+        "Rely on the reranker to prefer the newer document",
+        "Re-embed the corpus with a newer embedding model"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Freshness is a data-governance property, not something a relevance model can infer from text. Versioned metadata with query-time filtering, plus an explicit supersession/retirement process, makes the guarantee deterministic. Prompts and rerankers optimize for semantic relevance and will happily return a highly relevant obsolete document; re-embedding changes nothing about recency.",
+      "tags": [
+        "freshness",
+        "metadata-filtering",
+        "versioning",
+        "data-governance"
+      ],
+      "ref": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/metadata_extraction/"
+    },
+    {
+      "id": "KD-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Your source documents are scanned PDFs containing tables and charts that carry most of the answers. Which ingestion approach preserves the most usable information?",
+      "choices": [
+        "Plain text extraction with a PDF text library, discarding anything unparsable",
+        "A multimodal extraction pipeline that performs OCR, detects and reconstructs table structure, and captions or embeds charts and images alongside text",
+        "Embedding each page as a single large chunk of raw text",
+        "Converting the PDFs to plain text and increasing chunk overlap"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Scanned documents have no text layer, and tables lose all meaning when flattened into a token stream. Layout-aware multimodal extraction (OCR, table structure recognition, chart/figure handling — the job of NeMo Retriever extraction/NV-Ingest) retains the structure that answers depend on. Text-only approaches discard exactly the content that matters.",
+      "tags": [
+        "multimodal-ingestion",
+        "ocr",
+        "tables",
+        "nv-ingest"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/retriever/extraction/overview/"
+    },
+    {
+      "id": "KD-009",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "A RAG agent serves multiple customers from one index. Which TWO controls are essential to prevent cross-tenant data exposure?",
+      "choices": [
+        "Enforce tenant and permission filters inside the retrieval query itself, evaluated server-side before results are returned",
+        "Propagate the end user's identity through the pipeline and apply document-level access control at query time, not after generation",
+        "Instruct the model never to reveal documents belonging to other tenants",
+        "Post-process the generated answer to remove other tenants' names"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Authorization must be enforced at retrieval, before content ever enters the prompt: filter by tenant and by the requesting user's document-level permissions on the server side. Anything applied after the data is in context is a leak that has already happened, and prompt instructions are not an access-control mechanism.",
+      "tags": [
+        "multi-tenancy",
+        "access-control",
+        "security",
+        "retrieval-filters"
+      ],
+      "ref": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "id": "KD-010",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does the \"lost in the middle\" finding imply for how you assemble retrieved context?",
+      "choices": [
+        "Retrieved passages should always be sorted alphabetically",
+        "Models attend most reliably to content at the beginning and end of a long context, so the most important passages should be placed at those positions rather than buried in the middle",
+        "Contexts longer than 4,000 tokens are always ignored",
+        "Reranking is unnecessary if top-k is large enough"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Accuracy varies with position: information at the extremes of a long context is used more reliably than information in the middle. Practically this means ranking matters, top passages should be positioned at the edges, and stuffing many passages in arbitrary order wastes retrieval quality — which strengthens rather than weakens the case for reranking.",
+      "tags": [
+        "lost-in-the-middle",
+        "context-assembly",
+        "position-bias"
+      ],
+      "ref": "https://arxiv.org/abs/2307.03172"
+    },
+    {
+      "id": "KD-011",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Which description matches Self-RAG / Corrective RAG (CRAG) style pipelines?",
+      "choices": [
+        "They always retrieve exactly k documents and generate once",
+        "They add self-assessment steps that decide whether to retrieve, grade retrieved documents for relevance, and trigger corrective action such as query rewriting or web fallback when retrieval is poor",
+        "They fine-tune the retriever and generator jointly end-to-end",
+        "They replace the vector store with a knowledge graph"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Self-RAG and CRAG make retrieval adaptive and self-critical: the system reflects on whether retrieval is needed, grades the retrieved evidence, and takes corrective paths — rewrite, re-retrieve, or fall back to another source — instead of generating unconditionally on whatever came back. That control loop is the defining feature.",
+      "tags": [
+        "self-rag",
+        "crag",
+        "adaptive-retrieval",
+        "document-grading"
+      ],
+      "ref": "https://arxiv.org/abs/2401.15884"
+    },
+    {
+      "id": "KD-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Documents in your corpus contain customer PII, but the agent's use case does not require it. When is the most appropriate point to handle this?",
+      "choices": [
+        "At generation time, by instructing the model not to output PII",
+        "At ingestion time, by detecting and redacting or tokenizing PII before it is embedded and stored, with access controls on any retained originals",
+        "At the API gateway, by scanning responses for PII patterns",
+        "At retrieval time, by lowering the rank of documents containing PII"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Minimize at the earliest point: if PII is never embedded or indexed, it cannot be retrieved, logged in traces, or leaked in an answer. Output-side scanning and model instructions are late, partial defenses, and de-ranking still keeps the data reachable. Output filtering remains useful as defense in depth, but it is not the primary control.",
+      "tags": [
+        "pii",
+        "data-minimization",
+        "ingestion",
+        "privacy"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "KD-013",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "You must choose a vector store for an agent that needs metadata filtering, 50M vectors, and GPU-accelerated index builds. Which consideration should drive the decision?",
+      "choices": [
+        "Whichever store has the most integrations with agent frameworks",
+        "Whether it supports pre-filtered (not post-filtered) search at that scale and can use GPU index builds such as CAGRA, since post-filtering at 50M vectors silently degrades recall",
+        "Whichever store is easiest to run locally",
+        "Whichever store has the lowest storage cost per vector"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "At scale, the filtering strategy is the decisive functional difference: post-filtering retrieves top-k then discards non-matching results, so a selective filter can leave almost nothing, while pre-filtering constrains the search itself. GPU-accelerated index construction matters because rebuilds at 50M vectors are otherwise measured in hours. Integrations and local convenience are secondary.",
+      "tags": [
+        "vector-database",
+        "pre-vs-post-filtering",
+        "cagra",
+        "scale"
+      ],
+      "ref": "https://docs.rapids.ai/api/cuvs/stable/"
+    },
+    {
+      "id": "KD-014",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What is the practical trade-off between an HNSW index and an IVF-PQ index for a large vector collection?",
+      "choices": [
+        "HNSW gives high recall at low latency but high memory use and slow updates; IVF-PQ compresses vectors for far smaller memory at some recall cost",
+        "HNSW is exact; IVF-PQ is approximate",
+        "IVF-PQ is always faster than HNSW",
+        "HNSW cannot support metadata filtering"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Both are approximate. HNSW's graph structure delivers excellent recall-latency behavior but stores full vectors plus graph links, so memory is large and incremental updates are costly. IVF-PQ quantizes vectors into compact codes, cutting memory dramatically in exchange for quantization error, which makes it the usual choice when the collection no longer fits comfortably in RAM.",
+      "tags": [
+        "hnsw",
+        "ivf-pq",
+        "index-tradeoffs",
+        "memory"
+      ],
+      "ref": "https://docs.rapids.ai/api/cuvs/stable/"
+    },
+    {
+      "id": "KD-015",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Your corpus is updated continuously. Which TWO ingestion design choices keep the index correct over time?",
+      "choices": [
+        "Content-hash each chunk so unchanged content is not re-embedded and changed content is updated in place",
+        "Delete or tombstone chunks whose source document was removed, rather than leaving orphans in the index",
+        "Rebuild the entire index nightly from scratch",
+        "Append new versions of documents without removing old ones, so history is preserved"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Incremental correctness needs change detection and deletion propagation: hashing avoids redundant embedding cost and updates only what moved, and removing orphaned chunks prevents the index from serving content that no longer exists. Full nightly rebuilds are expensive and leave a staleness window; appending without retiring old versions guarantees contradictory retrievals.",
+      "tags": [
+        "incremental-ingestion",
+        "change-detection",
+        "deletion-propagation",
+        "freshness"
+      ],
+      "ref": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/"
+    },
+    {
+      "id": "KD-016",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A GDPR erasure request arrives for a user whose data was embedded into your RAG index and also appears in a fine-tuned model's training set. What is the honest assessment?",
+      "choices": [
+        "Both are equally easy: delete the index entries and the model forgets",
+        "Index entries and their source documents can be deleted deterministically; removing the influence of that data from fine-tuned weights generally requires retraining without it, which is why personal data should be kept out of training sets in the first place",
+        "Neither can be complied with, so the request must be refused",
+        "Deleting the source documents is sufficient, since the index will refresh"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Retrieval indexes support deletion; weights do not, short of retraining. That asymmetry is a design argument, not just a compliance detail: personal data belongs in a layer you can delete from. Note also that deleting source documents does nothing until the deletion is propagated to the index, and any derived caches or traces must be covered too.",
+      "tags": [
+        "gdpr",
+        "right-to-erasure",
+        "training-data",
+        "deletability"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "KD-017",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which retrieval evaluation signal indicates your chunking strategy is wrong rather than your embedding model?",
+      "choices": [
+        "Retrieved chunks are topically correct but consistently truncate the information needed to answer",
+        "Retrieved chunks are from unrelated topics",
+        "Retrieval latency is high",
+        "The reranker reorders results heavily"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Topically correct but informationally incomplete chunks mean the embedding located the right region and the segmentation severed the answer — a chunking failure. Unrelated topics point at the embedding or query formulation instead. Latency is an index concern, and heavy reranker reordering says the first-stage ranking was imprecise, not that the chunks are malformed.",
+      "tags": [
+        "chunking-diagnosis",
+        "attribution",
+        "retrieval-debugging"
+      ],
+      "ref": "https://docs.llamaindex.ai/en/stable/module_guides/loading/node_parsers/"
+    },
+    {
+      "id": "KD-018",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What does RAPTOR add to a retrieval pipeline over flat chunk retrieval?",
+      "choices": [
+        "It reranks chunks with a cross-encoder",
+        "It builds a hierarchy by recursively clustering and summarizing chunks, so retrieval can return either fine detail or higher-level synthesis depending on the question's scope",
+        "It converts documents into a knowledge graph",
+        "It compresses embeddings to reduce index size"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "RAPTOR addresses the mismatch between questions that need one specific passage and questions that need the gist of a whole document or corpus section. By building a tree of recursive cluster summaries, retrieval can serve either granularity. Graph construction is GraphRAG, and reranking and compression are separate concerns.",
+      "tags": [
+        "raptor",
+        "hierarchical-retrieval",
+        "summarization-tree",
+        "granularity"
+      ],
+      "ref": "https://arxiv.org/abs/2401.18059"
+    },
+    {
+      "id": "KD-019",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO practices most improve citation quality in a RAG agent's answers?",
+      "choices": [
+        "Carry a stable chunk or document identifier through retrieval into the prompt, and require the model to cite it per claim",
+        "Verify after generation that each cited identifier actually exists in the retrieved set and supports the claim, rejecting or flagging answers that fail",
+        "Ask the model to include a bibliography at the end of its answer",
+        "Increase top-k so more sources are available to cite"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Reliable citations need an identifier the model can reference unambiguously and a verification step that catches fabricated or mismatched references. Together these make citation checkable rather than decorative. A trailing bibliography does not tie sources to specific claims, and more candidates does not make attribution more accurate.",
+      "tags": [
+        "citations",
+        "attribution-verification",
+        "identifiers",
+        "grounding"
+      ],
+      "ref": "https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/"
+    },
+    {
+      "id": "KD-020",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent ingests sensor telemetry alongside documents. Which handling is appropriate for the telemetry?",
+      "choices": [
+        "Embed each reading as text and retrieve by similarity",
+        "Store it in a time-series store and expose query and aggregation tools, because numeric time-series questions are computational and range-based rather than semantic",
+        "Summarize each hour into prose and embed the summaries",
+        "Concatenate readings into the system prompt"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Vector similarity is the wrong retrieval primitive for numeric time series: questions about ranges, thresholds, trends, and aggregates are computational and need an engine that indexes time and computes. The correct pattern is a purpose-built store behind query tools, with the model interpreting results rather than deriving them.",
+      "tags": [
+        "time-series",
+        "multimodal-data",
+        "wrong-primitive",
+        "tool-design"
+      ],
+      "ref": "https://docs.llamaindex.ai/en/stable/module_guides/indexing/"
+    },
+    {
+      "id": "KD-021",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why does embedding model choice constrain later architectural decisions more than generator model choice?",
+      "choices": [
+        "Embedding models are more expensive to run",
+        "Changing the embedding model invalidates the entire index and requires re-embedding the whole corpus, while the generator can be swapped without touching stored data",
+        "Embedding models cannot be self-hosted",
+        "Generator models do not affect answer quality"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Embeddings and index are coupled: vectors from a different model are not comparable, so a swap means a full re-embed and rebuild, which at corpus scale is a significant project. The generator reads the retrieved text at request time and can be changed independently. That asymmetry is worth weighing at design time.",
+      "tags": [
+        "embedding-lock-in",
+        "re-embedding",
+        "architecture-coupling",
+        "migration"
+      ],
+      "ref": "https://docs.nvidia.com/nim/nemo-retriever/text-embedding/latest/index.html"
+    },
+    {
+      "id": "KD-022",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Retrieval returns the right documents, faithfulness is high, but users say answers miss important caveats present in the sources. What is the likely cause?",
+      "choices": [
+        "The embedding model is too small",
+        "Context assembly is truncating or de-prioritizing the portions of the retrieved documents that contain the qualifications, or the generation prompt does not ask for limitations and exceptions",
+        "The vector index needs rebuilding",
+        "The reranker is misconfigured"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Faithful but incomplete answers point downstream of retrieval: either the relevant passages were trimmed during assembly, or the prompt frames the task as answering the question rather than as reporting conditions and exceptions. Both are fixable in assembly and prompting, without touching the retrieval stack.",
+      "tags": [
+        "completeness",
+        "context-assembly",
+        "prompt-framing",
+        "caveats"
+      ],
+      "ref": "https://arxiv.org/abs/2307.03172"
+    },
+    {
+      "id": "KD-023",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO steps belong in a multimodal document ingestion pipeline for PDFs containing charts?",
+      "choices": [
+        "Detect and extract figures as separate objects, then generate a text description or caption that is indexed alongside the surrounding text",
+        "Preserve the association between a figure and its caption, section, and page so retrieval can return them together",
+        "Convert every page to a single image and embed it with a vision model only",
+        "Discard figures, since the surrounding text usually explains them"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Figures carry information that text extraction loses, so they must be captured as objects and made searchable via description or multimodal embedding. Equally important is keeping structural context — caption, section, page — so a retrieved figure arrives with what makes it interpretable. Page-level images destroy granularity, and discarding figures discards the answer.",
+      "tags": [
+        "multimodal-ingestion",
+        "figures",
+        "structural-context",
+        "nv-ingest"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/retriever/extraction/overview/"
+    },
+    {
+      "id": "KD-024",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your retrieval corpus contains near-duplicate documents (a policy and three lightly edited copies). What is the effect on the agent and the fix?",
+      "choices": [
+        "No effect; duplicates simply rank together",
+        "The top-k fills with redundant copies, crowding out diverse evidence and wasting context; deduplicate at ingestion and apply diversity-aware selection such as MMR at retrieval",
+        "Duplicates improve confidence through repetition",
+        "The reranker automatically removes duplicates"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Near-duplicates consume the retrieval budget with the same information, so the agent sees one perspective repeated instead of several distinct pieces of evidence — and inherits whichever copy is stale. The fix is at both ends: deduplicate during ingestion (exact and fuzzy), and use diversity-aware re-ranking so top-k spans different content.",
+      "tags": [
+        "deduplication",
+        "mmr",
+        "diversity",
+        "redundancy"
+      ],
+      "ref": "https://docs.nvidia.com/nemo-framework/user-guide/latest/datacuration/index.html"
+    }
+  ]
+}

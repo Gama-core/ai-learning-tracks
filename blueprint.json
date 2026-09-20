@@ -1,0 +1,90 @@
+{
+  "exam": {
+    "name": "NVIDIA-Certified Professional: Agentic AI LLMs",
+    "code": "NCP-AAI",
+    "level": "Professional (intermediate)",
+    "duration_minutes": 120,
+    "question_count_min": 60,
+    "question_count_max": 70,
+    "price_usd": 200,
+    "language": "English",
+    "validity_years": 2,
+    "delivery": "Online, remotely proctored (Certiverse)",
+    "passing_score_note": "NVIDIA does not publish the cut score. Community reports cluster around 70-75%. This simulator defaults to 75% so you train with margin.",
+    "source": "https://www.nvidia.com/en-us/learn/certification/agentic-ai-professional/",
+    "weights_note": "NVIDIA's published percentages sum to 98%. The simulator normalizes them to 100% when building an exam."
+  },
+  "domains": [
+    {
+      "id": "agent-architecture",
+      "name": "Agent Architecture and Design",
+      "weight": 15,
+      "prefix": "AA",
+      "scope": "Structuring agents, interaction patterns, reasoning loops, and communication within environments. Single vs. multi-agent topologies, orchestration patterns, tool/function interfaces, protocols (MCP, A2A), state machines vs. free-form loops, failure isolation."
+    },
+    {
+      "id": "agent-development",
+      "name": "Agent Development",
+      "weight": 15,
+      "prefix": "AD",
+      "scope": "Building, integrating, and enhancing agents. Frameworks (LangGraph, LlamaIndex, CrewAI, NeMo Agent Toolkit), tool definition and schemas, structured output, prompt engineering for agents, error handling and retries, function-calling models, testing agents."
+    },
+    {
+      "id": "evaluation-tuning",
+      "name": "Evaluation and Tuning",
+      "weight": 13,
+      "prefix": "ET",
+      "scope": "Measuring, comparing, and optimizing agent performance. Trajectory vs. outcome evaluation, LLM-as-judge, RAG metrics (faithfulness, context recall/precision, answer relevance), benchmarks, A/B testing, PEFT/LoRA/SFT/DPO vs. prompt or retrieval fixes, RAGAS, NeMo Evaluator."
+    },
+    {
+      "id": "deployment-scaling",
+      "name": "Deployment and Scaling",
+      "weight": 13,
+      "prefix": "DS",
+      "scope": "Operationalizing and scaling agentic systems. Inference serving (TensorRT-LLM, Triton, vLLM, NIM), batching, KV cache, quantization, parallelism (TP/PP/EP), autoscaling, latency/throughput trade-offs, Kubernetes/Dynamo, cost per token."
+    },
+    {
+      "id": "cognition-planning-memory",
+      "name": "Cognition, Planning, and Memory",
+      "weight": 10,
+      "prefix": "CP",
+      "scope": "Reasoning, decision-making, and memory management. CoT/ToT/ReAct/Reflexion, planner-executor split, task decomposition, short vs. long-term memory, episodic/semantic/procedural memory, context window management, summarization/compaction, reasoning models and test-time compute."
+    },
+    {
+      "id": "knowledge-data",
+      "name": "Knowledge Integration and Data Handling",
+      "weight": 10,
+      "prefix": "KD",
+      "scope": "Integrating external knowledge and managing diverse data. Chunking, embeddings, vector/hybrid/graph retrieval, rerankers, query rewriting, multimodal ingestion, freshness and invalidation, PII handling in pipelines, NeMo Retriever, cuVS/cuDF acceleration."
+    },
+    {
+      "id": "nvidia-platform",
+      "name": "NVIDIA Platform Implementation",
+      "weight": 7,
+      "prefix": "NP",
+      "scope": "Choosing and using NVIDIA hardware and software. NIM microservices, NeMo (Curator/Customizer/Evaluator/Guardrails/Retriever), NeMo Agent Toolkit, TensorRT-LLM, Triton, Dynamo, RAPIDS, build.nvidia.com, AI Blueprints, GPU selection (H100/H200/GB200, NVLink, MIG), DGX/EGX.",
+      "note": "Small weight but highest density of memorizable facts. Over-study this domain."
+    },
+    {
+      "id": "run-monitor-maintain",
+      "name": "Run, Monitor, and Maintain",
+      "weight": 5,
+      "prefix": "RM",
+      "scope": "Post-deployment operations. Tracing/observability (OpenTelemetry, spans over agent steps), token and cost telemetry, drift detection, incident response, canary and rollback, versioning prompts/tools/models, SLOs for agents, profiling."
+    },
+    {
+      "id": "safety-ethics-compliance",
+      "name": "Safety, Ethics, and Compliance",
+      "weight": 5,
+      "prefix": "SE",
+      "scope": "Responsible AI and regulation. Guardrails (input/output/dialog/retrieval rails), prompt injection and tool-poisoning defenses, least-privilege tool scopes, jailbreak detection, EU AI Act risk tiers, NIST AI RMF, data residency, audit trails, bias and transparency."
+    },
+    {
+      "id": "human-ai-oversight",
+      "name": "Human-AI Interaction and Oversight",
+      "weight": 5,
+      "prefix": "HO",
+      "scope": "Designing human oversight. Human-in-the-loop vs. on-the-loop, approval gates and interrupts, confidence-based escalation, uncertainty surfacing, undo/compensating actions, explainability to end users, feedback capture and preference data, handoff design."
+    }
+  ]
+}

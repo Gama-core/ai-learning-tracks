@@ -1,0 +1,75 @@
+{
+  "id": "CS04",
+  "title": "Research platform on a budget",
+  "scenario": "A consultancy runs a research agent that answers analyst questions by gathering material from eight independent internal sources and synthesizing a briefing. Today one ReAct agent queries each source in turn, carrying everything forward in context; a typical briefing takes 40 steps and nine minutes. Analysts say it loses the thread after about step twelve and starts optimizing for whichever source it read last. Finance reports the cost per briefing is four times the estimate, and traces show the agent re-reading the same 8-page methodology document in full at almost every step. Simple lookup questions and deep research questions both go to the same large reasoning model.",
+  "questions": [
+    {
+      "id": "CS04-1",
+      "domain": "agent-architecture",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "The eight sources are independent and latency is the top complaint. Which topology fits?",
+      "choices": [
+        "Keep the sequential chain but raise the step limit",
+        "Fan out to eight workers in parallel, then synthesize with a single aggregator",
+        "Add a debate stage where two agents argue over each source before accepting it",
+        "Merge the eight sources into one tool so the agent makes a single call"
+      ],
+      "answer": [1],
+      "explanation": "Independent subtasks feeding one synthesis step is the canonical scatter-gather shape, and wall-clock becomes the slowest branch rather than the sum of eight. Sequential traversal serializes work that has no ordering dependency, debate multiplies latency, and collapsing eight heterogeneous sources into one tool hides the structure without making it faster.",
+      "tags": ["parallelism", "fan-out", "latency"],
+      "ref": "https://arxiv.org/abs/2402.01680"
+    },
+    {
+      "id": "CS04-2",
+      "domain": "cognition-planning-memory",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What best explains the agent losing the thread after about step twelve, and what fixes it?",
+      "choices": [
+        "The context window is too small; move to a model with a larger window",
+        "Goal drift from carrying the objective only in accumulating conversation history; externalize an explicit plan into durable state and re-assert the objective near the current turn",
+        "The temperature is too high; set it to zero",
+        "The model is not a reasoning model; switch to one"
+      ],
+      "answer": [1],
+      "explanation": "As history grows, an objective stated once at the top competes with thousands of intervening tokens and attention to middle-of-context content degrades. Holding the plan in state gives every step a stable reference to the global goal and makes progress checkable. A larger window gives the drift more room rather than removing it.",
+      "tags": ["goal-drift", "planner-executor", "context-position"],
+      "ref": "https://arxiv.org/abs/2307.03172"
+    },
+    {
+      "id": "CS04-3",
+      "domain": "agent-development",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which change removes the cost of re-reading the methodology document without losing capability?",
+      "choices": [
+        "Switch to a model with a larger context window",
+        "Read it once, extract the relevant facts, and carry a compact structured summary forward in state",
+        "Cap max output tokens per step",
+        "Raise the step limit so the agent works more incrementally"
+      ],
+      "answer": [1],
+      "explanation": "The waste is redundant input tokens on an unchanging document. Reading once and forwarding a compact structured representation preserves what later steps need while eliminating the repetition. A larger window makes the waste cheaper to tolerate, not smaller, and output caps and step limits do not touch repeated input.",
+      "tags": ["context-engineering", "cost-optimization", "state-design"],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "CS04-4",
+      "domain": "deployment-scaling",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Simple lookups and deep research share the same large model. Which change cuts cost with least risk to hard questions?",
+      "choices": [
+        "Quantize the large model to INT4 and route everything to it",
+        "Add a router that sends simple lookups to a small fast model and escalates research questions to the large one",
+        "Cap the reasoning budget for all requests",
+        "Cache responses keyed on the exact question string"
+      ],
+      "answer": [1],
+      "explanation": "Model cascading matches request difficulty to model capability, removing the cheap majority of traffic from the expensive path while leaving hard-case quality untouched. Blanket quantization and global reasoning caps degrade the difficult cases too, and exact-string caching has a very low hit rate on analyst questions.",
+      "tags": ["model-cascade", "routing", "cost"],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    }
+  ]
+}
