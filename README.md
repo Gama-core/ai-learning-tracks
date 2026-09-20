@@ -112,6 +112,49 @@ metrics and techniques, guardrail types, governance frameworks, distractor patte
 acronym glossary. Twelve sections, in the terminal (`./sim.py cheat`), in the repo
 (`CHEATSHEET.md`), and in the web simulator under the **Cheat sheets** tab, which prints.
 
+## Publishing it on a website
+
+No backend. `web/index.html` is a complete, self-contained document — all 317 questions,
+the cheat sheets, the concept taxonomy and every asset are inlined. It makes **zero**
+network calls at runtime (no fetch, no XHR, no WebSocket). Copy the one file to any static
+host and it works:
+
+```bash
+python3 build_web.py          # regenerates both targets
+# then upload web/index.html
+```
+
+Verified served from a plain HTTP server: standards mode, UTF-8, viewport honored, no
+horizontal overflow at 390px, `localStorage` writable, no console errors.
+
+Two targets are built from the same source, and the difference matters:
+
+| File | For | Document |
+|---|---|---|
+| `web/simulator.html` | the claude.ai artifact | starts at `<title>` — the platform injects the skeleton |
+| `web/index.html` | your own site | full `<!doctype html>` with charset, viewport, favicon and OG tags |
+
+Serving `simulator.html` directly from a web server would render it in **quirks mode** with
+a guessed character encoding and no mobile viewport. Use `index.html` off-platform.
+
+### What you lose without a backend
+
+Progress is kept in the visitor's `localStorage`. That is per-browser and per-device:
+
+- no sync between a visitor's laptop and phone
+- clearing site data resets their progress
+- no accounts, and no aggregate view of how visitors perform
+
+A backend is only worth adding if you want one of those. The exam itself needs nothing:
+scoring, the spaced-repetition scheduler and every analytic run client-side.
+
+### The one external request
+
+Fonts load from `fonts.googleapis.com`. Everything else is inlined. If you need the page to
+work fully offline or without third-party requests, self-host the three families
+(Space Grotesk, Inter, IBM Plex Mono) and swap the `<link>` — the CSS already declares real
+fallback stacks, so the page stays readable either way.
+
 ## Web simulator
 
 Styled in the Gama Core design system — their palette (crimson `#C5184B`, blue `#1D98D6`),

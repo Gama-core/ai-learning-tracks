@@ -4,6 +4,7 @@
 Run after editing the question bank so the web simulator matches the CLI.
 """
 import json
+import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -56,6 +57,53 @@ if marker not in template:
 out = template.replace(marker, json.dumps(payload, separators=(",", ":"), ensure_ascii=False))
 dest = ROOT / "web" / "simulator.html"
 dest.write_text(out)
+
+# ---------------------------------------------------------------------------
+# Standalone build for self-hosting.
+#
+# The artifact platform wraps simulator.html in its own document skeleton, so
+# that file deliberately starts at <title>. Served from an ordinary web server
+# it would render in quirks mode, guess its own character encoding, and ignore
+# the phone viewport. This target emits the complete document instead.
+# ---------------------------------------------------------------------------
+import re
+
+mark = re.search(r'<svg viewBox="31\.5[^>]*>.*?</svg>', out, re.S)
+favicon = ""
+if mark:
+    icon = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="31.5 13 78.5 75.5">'
+            + mark.group(0).split(">", 1)[1])
+    favicon = ('\n<link rel="icon" href="data:image/svg+xml,'
+               + urllib.parse.quote(icon) + '">')
+
+title = re.search(r"<title>(.*?)</title>", out).group(1)
+standalone = f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Practice simulator for the NVIDIA-Certified Professional: \
+Agentic AI LLMs (NCP-AAI) exam. {len(questions)} questions weighted to the published blueprint, \
+with spaced repetition, case studies and cheat sheets.">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="{title}">
+<meta property="og:description" content="Blueprint-weighted mock exams for the NVIDIA NCP-AAI certification.">
+<meta property="og:type" content="website">{favicon}
+<style>
+  :root{{padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}}
+  html,body{{margin:0}}
+  body{{font:14px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:#fff}}
+  img{{max-width:100%}}
+  [hidden]{{display:none!important}}
+</style>
+{out}
+</body>
+</html>
+"""
+site = ROOT / "web" / "index.html"
+site.write_text(standalone)
+print(f"{site.relative_to(ROOT)}     standalone document, "
+      f"{site.stat().st_size // 1024} KB — drop on any static host")
 print(f"{dest.relative_to(ROOT)}  {len(questions)} questions  "
       f"{len(cases)} cases  {len(cards)} cards  {len(concepts)} concepts  "
       f"{dest.stat().st_size // 1024} KB")
