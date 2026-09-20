@@ -124,7 +124,7 @@ primary sources · 206 flashcards across 13 decks · 69 concepts.
 ```
 
 During a question: `A`–`D` to answer (two letters for select-two, e.g. `AC`), `f` flag,
-`b` back, `s` skip, `q` quit and score. Ctrl-C scores what you have answered rather than
+`r` reveal the answer and carry on (mock exams), `b` back, `s` skip, `q` quit and score. Ctrl-C scores what you have answered rather than
 discarding it.
 
 ### Modes
@@ -132,6 +132,24 @@ discarding it.
 **Mock exam** hides feedback until you submit, then scores per domain, lists what you
 missed, and orders weak areas by *exam impact* — weight × gap — so a 40% in a 15% domain
 outranks a 40% in a 5% one.
+
+**Show answer** works mid-exam. In a mock exam you can reveal the answer and explanation on
+any question — `r` in the terminal, the **Show answer** button or `R` on the web — without
+ending the run or stopping the clock. The question locks at that point, so an answer changed
+after seeing the key cannot flatter the score.
+
+The report keeps two figures apart:
+
+- **Score** counts blanks as wrong, because the real exam does.
+- **Unaided** excludes questions you revealed *before* selecting anything, because those
+  measure nothing. Revealing after you had already committed does not affect it — that is
+  just reading the explanation early.
+
+A question revealed with nothing selected also enters the review schedule as a miss: you
+needed the answer, so you should see it again.
+
+In a feedback session (practice, review, case study) you can stop at any point with
+**Finish & score** and be scored on what you answered rather than on the whole set.
 
 **Review** is the retention engine. Every answer, in any mode including flashcards,
 schedules the item with an adapted SM-2:
@@ -208,8 +226,8 @@ Two fixes were needed to get there, both worth knowing if you edit the layout:
   `hidden` would create a scroll container and change the containing block for
   `position: sticky` descendants.
 
-Keys: `A`–`D` answer · `←` `→` move · `F` flag · `Enter` check/next. In flashcards, Space
-to reveal, `Y`/`N` to grade.
+Keys: `A`–`D` answer · `←` `→` move · `F` flag · `R` show the answer (mock exams) ·
+`Enter` check/next. In flashcards, Space to reveal, `Y`/`N` to grade.
 
 ---
 

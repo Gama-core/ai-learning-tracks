@@ -755,6 +755,7 @@ function startSession(kind) {
     picks: items.map(() => null),
     flags: new Set(),
     revealed: new Set(),
+    peeked: new Set(),
     i: 0,
     started: Date.now(),
     deadline: timed ? Date.now() + DATA.exam.duration_minutes * 60000 : null,
@@ -803,6 +804,15 @@ function choose(ci) {
   else render();
 }
 
+/* Show the answer mid-run without ending or advancing it. Whatever you had
+   selected stands, and the question locks so a change made after seeing the key
+   cannot flatter the score. The report separates aided from unaided answers. */
+function peek() {
+  S.peeked.add(S.i);
+  S.revealed.add(S.i);
+  render();
+}
+
 function reveal() {
   const it = S.items[S.i];
   const picks = S.picks[S.i] || [];
@@ -829,11 +839,21 @@ function finish(expired) {
   S.items.forEach((it, idx) => {
     const picks = S.picks[idx];
     if (!S.feedback && picks) mergeRecord(it.ref.id, same(picks, it.answer));
-    rows.push({ it, picks: picks || [], ok: picks ? same(picks, it.answer) : false, answered: !!picks });
+    const blindPeek = S.peeked.has(idx) && !picks;
+    if (blindPeek) mergeRecord(it.ref.id, false);   // you needed the answer: schedule it
+    rows.push({ it, picks: picks || [], ok: picks ? same(picks, it.answer) : false,
+                answered: !!picks, peeked: S.peeked.has(idx), blindPeek });
   });
   const answered = rows.filter(r => r.answered).length;
-  const got = rows.filter(r => r.ok).length;
-  const frac = rows.length ? got / rows.length : 0;
+  // A blank is a wrong answer on the real exam, so a mock counts it. In a session
+  // that reveals answers as you go, an unreached question was never attempted —
+  // scoring it wrong would punish you for stopping early.
+  const scored = S.feedback ? rows.filter(r => r.answered) : rows;
+  const got = scored.filter(r => r.ok).length;
+  const frac = scored.length ? got / scored.length : 0;
+  // Revealed with nothing selected means you did not know it: aided, not measured.
+  const unaidedRows = scored.filter(r => !r.blindPeek);
+  const unaidedGot = unaidedRows.filter(r => r.ok).length;
   if (S.kind === "exam") {
     progress.exams.unshift({
       at: new Date().toISOString(), score: +frac.toFixed(4),
@@ -842,7 +862,12 @@ function finish(expired) {
     progress.exams = progress.exams.slice(0, 40);
   }
   save();
-  S.report = { rows, got, frac, answered, expired: !!expired, seconds: Math.round((Date.now() - S.started) / 1000) };
+  S.report = { rows: scored, all: rows, got, frac, answered,
+               revealed: rows.filter(r => r.peeked).length,
+               blind: rows.filter(r => r.blindPeek).length,
+               unaidedGot, unaidedN: unaidedRows.length,
+               stoppedEarly: S.feedback && scored.length < rows.length,
+               expired: !!expired, seconds: Math.round((Date.now() - S.started) / 1000) };
   view = "report";
   render();
   window.scrollTo({ top: 0, behavior: "instant" });
@@ -1065,6 +1090,7 @@ function quizHTML() {
   const shown = S.revealed.has(S.i);
   const picks = S.picks[S.i] || [];
   const last = S.i === S.items.length - 1;
+  const answeredCount = S.picks.filter(Boolean).length;
   return `<div class="panel">
     <div class="panel-hd qhead">
       <span class="eyebrow">${esc(S.title)}</span>
@@ -1100,14 +1126,16 @@ function quizHTML() {
       <span class="spacer"></span>
       ${S.report ? `<button class="btn go" data-back-report="1">Back to results</button>`
         : !S.feedback
-          ? `${last ? "" : `<button class="btn" data-nav="1">Next</button>`}
+          ? `${shown ? "" : `<button class="btn" data-peek="1">Show answer</button>`}
+             ${last ? "" : `<button class="btn" data-nav="1">Next</button>`}
              <button class="btn go" data-finish="1">Submit exam</button>`
-          : shown
-            ? `<button class="btn go" data-${last ? "finish" : "nav"}="1">${last ? "See results" : "Next"}</button>`
-            : `<button class="btn go" data-reveal="1" ${picks.length ? "" : "disabled"}>Check</button>`}
+          : `${answeredCount && !last ? `<button class="btn" data-finish="1">Finish &amp; score</button>` : ""}
+             ${shown
+               ? `<button class="btn go" data-${last ? "finish" : "nav"}="1">${last ? "See results" : "Next"}</button>`
+               : `<button class="btn go" data-reveal="1" ${picks.length ? "" : "disabled"}>Check</button>`}`}
     </div>
   </div>
-  <div class="foot" style="margin-top:14px">Keys: A–D to answer${it.type === "multi" ? " (two)" : ""} · ← → to move · F to flag</div>`;
+  <div class="foot" style="margin-top:14px">Keys: A–D to answer${it.type === "multi" ? " (two)" : ""} · ← → to move · F to flag${S.feedback ? "" : " · R to show the answer"}</div>`;
 }
 
 function verdictHTML(it, picks) {
@@ -1150,8 +1178,11 @@ function reportHTML() {
       <div class="score-side">
         <span class="eyebrow">${R.got} of ${R.rows.length} correct</span>
         <span class="mono" style="font-size:12px;color:var(--muted)">
-          ${R.answered < R.rows.length ? `${R.rows.length - R.answered} left blank · ` : ""}${mins}m ${String(secs).padStart(2, "0")}s · target ${PASS * 100}%</span>
+          ${R.stoppedEarly ? `stopped after ${R.rows.length} of ${R.all.length} · `
+            : R.answered < R.rows.length ? `${R.rows.length - R.answered} left blank · ` : ""}${mins}m ${String(secs).padStart(2, "0")}s · target ${PASS * 100}%</span>
         <span class="pill ${R.frac >= PASS ? "pass" : "fail"}" style="align-self:flex-start;margin-top:4px">${R.frac >= PASS ? "above target" : "below target"}</span>
+        ${R.blind ? `<span class="mono" style="font-size:12px;color:var(--ochre);margin-top:6px">answer revealed on ${R.revealed} · unaided ${R.unaidedN ? (R.unaidedGot / R.unaidedN * 100).toFixed(0) + "%" : "—"} (${R.unaidedGot}/${R.unaidedN})</span>`
+          : R.revealed ? `<span class="mono" style="font-size:12px;color:var(--muted);margin-top:6px">answer revealed on ${R.revealed}, each after you had committed</span>` : ""}
       </div>
     </div>
   </div>
@@ -1402,6 +1433,7 @@ function bind() {
   document.querySelectorAll("[data-nav]").forEach(el => el.onclick = () => go(+el.dataset.nav));
   document.querySelectorAll("[data-jump]").forEach(el => el.onclick = () => { S.i = +el.dataset.jump; render(); });
   document.querySelectorAll("[data-reveal]").forEach(el => el.onclick = reveal);
+  document.querySelectorAll("[data-peek]").forEach(el => el.onclick = peek);
   document.querySelectorAll("[data-print]").forEach(el => el.onclick = () => window.print());
   document.querySelectorAll("[data-case]").forEach(el => el.onclick = () =>
     startSession({ mode: "case", caseId: el.dataset.case }));
@@ -1425,7 +1457,7 @@ function bind() {
   });
   document.querySelectorAll("[data-finish]").forEach(el => el.onclick = () => {
     const blank = S.picks.filter(p => !p).length;
-    if (S.kind === "exam" && blank && !confirm(`${blank} question${blank > 1 ? "s" : ""} still blank. Submit anyway?`)) return;
+    if (!S.feedback && blank && !confirm(`${blank} question${blank > 1 ? "s" : ""} still blank. Submit anyway?`)) return;
     finish(false);
   });
   document.querySelectorAll("[data-flag]").forEach(el => el.onclick = () => {
@@ -1465,6 +1497,7 @@ document.addEventListener("keydown", ev => {
   else if (ev.key === "ArrowRight") { ev.preventDefault(); go(1); }
   else if (ev.key === "ArrowLeft") { ev.preventDefault(); go(-1); }
   else if (k === "F") { ev.preventDefault(); S.flags.has(S.i) ? S.flags.delete(S.i) : S.flags.add(S.i); render(); }
+  else if (k === "R" && !S.feedback && !S.revealed.has(S.i)) { ev.preventDefault(); peek(); }
   else if (ev.key === "Enter") {
     ev.preventDefault();
     if (S.feedback && !S.revealed.has(S.i) && (S.picks[S.i] || []).length) reveal();

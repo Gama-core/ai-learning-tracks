@@ -410,7 +410,7 @@ def render(q: Question, idx: int, total: int, bp: dict, time_left: float | None,
 
 
 def ask(q: Question, idx: int, total: int, bp: dict, deadline: float | None,
-        flagged: set) -> tuple:
+        flagged: set, feedback: bool = True) -> tuple:
     """Return (selection_or_None, action). action in {'answer','quit','back'}."""
     want = len(q.answer)
     while True:
@@ -420,7 +420,8 @@ def ask(q: Question, idx: int, total: int, bp: dict, deadline: float | None,
         clear()
         render(q, idx, total, bp, time_left, q.id in flagged)
         hint = "letters" if want == 1 else f"{want} letters, e.g. AC"
-        raw = input(f"Answer ({hint})  [f]lag [s]kip [b]ack [q]uit > ").strip()
+        extra = "" if feedback else " [r]eveal"
+        raw = input(f"Answer ({hint})  [f]lag{extra} [s]kip [b]ack [q]uit > ").strip()
         cmd = raw.lower()
         if cmd == "q":
             return None, "quit"
@@ -428,6 +429,8 @@ def ask(q: Question, idx: int, total: int, bp: dict, deadline: float | None,
             return None, "back"
         if cmd == "s":
             return [], "answer"
+        if cmd == "r" and not feedback:
+            return None, "peek"
         if cmd == "f":
             flagged.symmetric_difference_update({q.id})
             continue
@@ -460,7 +463,8 @@ def show_feedback(q: Question, picks: list, bp: dict) -> None:
 
 # --------------------------------------------------------------------- scoring
 
-def score_report(results: list, bp: dict, elapsed: float, title: str) -> float:
+def score_report(results: list, bp: dict, elapsed: float, title: str,
+                 peeked: set = frozenset(), blind: set = frozenset()) -> float:
     total = len(results)
     got = sum(1 for _, picks, q in results if picks == sorted(q.answer))
     frac = got / total if total else 0.0
@@ -472,7 +476,18 @@ def score_report(results: list, bp: dict, elapsed: float, title: str) -> float:
                else f"{C.RED}{C.BOLD}BELOW TARGET{C.RESET}")
     mins, secs = divmod(int(elapsed), 60)
     print(f"\n  Score  {C.BOLD}{got}/{total}  ({frac*100:.1f}%){C.RESET}   {verdict}"
-          f"   {C.DIM}target {PASS_MARK*100:.0f}%  ·  time {mins}m{secs:02d}s{C.RESET}\n")
+          f"   {C.DIM}target {PASS_MARK*100:.0f}%  ·  time {mins}m{secs:02d}s{C.RESET}")
+    if peeked:
+        unaided = [(p, q) for _, p, q in results if q.id not in blind]
+        un_got = sum(1 for p, q in unaided if p == sorted(q.answer))
+        if blind:
+            pct = f"{un_got / len(unaided) * 100:.0f}%" if unaided else "—"
+            print(f"  {C.YELLOW}Answer revealed on {len(peeked)}{C.RESET}"
+                  f"   {C.DIM}unaided {pct} ({un_got}/{len(unaided)}){C.RESET}")
+        else:
+            print(f"  {C.DIM}Answer revealed on {len(peeked)}, "
+                  f"each after you had committed.{C.RESET}")
+    print()
 
     per = {}
     for _, picks, q in results:
@@ -523,12 +538,13 @@ def run_quiz(questions: list, bp: dict, hist: dict, timed: bool,
     started = time.time()
     flagged: set = set()
     answers: dict = {}
+    peeked: set = set()
 
     i = 0
     try:
       while i < len(questions):
         q = questions[i]
-        picks, action = ask(q, i + 1, len(questions), bp, deadline, flagged)
+        picks, action = ask(q, i + 1, len(questions), bp, deadline, flagged, feedback)
         if action == "quit":
             if not answers:
                 print("\nAborted.\n")
@@ -545,6 +561,12 @@ def run_quiz(questions: list, bp: dict, hist: dict, timed: bool,
         if action == "back":
             i = max(0, i - 1)
             continue
+        if action == "peek":
+            # Show the key without ending the run. Whatever was selected stands.
+            peeked.add(q.id)
+            show_feedback(q, answers.get(q.id, []), bp)
+            i += 1
+            continue
         answers[q.id] = picks
         if feedback:
             show_feedback(q, picks, bp)
@@ -560,8 +582,15 @@ def run_quiz(questions: list, bp: dict, hist: dict, timed: bool,
 
     for _, picks, q in results:
         record(hist, q, picks == sorted(q.answer))
+    # Revealed with nothing selected means you did not know it: schedule it for review.
+    blind = {qid for qid in peeked if not answers.get(qid)}
+    by_id = {q.id: q for q in questions}
+    for qid in blind:
+        if qid in by_id and qid not in answers:
+            record(hist, by_id[qid], False)
 
-    frac = score_report(results, bp, time.time() - started, title)
+    frac = score_report(results, bp, time.time() - started, title,
+                        peeked=peeked, blind=blind)
     hist["exams"].append({
         "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "mode": title, "score": round(frac, 4),
@@ -996,7 +1025,7 @@ def mode_menu(args, questions, bp, hist) -> None:
               f"{e['question_count_max']} questions · ${e['price_usd']} · "
               f"{len(questions)} in local bank{C.RESET}\n")
         print(f"  {C.BOLD}1{C.RESET}  Mock exam        {C.DIM}timed, blueprint-weighted{C.RESET}")
-        print(f"  {C.BOLD}2{C.RESET}  Practice         {C.DIM}untimed, explanations as you go{C.RESET}")
+        print(f"  {C.BOLD}2{C.RESET}  Practice         {C.DIM}15 q, untimed, explanations as you go{C.RESET}")
         print(f"  {C.BOLD}3{C.RESET}  Practice a domain")
         print(f"  {C.BOLD}4{C.RESET}  Review due       {C.DIM}spaced repetition — what the scheduler says is due{C.RESET}")
         print(f"  {C.BOLD}5{C.RESET}  Readiness stats")
