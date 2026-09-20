@@ -1,46 +1,54 @@
 # NCP-AAI prep kit
 
+A study kit and exam simulator for the **NVIDIA-Certified Professional: Agentic AI LLMs
+(NCP-AAI)** exam. 317 original questions weighted to the published blueprint, spaced
+repetition, case studies, cheat sheets, and a concept-level diagnostic layer.
+
+Two front ends, one content source: a terminal client with no dependencies, and a
+self-contained web page you can drop on any static host.
+
 <sub>A [Gama Core](https://www.gamacore.com) project.</sub>
 
-Study material and a working exam simulator for the **NVIDIA-Certified Professional:
-Agentic AI LLMs (NCP-AAI)** exam.
+---
+
+## Quick start
+
+```bash
+git clone https://github.com/Gama-core/cert-helper.git
+cd cert-helper
+./sim.py                 # menu-driven; nothing to install
+```
+
+Python 3.8+ and nothing else — the terminal client is stdlib only. For the web version,
+open `web/index.html` in a browser, or upload that single file to a web server.
+
+---
+
+## The exam
 
 | | |
 |---|---|
-| Exam | NVIDIA-Certified Professional: Agentic AI LLMs |
+| Name | NVIDIA-Certified Professional: Agentic AI LLMs |
 | Code | NCP-AAI |
-| Format | 60–70 questions, 120 minutes, online remotely proctored (Certiverse) |
+| Format | 60–70 questions, 120 minutes |
+| Delivery | Online, remotely proctored via [Certiverse](https://www.certiverse.com) |
 | Fee | $200 · valid 2 years |
-| Prereq (recommended) | 1–2 years AI/ML, hands-on production agentic work |
+| Scoring | **Pass/fail — NVIDIA returns no score** |
+| Retakes | 14-day wait between attempts, max 5 per 12 months |
+| Prerequisite | 1–2 years AI/ML, hands-on production agentic work (recommended, not enforced) |
 | Official page | <https://www.nvidia.com/en-us/learn/certification/agentic-ai-professional/> |
 
-NVIDIA does not publish a cut score. This kit targets **75%** so you train with margin.
+NVIDIA does not publish a cut score; community reports cluster at 70–75%. This kit targets
+**75%** so you train with margin.
 
-## What's here
+Because a real failure tells you nothing about *where* you lost it, your last mock here is
+the only diagnostic you will ever get. Run `./sim.py cheat -d logistics` before booking —
+it covers the Certiverse rules that fail people before they answer a question (exact name
+matching against your ID, the room scan, the system check).
 
-```
-blueprint.json      The 10 official topic areas with their published weights.
-concepts.json       69-concept taxonomy mapping tags to diagnosable concepts.
-cheatsheet.json     Condensed reference — source of truth for CHEATSHEET.md and the web page.
-CHEATSHEET.md       Generated. 12 sections of tables: product map, metrics, patterns, acronyms.
-bank/*.json         277 standalone questions — stem, 4 choices, answer, explanation, source.
-cases/*.json        10 case studies — one scenario, 3-4 linked questions each (40 total).
-sim.py              Terminal simulator: mock exam, practice, drill, stats, cram.
-build_web.py        Rebuilds the web simulator from the bank + cheatsheet.
-build_md.py         Rebuilds CHEATSHEET.md from cheatsheet.json.
-tests.py            Validates the bank, the cases and the cheat sheets.
-check_links.py      Verifies every reference URL still resolves.
-web/template.html   Web simulator source (edit this, not simulator.html).
-web/simulator.html  Built, self-contained page. Published as an Artifact.
-RESOURCES.md        Curated free study material, by domain. All links verified live.
-STUDY_PLAN.md       A 6-week plan mapped to the blueprint weights.
-.history.json       Your progress (created on first run, not in the repo).
-```
-
-## The blueprint
+### Blueprint
 
 Every practice set is apportioned to these weights, so effort lands where the exam puts it.
-With 256 questions, three consecutive 65-question mocks draw almost no repeats.
 
 | # | Topic area | Weight |
 |---|---|---|
@@ -55,126 +63,219 @@ With 256 questions, three consecutive 65-question mocks draw almost no repeats.
 | 9 | Safety, Ethics, and Compliance | 5% |
 | 10 | Human-AI Interaction and Oversight | 5% |
 
-NVIDIA's published figures sum to 98%; the simulator normalizes them.
+NVIDIA's published figures sum to 98%; the simulator normalizes them. With 317 questions,
+four consecutive 65-question mocks draw almost no repeats.
 
-## Run the terminal simulator
+---
 
-No dependencies — Python 3.8+ and nothing else.
+## What's in the box
+
+```
+blueprint.json       The 10 official topic areas with their published weights.
+concepts.json        69-concept taxonomy mapping question tags to diagnosable concepts.
+cheatsheet.json      13 sections of condensed reference — source for the other two formats.
+
+bank/*.json          277 standalone questions, one file per topic area.
+cases/*.json         10 case studies — one scenario, 3-4 linked questions each (40 total).
+
+sim.py               Terminal simulator. Stdlib only.
+tests.py             Validates bank, cases, cheat sheets and the concept taxonomy.
+check_links.py       Verifies every reference URL still resolves.
+build_md.py          cheatsheet.json  ->  CHEATSHEET.md
+build_web.py         everything       ->  web/simulator.html + web/index.html
+
+CHEATSHEET.md        Generated. Printable/greppable cheat sheets.
+RESOURCES.md         Curated free study material by domain. Every link verified.
+STUDY_PLAN.md        A six-week plan mapped to the blueprint weights.
+
+web/template.html    Web simulator source. Edit this, not the generated files.
+web/simulator.html   Generated. For the claude.ai artifact.
+web/index.html       Generated. Standalone document for your own web server.
+
+.history.json        Your progress. Created on first run, gitignored.
+```
+
+**Content at a glance:** 317 questions (265 single-answer, 52 select-two) · 91 distinct
+primary sources · 206 flashcards across 13 decks · 69 concepts.
+
+---
+
+## The terminal simulator
 
 ```bash
 ./sim.py                              # menu
-./sim.py exam                         # timed mock: 60–70 q, 120 min, weighted
+./sim.py exam                         # timed mock: 60-70 q, 120 min, blueprint-weighted
 ./sim.py exam -n 20                   # short timed mock
 ./sim.py practice                     # 15 q, untimed, explanation after each
 ./sim.py practice -d nvidia-platform  # one topic area
-./sim.py drill                        # re-ask only what you got wrong
-./sim.py stats                        # readiness by domain + exam history
-./sim.py cram -d safety-ethics-compliance   # read answers and reasoning, no quiz
+./sim.py practice -c kv-cache         # one concept
+./sim.py review                       # spaced repetition: whatever is due today
+./sim.py drill                        # simpler pass: everything you got wrong
+./sim.py case                         # a case study
+./sim.py case -d CS03
+./sim.py flash                        # flashcards over the cheat sheets
+./sim.py flash -d nvidia-platform     # one deck
 ./sim.py cheat                        # all cheat sheets
-./sim.py cheat -d nvidia-platform     # one section
+./sim.py cheat -d logistics           # one section
+./sim.py concepts                     # taxonomy + your accuracy on each
+./sim.py cram -d safety-ethics-compliance   # every answer + explanation, no quiz
+./sim.py stats                        # readiness by domain and concept
 ./sim.py --reset                      # wipe progress
 ```
 
-During a question: `A`–`D` to answer (two letters for select-two, e.g. `AC`),
-`f` flag, `b` back, `s` skip, `q` quit and score.
+During a question: `A`–`D` to answer (two letters for select-two, e.g. `AC`), `f` flag,
+`b` back, `s` skip, `q` quit and score. Ctrl-C scores what you have answered rather than
+discarding it.
 
-**Exam mode** hides feedback until you submit, then scores per domain, lists what you
-missed, and orders your weak areas by *exam impact* (weight × gap) rather than raw score —
-a 40% in a 15% domain outranks a 40% in a 5% one.
+### Modes
 
-**Review mode** is the retention engine. Every answer — in any mode, including flashcards —
-schedules the item with an adapted SM-2: a miss comes back tomorrow, a hit moves out 1 day,
-then 3, then multiplying by the item's ease factor, capped at 21 days so nothing is ever
-parked longer than three weeks before an exam. `./sim.py review` asks whatever is due,
-most overdue first, heaviest domains breaking ties. `drill` still exists for the simpler
-"everything I got wrong" pass.
+**Mock exam** hides feedback until you submit, then scores per domain, lists what you
+missed, and orders weak areas by *exam impact* — weight × gap — so a 40% in a 15% domain
+outranks a 40% in a 5% one.
 
-**Case studies** are one scenario with 3-4 linked questions across different domains —
-closer to the exam's scenario-heavy style than standalone items, and they test whether you
-can hold a situation in mind across questions. The scenario stays on screen throughout.
-Case questions also appear individually in mock exams, carrying their scenario with them.
+**Review** is the retention engine. Every answer, in any mode including flashcards,
+schedules the item with an adapted SM-2:
 
-**Flashcards** drill pure recall over the cheat-sheet tables: 206 cards across 13 decks,
-including the 33-row NVIDIA product map and 28 acronyms. Self-graded, on the same
-scheduler as the questions.
+```
+hit  → 1 day → 3 days → 8 days → 21 days (capped)
+miss → due tomorrow, ease penalised
+```
 
-**Concepts** are the diagnostic layer the domain scores cannot give you. Domains tell you
+The 21-day cap is deliberate: with an exam weeks out, nothing should be parked longer than
+three weeks. `review` asks what is due, most overdue first, heaviest domains breaking ties.
+
+**Case studies** are one scenario with 3–4 linked questions across different domains,
+closer to the exam's scenario-heavy style than standalone items. The scenario stays on
+screen throughout. Case questions also appear individually in mock exams, carrying their
+scenario with them.
+
+**Flashcards** drill pure recall over the cheat-sheet tables — 206 cards across 13 decks,
+including the 18-row NVIDIA product map and the 28-term glossary. Self-graded, same scheduler.
+
+**Concepts** are the diagnostic layer domain scores cannot give you. Domains tell you
 *Knowledge Integration is at 62%*; concepts tell you it is **retrieval strategies** at 40%
-while **chunking** is fine. 69 concepts, each owning a set of tags, each carrying a summary
-and a pointer to the cheat-sheet section that covers it. Weak concepts are ranked by
-**exam impact** — accuracy shortfall multiplied by the topic area's weight — so a gap in a
-15% area outranks the same gap in a 5% one. A concept needs 4+ attempts before its accuracy
-is reported at all; below that it is noise.
+while **chunking** is fine. Weak concepts are ranked by exam impact and each one hands you
+the two commands that close it:
+
+```
+→ Agent evaluation  2/9 · Evaluation and Tuning 13%
+    Trajectory over outcome, tool correctness, benchmarks, failure attribution.
+    ./sim.py practice -c agent-evaluation   ·   ./sim.py cheat -d evaluation
+```
+
+A concept needs 4+ attempts before its accuracy is reported at all; below that it is noise.
 
 **Cheat sheets** are condensed reference, not questions: the NVIDIA product map, the RAG
 metric table with a needs-ground-truth column, reasoning and memory patterns, serving
-metrics and techniques, guardrail types, governance frameworks, distractor patterns, and an
-acronym glossary. Twelve sections, in the terminal (`./sim.py cheat`), in the repo
-(`CHEATSHEET.md`), and in the web simulator under the **Cheat sheets** tab, which prints.
+metrics, guardrail types, governance frameworks, exam-day logistics, distractor patterns,
+and an acronym glossary. Also in `CHEATSHEET.md` and in the web version, which prints.
 
-## Publishing it on a website
+---
 
-No backend. `web/index.html` is a complete, self-contained document — all 317 questions,
-the cheat sheets, the concept taxonomy and every asset are inlined. It makes **zero**
-network calls at runtime (no fetch, no XHR, no WebSocket). Copy the one file to any static
-host and it works:
+## The web simulator
 
-```bash
-python3 build_web.py          # regenerates both targets
-# then upload web/index.html
+Same bank, same weighting, usable on a phone. Styled in the Gama Core design system — their
+palette (crimson `#C5184B`, blue `#1D98D6`), their typefaces (Space Grotesk / Inter / IBM
+Plex Mono), their light and dark themes. Tokens sit at the top of `web/template.html`;
+change them there and rebuild.
+
+Keys: `A`–`D` answer · `←` `→` move · `F` flag · `Enter` check/next. In flashcards, Space
+to reveal, `Y`/`N` to grade.
+
+---
+
+## Deploying it to a website
+
+**No backend.** Scoring, the spaced-repetition scheduler and every analytic run
+client-side. The page makes **zero** runtime network calls — no fetch, no XHR, no
+WebSocket — and inlines every question, cheat sheet and concept.
+
+### What to upload
+
+One file:
+
+```
+web/index.html
 ```
 
-Verified served from a plain HTTP server: standards mode, UTF-8, viewport honored, no
-horizontal overflow at 390px, `localStorage` writable, no console errors.
+Nothing else. No assets folder, no separate CSS or JS, no images. Every `href`/`src` that
+is not already an absolute URL is a JavaScript template literal that resolves at runtime to
+an https link baked into the data; nothing resolves against disk.
 
-Two targets are built from the same source, and the difference matters:
+| You want | Upload to | Visitors get |
+|---|---|---|
+| A dedicated page | `/ncp-aai/index.html` | `example.com/ncp-aai/` |
+| Under an existing section | `/learn/ncp-aai/index.html` | `example.com/learn/ncp-aai/` |
+| A specific filename | `/simulator.html` | `example.com/simulator.html` |
+
+Keeping the name `index.html` inside a folder gives the clean trailing-slash URL with no
+server config.
+
+### Two server settings that matter
+
+**Enable compression.** 502 KB raw → **149 KB gzipped**, about 70% off. It is almost all
+JSON, so it compresses very well. Apache: `mod_deflate`. nginx: `gzip on;` with `text/html`
+in `gzip_types`. Without it, first load on mobile is slow for no reason.
+
+**Do not cache it forever.** `Cache-Control: max-age=3600` or similar — long enough to help
+repeat visitors, short enough that an update lands the same day.
+
+### Redeploying
+
+```bash
+python3 build_web.py     # regenerates both web targets
+# re-upload web/index.html
+```
+
+Visitor progress lives in their own `localStorage`, keyed by question id, so it survives
+the replacement — adding questions does not reset anyone.
+
+### Why two web targets
 
 | File | For | Document |
 |---|---|---|
 | `web/simulator.html` | the claude.ai artifact | starts at `<title>` — the platform injects the skeleton |
-| `web/index.html` | your own site | full `<!doctype html>` with charset, viewport, favicon and OG tags |
+| `web/index.html` | your own server | full `<!doctype html>` with charset, viewport, favicon, OG tags |
 
-Serving `simulator.html` directly from a web server would render it in **quirks mode** with
-a guessed character encoding and no mobile viewport. Use `index.html` off-platform.
+Serving `simulator.html` directly would render it in **quirks mode** with a guessed
+character encoding and no mobile viewport. Use `index.html` off-platform.
 
-### What you lose without a backend
+Verified served from a plain HTTP server: standards mode (`CSS1Compat`), UTF-8, viewport
+honored, no horizontal overflow at 390px, `localStorage` writable, and `window.claude`
+absent with no console errors — the cross-device sync path degrades cleanly to local
+storage.
 
-Progress is kept in the visitor's `localStorage`. That is per-browser and per-device:
+### What you give up without a backend
+
+Progress is per-browser and per-device:
 
 - no sync between a visitor's laptop and phone
 - clearing site data resets their progress
 - no accounts, and no aggregate view of how visitors perform
 
-A backend is only worth adding if you want one of those. The exam itself needs nothing:
-scoring, the spaced-repetition scheduler and every analytic run client-side.
+A backend is only worth adding if you want one of those — in practice the aggregate view is
+the one that usually motivates it.
 
 ### The one external request
 
-Fonts load from `fonts.googleapis.com`. Everything else is inlined. If you need the page to
-work fully offline or without third-party requests, self-host the three families
-(Space Grotesk, Inter, IBM Plex Mono) and swap the `<link>` — the CSS already declares real
-fallback stacks, so the page stays readable either way.
+Fonts load from `fonts.googleapis.com`. Everything else is inlined. To work fully offline
+or without third-party requests, self-host Space Grotesk, Inter and IBM Plex Mono and swap
+the `<link>`; the CSS declares real fallback stacks, so the page stays readable regardless.
 
-## Web simulator
+---
 
-Styled in the Gama Core design system — their palette (crimson `#C5184B`, blue `#1D98D6`),
-their typefaces (Space Grotesk / Inter / IBM Plex Mono), their light and dark themes.
-Tokens live at the top of `web/template.html`; change them there and rebuild.
+## Extending the content
 
-Same bank, same weighting, usable on a phone. Progress syncs to your account when
-available and falls back to local browser storage.
+Four content files, each with its own shape. After editing any of them, run `tests.py`,
+then the relevant build script.
 
-**<https://claude.ai/artifact/2unx4V43a4bYqe8ysY1uhG>**
+### Questions
 
-Keys: `A`–`D` answer · `←` `→` move · `F` flag · `Enter` check/next.
-
-## Adding questions
-
-Append to the relevant `bank/*.json`. The schema:
+Append to the relevant `bank/*.json`:
 
 ```json
 {
-  "id": "NP-013",
+  "id": "NP-029",
   "type": "single",
   "difficulty": "medium",
   "stem": "...",
@@ -186,41 +287,11 @@ Append to the relevant `bank/*.json`. The schema:
 }
 ```
 
-`answer` holds 0-based indices; two indices with `"type": "multi"` for select-two.
-Exactly four choices. Then:
+`answer` holds 0-based indices; two indices with `"type": "multi"` for select-two. Exactly
+four choices. Choice order is reshuffled on every presentation, so you learn the content
+rather than the letter.
 
-```bash
-python3 tests.py          # validate bank, cases and cheat sheets
-python3 check_links.py    # verify every reference URL resolves
-python3 build_md.py       # regenerate CHEATSHEET.md from cheatsheet.json
-python3 build_web.py      # regenerate web/simulator.html
-```
-
-Choice order is reshuffled on every presentation, so you learn the content rather than
-the letter.
-
-## Where the questions come from
-
-Every question is original, written against the published blueprint and primary
-documentation, and every explanation links to its source. All 89 source links are
-verified live.
-
-Other people's practice exams are **linked** from `RESOURCES.md` and from the web
-simulator's *Practice elsewhere* panel — a second opinion is worth having. Nothing is
-copied from them.
-
-Published third-party guides (Preporato, Whizlabs and similar) were used as *coverage
-intelligence* only — to find which topics, product names and techniques they report as
-tested, then to write original items for the gaps. No questions were copied from practice
-tests, and none from dump sites: those breach the NVIDIA candidate agreement, are grounds
-for revoking a credential, and are mostly wrong.
-
-Two claims found in those guides were checked before anything was written from them.
-Nemotron 3 and NemoClaw are real and now covered. The **CLASSic** evaluation framework is
-real but belongs to Aisera, not NVIDIA — the bank says so, because a guide that implies
-otherwise will cost you a point.
-
-## Adding a case study
+### Case studies
 
 Drop a file in `cases/`, named for its id:
 
@@ -238,9 +309,15 @@ Drop a file in `cases/`, named for its id:
 ```
 
 Each question carries its own `domain`, so a case can span the blueprint. `tests.py`
-enforces the id format, the four-choice rule, and that a case has at least three questions.
+enforces the id format, the four-choice rule, and a minimum of three linked questions.
 
-## The concept taxonomy
+### Cheat sheets
+
+`cheatsheet.json` holds sections of typed blocks — `table`, `bullets` or `note`. Every
+table row automatically becomes a flashcard (first cell asks, the rest answers), so adding
+a row adds a card. Rebuild with `build_md.py` and `build_web.py`.
+
+### Concepts
 
 `concepts.json` maps free-form question tags onto a fixed set of diagnosable concepts:
 
@@ -252,17 +329,81 @@ enforces the id format, the four-choice rule, and that a case has at least three
 ```
 
 Tags stay free-form when authoring; concepts claim them. A question's concepts are the
-union over its tags, so adding a question needs no extra work — but `tests.py` **fails** if
-a tag belongs to no concept, or if a question maps to no concept. That is what stops the
-taxonomy silently drifting out of date as the bank grows. It also warns when a concept has
-fewer than 4 questions, since accuracy on such a concept cannot be reported.
+union over its tags, so adding a question usually needs no extra work — but `tests.py`
+**fails** if a tag belongs to no concept, or if a question maps to none. That is what stops
+the taxonomy silently drifting out of date as the bank grows. It also warns when a concept
+has fewer than four questions, since accuracy on such a concept cannot be reported.
 
-## CI
+---
+
+## Build and validation
+
+```bash
+python3 tests.py          # validate bank, cases, cheat sheets, concept taxonomy
+python3 check_links.py    # verify every reference URL resolves
+python3 build_md.py       # regenerate CHEATSHEET.md
+python3 build_web.py      # regenerate web/simulator.html and web/index.html
+```
+
+`tests.py` is strict where a mistake would be invisible: duplicate ids, wrong choice
+counts, a `type` that disagrees with its answer count, a `ref` that is not a URL, a
+select-two stem that does not say so, an unclaimed tag, a question with no concept, a
+cheat-sheet table row whose width does not match its header, and any topic area with too
+few questions to fill a 65-question exam.
+
+`check_links.py` distinguishes a dead link from a blocked robot: 404/410/5xx and DNS
+failures fail the run, while 401/403/429 are reported as unverifiable, since some hosts
+refuse automated requests while serving browsers normally.
+
+### CI
 
 `.github/workflows/checks.yml` runs on every push and weekly:
 
-- `tests.py` — schema and consistency of every question, case and cheat sheet table.
-- A staleness check — fails if `CHEATSHEET.md` or `web/simulator.html` were not rebuilt
-  after their sources changed.
-- `check_links.py` — reports dead references. Non-blocking, because an upstream doc moving
-  is not your commit's fault, but you want to know within the week.
+- **validate** — `tests.py`, plus a staleness check that fails if `CHEATSHEET.md` or the
+  web targets were not rebuilt after their sources changed.
+- **links** — `check_links.py`. Non-blocking, because an upstream doc moving is not your
+  commit's fault, but you want to know within the week. NVIDIA restructures its
+  documentation regularly; this has already caught four dead references.
+
+---
+
+## Where the questions come from
+
+Every question is original, written against the published blueprint and primary
+documentation. Every explanation links to its source, and all 91 distinct sources are
+verified in CI.
+
+Published third-party guides were used as *coverage intelligence* only — to find which
+topics, product names and techniques they report as tested, then to write original items
+for the gaps. Their technical claims were checked before anything was written from them;
+one guide attributes the **CLASSic** evaluation framework to NVIDIA when it is Aisera's,
+and the bank says so.
+
+Other people's practice exams are **linked** — from `RESOURCES.md` and from the web
+simulator's *Practice elsewhere* panel — because a second opinion is worth having. Nothing
+is copied from them.
+
+Sites advertising **actual**, **real** or **verified** exam questions are deliberately
+absent. That content is reconstructed from live exams, breaches the NVIDIA candidate
+agreement, is grounds for revoking a credential, and is frequently wrong.
+
+---
+
+## Study plan
+
+[`STUDY_PLAN.md`](STUDY_PLAN.md) lays out six weeks at roughly 6–8 hours a week: a cold
+baseline mock first, heavy domains early, NVIDIA product specifics in week 4, timed mocks
+only in the last two weeks.
+
+The daily habit that matters most:
+
+```bash
+./sim.py review    # due questions
+./sim.py flash     # due flashcards
+```
+
+That is what makes week 1's work still be there in week 6. Five minutes of review beats
+thirty minutes of rereading.
+
+Ship it when `./sim.py stats` shows blueprint-weighted accuracy above 80% with every domain
+attempted and no concept below target in a 13–15% topic area.
