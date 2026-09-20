@@ -267,6 +267,17 @@ button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
 .cram-q .ans{font-family:var(--serif); font-size:14.5px; line-height:1.45; margin-top:8px; color:var(--pass); font-weight:600}
 .cram-q .ex{font-family:var(--serif); font-size:14px; line-height:1.5; margin-top:6px; color:var(--muted)}
 
+/* concepts */
+.cx{list-style:none; margin:0; padding:0}
+.cx li{border-bottom:1px solid var(--line); padding:12px 16px}
+.cx li:last-child{border-bottom:0}
+.cx .hd{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+.cx .nm{font-size:13.5px; font-weight:700; letter-spacing:-.005em}
+.cx .sc{font-family:var(--mono); font-size:11px; font-variant-numeric:tabular-nums; color:var(--muted)}
+.cx .sm{font-family:var(--serif); font-size:13.5px; color:var(--ink-2); line-height:1.45; margin-top:4px; max-width:74ch}
+.cx .acts{display:flex; gap:7px; margin-top:9px; flex-wrap:wrap}
+.cx .meter{margin-top:8px; max-width:200px}
+.btn.sm{font-size:10.5px; padding:5px 9px}
 /* case scenario + flashcards */
 .scenario{
   border-left:2px solid var(--ochre); background:var(--warn-bg);
@@ -396,6 +407,40 @@ const LS = "ncp-aai-progress-v1";
 
 const DOM_BY_ID = Object.fromEntries(DATA.domains.map(d => [d.id, d]));
 const Q_BY_ID = Object.fromEntries(DATA.questions.map(q => [q.id, q]));
+const MIN_ATTEMPTS = 4;   // Below this, a concept's accuracy is noise.
+const TAG_TO_CONCEPTS = {};
+for (const c of (DATA.concepts || [])) {
+  for (const t of c.tags) (TAG_TO_CONCEPTS[t] = TAG_TO_CONCEPTS[t] || []).push(c.id);
+}
+const CONCEPT_BY_ID = Object.fromEntries((DATA.concepts || []).map(c => [c.id, c]));
+const conceptsOf = (q) => [...new Set(q.tags.flatMap(t => TAG_TO_CONCEPTS[t] || []))];
+
+function conceptStats() {
+  const out = {};
+  for (const c of (DATA.concepts || [])) out[c.id] = { bank: 0, attempts: 0, correct: 0 };
+  for (const q of DATA.questions) {
+    const rec = progress.q[q.id];
+    for (const cid of conceptsOf(q)) {
+      const st = out[cid];
+      st.bank += 1;
+      if (rec?.seen) { st.attempts += rec.seen; st.correct += rec.correct; }
+    }
+  }
+  for (const st of Object.values(out)) st.acc = st.attempts ? st.correct / st.attempts : null;
+  return out;
+}
+
+/* Rank weak concepts by what they cost on the exam: gap x domain weight. */
+function weakConcepts(limit = 6) {
+  const st = conceptStats();
+  const w = Object.fromEntries(DATA.domains.map(d => [d.id, d.weight]));
+  return (DATA.concepts || [])
+    .filter(c => st[c.id].attempts >= MIN_ATTEMPTS && st[c.id].acc < PASS)
+    .map(c => ({ c, st: st[c.id], impact: (1 - st[c.id].acc) * (w[c.domain] || 5) }))
+    .sort((a, b) => b.impact - a.impact)
+    .slice(0, limit);
+}
+
 const WEIGHT_TOTAL = DATA.domains.reduce((s, d) => s + d.weight, 0);
 
 /* ---------------------------------------------------------------- storage */
@@ -632,6 +677,9 @@ function startSession(kind) {
       return da === db ? (w[b.domain] - w[a.domain]) : da.localeCompare(db);
     });
     title = "Review";
+  } else if (kind.mode === "concept") {
+    items = shuffled(DATA.questions.filter(q => conceptsOf(q).includes(kind.conceptId)));
+    title = "Concept — " + CONCEPT_BY_ID[kind.conceptId].name;
   } else if (kind.mode === "case") {
     const c = DATA.cases.find(x => x.id === kind.caseId);
     items = c.questions.map(id => Q_BY_ID[id]).filter(Boolean);
@@ -894,6 +942,34 @@ function homeHTML() {
       <span class="mode-sub">Recall drill over the cheat sheets — product map, acronyms, rail types. Self-graded, same scheduler.</span>
     </button>
   </div>
+
+  ${(() => {
+    const weak = weakConcepts();
+    const st = conceptStats();
+    const measured = (DATA.concepts || []).filter(c => st[c.id].attempts >= MIN_ATTEMPTS).length;
+    if (!DATA.concepts || !DATA.concepts.length) return "";
+    return `<div class="panel history">
+      <div class="panel-hd"><span class="eyebrow">Weakest concepts</span>
+        <span class="mono" style="margin-left:auto;font-size:11px;color:var(--muted)">${measured}/${DATA.concepts.length} measured</span></div>
+      ${weak.length ? `<ul class="cx">${weak.map(({ c, st: s }) => `<li>
+        <div class="hd"><span class="nm">${esc(c.name)}</span>
+          <span class="sc">${s.correct}/${s.attempts} · ${(s.acc * 100).toFixed(0)}%</span>
+          <span class="sc" style="margin-left:auto">${esc(DOM_BY_ID[c.domain].name)} · ${DOM_BY_ID[c.domain].weight}%</span></div>
+        ${meter(s.acc)}
+        <p class="sm">${esc(c.summary)}</p>
+        <div class="acts">
+          <button class="btn sm" data-concept="${esc(c.id)}">Practice this</button>
+          <button class="btn sm" data-cheatjump="${esc(c.cheat)}">Read the cheat sheet</button>
+        </div>
+      </li>`).join("")}</ul>
+      <p class="lk-note" style="padding-bottom:14px">Ranked by what each gap costs on the
+        exam — accuracy shortfall multiplied by the topic area's weight, so a weak concept
+        in a 15% area outranks the same gap in a 5% one.</p>`
+      : `<p class="empty">${measured
+          ? "No concept is below target. Keep going — accuracy needs " + MIN_ATTEMPTS + "+ attempts per concept before it means anything."
+          : "Answer some questions and the weakest concepts appear here, ranked by exam impact."}</p>`}
+    </div>`;
+  })()}
 
   <div class="panel history">
     <div class="panel-hd"><span class="eyebrow">Case studies</span>
@@ -1255,6 +1331,12 @@ function bind() {
   document.querySelectorAll("[data-case]").forEach(el => el.onclick = () =>
     startSession({ mode: "case", caseId: el.dataset.case }));
   document.querySelectorAll("[data-cards]").forEach(el => el.onclick = () => startCards(null));
+  document.querySelectorAll("[data-concept]").forEach(el => el.onclick = () =>
+    startSession({ mode: "concept", conceptId: el.dataset.concept }));
+  document.querySelectorAll("[data-cheatjump]").forEach(el => el.onclick = () => {
+    view = "cheat"; render();
+    document.getElementById("cs-" + el.dataset.cheatjump)?.scrollIntoView({ behavior: "smooth" });
+  });
   document.querySelectorAll("[data-deck]").forEach(el => el.onclick = (ev) => {
     ev.preventDefault(); startCards(el.dataset.deck);
   });

@@ -776,6 +776,98 @@
         "agent-as-tool"
       ],
       "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "AD-035",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An agent calls a partner API limited to 600 requests per minute across your whole organization. You run 12 replicas. Which enforcement is correct?",
+      "choices": [
+        "Each replica enforces 50 requests per minute locally, since 12 x 50 = 600",
+        "A shared token bucket in Redis that every replica consults before the call",
+        "A semaphore in each replica sized to the expected concurrency",
+        "A retry-with-backoff wrapper, since 429s will naturally shape the rate"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Static per-replica division breaks the moment traffic is uneven or the replica count changes — eleven idle replicas waste their share while the twelfth is throttled. A shared bucket enforces the true global limit regardless of distribution or scaling. Local semaphores bound concurrency, not rate, and backoff reacts after you have already breached the limit.",
+      "tags": [
+        "rate-limiting",
+        "concurrency",
+        "distributed-state"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "AD-036",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your agent's tool is rate-limited upstream and returns 429 with a Retry-After header. What should the tool wrapper do?",
+      "choices": [
+        "Return the 429 to the model as an error so it can decide what to do",
+        "Honor Retry-After with a bounded wait inside the wrapper, and only surface an error to the model if the budget is exhausted",
+        "Immediately retry in a tight loop until it succeeds",
+        "Fall back to a different tool automatically"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Transient, self-describing backpressure is an infrastructure concern, not a reasoning one: handling it inside the wrapper keeps the model's context free of noise and avoids wasting a turn. The wait must be bounded so a long outage surfaces as a real error rather than a hang. Tight retry loops worsen the overload, and silent tool substitution changes behavior the agent did not choose.",
+      "tags": [
+        "rate-limiting",
+        "retries",
+        "tool-wrappers",
+        "backpressure"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "AD-037",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "An agent must process 5,000 documents through a tool that allows 10 concurrent calls. Which TWO approaches fit?",
+      "choices": [
+        "A bounded worker pool of 10 that pulls from a queue until the backlog is drained",
+        "Batch the work and checkpoint progress so a restart resumes rather than reprocessing",
+        "Fire all 5,000 calls and let the upstream service reject the excess",
+        "Increase the agent's step limit to 5,000"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Bulk work with a concurrency ceiling is a queue-and-worker problem: a bounded pool respects the limit while keeping it saturated, and checkpointing makes a multi-hour job restartable. Flooding the upstream converts a throughput problem into an outage, and step limits govern agent reasoning turns rather than batch throughput.",
+      "tags": [
+        "concurrency",
+        "rate-limiting",
+        "checkpointing",
+        "batch-processing"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/persistence/"
+    },
+    {
+      "id": "AD-038",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A tool returns HTTP 500 intermittently, roughly 1 call in 50, and succeeds on retry. What should the wrapper return to the model when retries are exhausted?",
+      "choices": [
+        "An empty result, so the agent can continue without an error",
+        "A structured error stating the tool is temporarily unavailable, how many attempts were made, and whether the operation may have partially applied",
+        "The raw HTTP response body",
+        "A message instructing the agent to try a different approach"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "After exhausting retries the model needs three facts to reason correctly: that the failure is transient rather than a bad request, that retrying has already been tried, and crucially whether the side effect may have landed. Empty results silently corrupt the agent's world model, raw bodies waste context, and prescribing the next action removes the agent's ability to weigh it.",
+      "tags": [
+        "error-handling",
+        "tool-errors",
+        "retries",
+        "partial-failure"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
     }
   ]
 }

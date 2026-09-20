@@ -415,6 +415,76 @@
         "retrieval-rails"
       ],
       "ref": "https://arxiv.org/abs/2302.12173"
+    },
+    {
+      "id": "SE-019",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A loan-assistance agent is audited for fairness. Applicant postcode is not an input, but the retrieval corpus includes branch-level guidance that varies by region. What is the risk?",
+      "choices": [
+        "None, since the protected attribute is not an input feature",
+        "Proxy discrimination: region-correlated guidance can reproduce a protected-attribute effect through retrieval, so fairness testing must cover the retrieved context, not just the inputs",
+        "Only a data-freshness risk",
+        "Only a latency risk from the extra retrieval"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Removing an attribute does not remove its proxies, and in a RAG system the proxy can enter through retrieved content rather than the prompt. Fairness evaluation therefore has to treat the retrieval path as part of the model: measure outcomes by group and run counterfactuals that vary only the region-correlated signal.",
+      "tags": [
+        "bias",
+        "fairness",
+        "proxy-discrimination",
+        "retrieval"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "SE-020",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "You are designing a fairness evaluation for an agent that screens support tickets for priority. Which TWO measurements matter most?",
+      "choices": [
+        "Priority-assignment rates and error rates broken out by customer segment",
+        "Counterfactual pairs where only a group-correlated attribute changes, holding the ticket content constant",
+        "Overall agreement with historical human prioritization",
+        "Average response latency per segment"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Disaggregation reveals disparate outcomes an aggregate hides, and counterfactual pairs isolate whether the attribute itself is driving the decision rather than a legitimate correlate. Agreement with historical decisions can encode past bias as the target, and latency is a service-quality metric rather than a fairness one.",
+      "tags": [
+        "bias",
+        "fairness",
+        "disaggregated-evaluation",
+        "counterfactual-testing"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "SE-021",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An incident review finds the agent behaved correctly but a tool returned wrong data because an upstream team changed a field's units from cents to dollars. Who owns the fix, and what is the durable control?",
+      "choices": [
+        "The agent team, by instructing the model to sanity-check magnitudes",
+        "The integration boundary: a versioned, typed contract for the tool response with validation that fails loudly on a schema or semantic change",
+        "The upstream team alone, by reverting the change",
+        "No fix is needed, since the agent reasoned correctly"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Correct reasoning over wrong data still produces wrong outcomes, and the defect lives at the contract between systems. A versioned typed contract plus strict validation converts an invisible semantic change into a loud failure. Asking the model to guess at magnitudes is not a control, and reverting fixes this instance without preventing the next.",
+      "tags": [
+        "schema-drift",
+        "contract-tests",
+        "integration",
+        "silent-failure"
+      ],
+      "ref": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
     }
   ]
 }

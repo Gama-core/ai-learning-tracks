@@ -417,6 +417,53 @@
         "model-rollout"
       ],
       "ref": "https://docs.nvidia.com/nim/large-language-models/latest/supported-models.html"
+    },
+    {
+      "id": "RM-019",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "During an incident, which piece of evidence most reliably separates a code change from a data or dependency change as the cause?",
+      "choices": [
+        "The error message text",
+        "A timeline that overlays deployments, configuration changes, index rebuilds and upstream dependency releases against the metric break",
+        "The number of affected users",
+        "The model's confidence scores at the time"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Attribution depends on correlating the moment behavior changed with everything that changed around it. An overlaid timeline covering deploys, config, index rebuilds and upstream releases is what lets you rule causes in or out; an agent's failures frequently originate in data or a dependency rather than in your own code.",
+      "tags": [
+        "incident-response",
+        "change-correlation",
+        "diagnosis",
+        "timeline"
+      ],
+      "ref": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    },
+    {
+      "id": "RM-020",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "An incident is resolved. Which TWO actions convert it into durable improvement?",
+      "choices": [
+        "Add the failing case to the regression evaluation suite so it cannot silently return",
+        "Add or fix the telemetry that would have surfaced it earlier, and set an alert on that signal",
+        "Write a detailed narrative of the outage for the wiki",
+        "Increase logging verbosity across all services"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "A postmortem earns its cost through two artifacts: a test that fails if the defect recurs, and a signal that would have caught it sooner next time. Narrative documentation aids understanding but changes no behavior, and blanket verbose logging adds noise and expense without targeting the gap that let the incident run undetected.",
+      "tags": [
+        "postmortem",
+        "regression-suite",
+        "alerting",
+        "incident-response"
+      ],
+      "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
     }
   ]
 }

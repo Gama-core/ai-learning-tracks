@@ -548,6 +548,52 @@
         "enterprise"
       ],
       "ref": "https://arxiv.org/abs/2310.11511"
+    },
+    {
+      "id": "CP-025",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A reasoning model answers a routine classification task as accurately with a 500-token thinking budget as with 8,000. What does this tell you?",
+      "choices": [
+        "The model is under-trained for reasoning",
+        "The task sits on the flat part of the return curve, so the extra budget is pure cost and latency — budgets should be set per task class, not globally",
+        "Thinking budgets do not affect accuracy",
+        "The evaluation set is too small to detect a difference"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Test-time compute has a task-dependent return curve that flattens quickly on easy tasks and keeps rising on hard multi-step ones. Measuring where it flattens for each task class turns the budget from a flat tax into a cost control, and routing routine work to a smaller budget or a smaller model follows directly.",
+      "tags": [
+        "test-time-compute",
+        "thinking-budget",
+        "diminishing-returns",
+        "cost"
+      ],
+      "ref": "https://arxiv.org/abs/2201.11903"
+    },
+    {
+      "id": "CP-026",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An agent must answer a question about a company policy that changed last week. The model's training cutoff predates the change. What determines whether the answer is correct?",
+      "choices": [
+        "The model's parameter count",
+        "Whether the current policy is supplied in context through retrieval, and whether the prompt instructs the model to prefer provided context over its parametric knowledge",
+        "The temperature setting",
+        "Whether the model is a reasoning model"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Parametric knowledge is fixed at training and cannot contain last week's change, so correctness depends on retrieval supplying the current text and on the grounding instruction resolving the conflict in favor of the provided context. Model size, sampling and reasoning capability do not create knowledge the weights never had.",
+      "tags": [
+        "grounding",
+        "parametric-vs-retrieved",
+        "knowledge-cutoff",
+        "retrieval-policy"
+      ],
+      "ref": "https://arxiv.org/abs/2005.11401"
     }
   ]
 }

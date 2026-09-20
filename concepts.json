@@ -1,0 +1,1357 @@
+{
+  "concepts": [
+    {
+      "id": "agent-vs-workflow",
+      "name": "Agent vs. workflow",
+      "domain": "agent-architecture",
+      "cheat": "agent-architecture",
+      "summary": "Who owns control flow: code in a workflow, the model in an agent.",
+      "tags": [
+        "agency",
+        "agentic-loop",
+        "architecture",
+        "control-flow",
+        "definitions",
+        "design-tradeoffs",
+        "nvidia-framing",
+        "patterns",
+        "when-to-use"
+      ]
+    },
+    {
+      "id": "multi-agent-topologies",
+      "name": "Multi-agent topologies",
+      "domain": "agent-architecture",
+      "cheat": "agent-architecture",
+      "summary": "Supervisor, hierarchical and group-chat shapes, and when multiple agents actually pay off.",
+      "tags": [
+        "advisory-design",
+        "agent-communication",
+        "agents-sdk",
+        "autogen",
+        "clinical-decision-support",
+        "contracts",
+        "coordination",
+        "crewai",
+        "delegation",
+        "fraud-detection",
+        "group-chat",
+        "handoff",
+        "interoperability",
+        "multi-agent",
+        "orchestration",
+        "process-types",
+        "role-design",
+        "routing",
+        "speaker-selection",
+        "sub-agents",
+        "supervisor",
+        "synthesis",
+        "tiered-architecture",
+        "topology"
+      ]
+    },
+    {
+      "id": "parallel-execution",
+      "name": "Parallel execution",
+      "domain": "agent-architecture",
+      "cheat": "agent-architecture",
+      "summary": "Fan-out over independent subtasks, and the conditions that make it safe.",
+      "tags": [
+        "async",
+        "dynamic-fanout",
+        "fan-out",
+        "independence",
+        "latency-budget",
+        "parallel-tool-calls",
+        "parallelism"
+      ]
+    },
+    {
+      "id": "deterministic-control-flow",
+      "name": "Deterministic control flow",
+      "domain": "agent-architecture",
+      "cheat": "agent-architecture",
+      "summary": "Encoding known sequences in the graph instead of leaving them to the model.",
+      "tags": [
+        "autogpt",
+        "autonomy-limits",
+        "determinism",
+        "goal-specification",
+        "langgraph",
+        "loop-prevention",
+        "reducers",
+        "state",
+        "state-externalization",
+        "state-machine",
+        "statelessness",
+        "termination"
+      ]
+    },
+    {
+      "id": "durable-state",
+      "name": "Durable state and checkpointing",
+      "domain": "agent-architecture",
+      "cheat": "agent-architecture",
+      "summary": "Surviving restarts: persisting graph state per step, keyed by thread id.",
+      "tags": [
+        "checkpointing",
+        "durability",
+        "long-running",
+        "state-design",
+        "state-preservation"
+      ]
+    },
+    {
+      "id": "resilience-patterns",
+      "name": "Resilience and idempotency",
+      "domain": "agent-architecture",
+      "cheat": "agent-architecture",
+      "summary": "Circuit breakers, bounded retries, idempotency keys, compensating actions.",
+      "tags": [
+        "circuit-breaker",
+        "compensating-actions",
+        "deadlock",
+        "failure-isolation",
+        "graceful-degradation",
+        "idempotency",
+        "protocol-design",
+        "reliability",
+        "resilience",
+        "retries",
+        "saga",
+        "side-effects",
+        "undo"
+      ]
+    },
+    {
+      "id": "tool-protocols",
+      "name": "Tool protocols and integration",
+      "domain": "agent-architecture",
+      "cheat": "agent-architecture",
+      "summary": "MCP for agent-to-tool, A2A for agent-to-agent, adapters for everything else.",
+      "tags": [
+        "a2a",
+        "adapters",
+        "api-design",
+        "integration",
+        "mcp",
+        "microservices",
+        "migration",
+        "openai-compatible",
+        "protocols",
+        "rest",
+        "tool-boundaries",
+        "tool-integration"
+      ]
+    },
+    {
+      "id": "tool-design",
+      "name": "Tool design",
+      "domain": "agent-development",
+      "cheat": "agent-development",
+      "summary": "Narrow typed operations, precise descriptions, shaped responses, bounded tool count.",
+      "tags": [
+        "agent-as-tool",
+        "budgets",
+        "composability",
+        "composition",
+        "cursors",
+        "framework-agnostic",
+        "hallucinated-tools",
+        "nested-agents",
+        "pagination",
+        "response-shaping",
+        "schemas",
+        "selection-ambiguity",
+        "stop-conditions",
+        "tool-descriptions",
+        "tool-design",
+        "tool-loops",
+        "tool-overlap",
+        "tool-overload",
+        "tool-retrieval",
+        "tool-selection",
+        "tool-wrappers",
+        "typed-schemas"
+      ]
+    },
+    {
+      "id": "cost-architecture",
+      "name": "Cost architecture",
+      "domain": "deployment-scaling",
+      "cheat": "deployment",
+      "summary": "Model cascading, caching and context discipline as design decisions, not tuning.",
+      "tags": [
+        "caching",
+        "cost",
+        "cost-optimization",
+        "model-cascade",
+        "optimization-targeting",
+        "prompt-caching",
+        "routing",
+        "semantic-cache"
+      ]
+    },
+    {
+      "id": "sandboxing",
+      "name": "Sandboxing and credential isolation",
+      "domain": "safety-ethics-compliance",
+      "cheat": "safety",
+      "summary": "Running untrusted code and local agents without ambient credentials or free egress.",
+      "tags": [
+        "code-execution",
+        "credentials",
+        "isolation",
+        "local-agents",
+        "local-deployment",
+        "nemoclaw",
+        "openshell",
+        "sandboxing",
+        "service-account",
+        "workstation"
+      ]
+    },
+    {
+      "id": "least-privilege",
+      "name": "Least privilege and authorization",
+      "domain": "safety-ethics-compliance",
+      "cheat": "safety",
+      "summary": "Bounding what a compromised agent can do, enforced outside the model.",
+      "tags": [
+        "access-control",
+        "allowlist",
+        "authorization",
+        "confused-deputy",
+        "delegated-authority",
+        "excessive-agency",
+        "least-privilege",
+        "multi-tenancy",
+        "pre-authorization",
+        "privilege-escalation",
+        "retrieval-filters",
+        "scope-of-controls",
+        "security",
+        "security-architecture",
+        "server-side-enforcement",
+        "tool-scope",
+        "tool-scoping",
+        "user-permissions"
+      ]
+    },
+    {
+      "id": "prompt-injection",
+      "name": "Prompt injection and poisoning",
+      "domain": "safety-ethics-compliance",
+      "cheat": "safety",
+      "summary": "Direct, indirect and supply-chain injection; fencing untrusted content as data.",
+      "tags": [
+        "assume-breach",
+        "exfiltration",
+        "fencing",
+        "indirect-injection",
+        "indirect-prompt-injection",
+        "injection",
+        "jailbreak-detection",
+        "knowledge-base-poisoning",
+        "prompt-assembly",
+        "prompt-injection",
+        "provenance",
+        "supply-chain",
+        "tool-poisoning",
+        "trust-boundary",
+        "untrusted-corpus",
+        "untrusted-input"
+      ]
+    },
+    {
+      "id": "guardrails",
+      "name": "Guardrails and rails",
+      "domain": "safety-ethics-compliance",
+      "cheat": "safety",
+      "summary": "Input, output, dialog, retrieval and execution rails, and what each cannot do.",
+      "tags": [
+        "defense-in-depth",
+        "dialog-rails",
+        "guardrails",
+        "input-output-rails",
+        "layered-controls",
+        "layered-defense",
+        "nemo-guardrails",
+        "output-filtering",
+        "rail-types",
+        "retrieval-rails",
+        "safety",
+        "safety-classifier",
+        "safety-models",
+        "topic-control"
+      ]
+    },
+    {
+      "id": "destructive-actions",
+      "name": "Destructive and irreversible actions",
+      "domain": "human-ai-oversight",
+      "cheat": "oversight",
+      "summary": "Dry runs, caps, confirmation and recoverability before anything irreversible.",
+      "tags": [
+        "destructive-actions",
+        "dry-run",
+        "harm-limitation",
+        "irreversibility",
+        "reversibility"
+      ]
+    },
+    {
+      "id": "governance-frameworks",
+      "name": "Governance frameworks",
+      "domain": "safety-ethics-compliance",
+      "cheat": "safety",
+      "summary": "NIST AI RMF, EU AI Act risk tiers, OWASP LLM Top 10.",
+      "tags": [
+        "accountability",
+        "compliance",
+        "enterprise",
+        "eu-ai-act",
+        "frameworks",
+        "governance",
+        "healthcare",
+        "high-risk",
+        "interaction",
+        "nist-ai-rmf",
+        "owasp",
+        "policy",
+        "regulated-deployment",
+        "regulation",
+        "residual-risk",
+        "risk",
+        "risk-assessment",
+        "risk-management",
+        "risk-register",
+        "transparency-obligation"
+      ]
+    },
+    {
+      "id": "privacy",
+      "name": "Privacy and data protection",
+      "domain": "safety-ethics-compliance",
+      "cheat": "safety",
+      "summary": "PII handling, GDPR erasure, residency, and traces as a sensitive datastore.",
+      "tags": [
+        "data-minimization",
+        "data-residency",
+        "deletability",
+        "gdpr",
+        "pii",
+        "privacy",
+        "purpose-limitation",
+        "record-keeping",
+        "redaction",
+        "residency",
+        "retention",
+        "right-to-erasure",
+        "trace-privacy",
+        "trace-retention",
+        "training-data"
+      ]
+    },
+    {
+      "id": "bias-fairness",
+      "name": "Bias and fairness",
+      "domain": "safety-ethics-compliance",
+      "cheat": "safety",
+      "summary": "Disaggregated metrics and counterfactual testing; why aggregates hide disparate impact.",
+      "tags": [
+        "bias",
+        "counterfactual-testing",
+        "disaggregated-evaluation",
+        "fairness",
+        "proxy-discrimination"
+      ]
+    },
+    {
+      "id": "auditability",
+      "name": "Auditability",
+      "domain": "run-monitor-maintain",
+      "cheat": "operations",
+      "summary": "Reconstructing a specific decision: trajectory, sources, versions, approvals.",
+      "tags": [
+        "agentic-safety-dataset",
+        "audit",
+        "auditability",
+        "traceability",
+        "trajectory-safety"
+      ]
+    },
+    {
+      "id": "structured-output",
+      "name": "Structured output",
+      "domain": "agent-development",
+      "cheat": "agent-development",
+      "summary": "Constrained decoding beats prompting; schemas as the enforcement point.",
+      "tags": [
+        "argument-validation",
+        "constrained-decoding",
+        "enums",
+        "formatting",
+        "json-schema",
+        "parameterization",
+        "pydantic",
+        "structured-output",
+        "validation"
+      ]
+    },
+    {
+      "id": "function-calling",
+      "name": "Function calling",
+      "domain": "agent-development",
+      "cheat": "agent-development",
+      "summary": "The propose-execute-observe protocol, streaming deltas, client responsibilities.",
+      "tags": [
+        "client-implementation",
+        "deltas",
+        "function-calling",
+        "fundamentals",
+        "streaming",
+        "tool-calling",
+        "tool-calls"
+      ]
+    },
+    {
+      "id": "error-handling",
+      "name": "Error handling and self-correction",
+      "domain": "agent-development",
+      "cheat": "agent-development",
+      "summary": "Actionable structured errors; strict parsing so failures are loud.",
+      "tags": [
+        "error-handling",
+        "partial-failure",
+        "schema-drift",
+        "self-correction",
+        "silent-failure",
+        "strict-parsing",
+        "tool-errors"
+      ]
+    },
+    {
+      "id": "prompt-engineering",
+      "name": "Prompt engineering for agents",
+      "domain": "agent-development",
+      "cheat": "agent-development",
+      "summary": "System prompts, few-shot, instruction placement, sampling settings.",
+      "tags": [
+        "ambiguity",
+        "clarification",
+        "few-shot",
+        "long-conversations",
+        "prompt-placement",
+        "prompting",
+        "sampling",
+        "system-prompt",
+        "temperature"
+      ]
+    },
+    {
+      "id": "testing-agents",
+      "name": "Testing agents",
+      "domain": "agent-development",
+      "cheat": "agent-development",
+      "summary": "Hermetic CI with stubs and fixtures; trajectory assertions over outcome checks.",
+      "tags": [
+        "ci",
+        "contract-tests",
+        "hermetic",
+        "regression",
+        "reproducibility",
+        "testing",
+        "testing-strategy",
+        "trajectory-assertions"
+      ]
+    },
+    {
+      "id": "rate-limiting",
+      "name": "Rate limiting and concurrency",
+      "domain": "agent-development",
+      "cheat": "agent-development",
+      "summary": "Shared quotas need shared state or a queue, never per-process counters.",
+      "tags": [
+        "backpressure",
+        "batch-processing",
+        "concurrency",
+        "distributed-state",
+        "rate-limiting"
+      ]
+    },
+    {
+      "id": "multimodal-and-tabular",
+      "name": "Multimodal and tabular data",
+      "domain": "knowledge-data",
+      "cheat": "knowledge",
+      "summary": "OCR, tables, figures, time-series: when computation beats retrieval.",
+      "tags": [
+        "aggregation",
+        "computation-vs-retrieval",
+        "figures",
+        "multimodal",
+        "multimodal-data",
+        "multimodal-ingestion",
+        "ocr",
+        "tables",
+        "tabular-data",
+        "time-series",
+        "wrong-primitive"
+      ]
+    },
+    {
+      "id": "reasoning-patterns",
+      "name": "Reasoning patterns",
+      "domain": "cognition-planning-memory",
+      "cheat": "cognition",
+      "summary": "CoT, ReAct, ToT, self-consistency, and the limits of a reasoning trace.",
+      "tags": [
+        "chain-of-thought",
+        "faithfulness-of-reasoning",
+        "least-to-most",
+        "majority-vote",
+        "react",
+        "reasoning",
+        "reviewer-risk",
+        "search",
+        "self-consistency",
+        "tree-of-thoughts"
+      ]
+    },
+    {
+      "id": "planning",
+      "name": "Planning and re-planning",
+      "domain": "cognition-planning-memory",
+      "cheat": "cognition",
+      "summary": "Planner-executor split, dependency order, event-driven re-planning.",
+      "tags": [
+        "adaptive-planning",
+        "adaptivity",
+        "decomposition",
+        "dependencies",
+        "dependency-order",
+        "goal-drift",
+        "interleaved-planning",
+        "long-horizon",
+        "plan-and-execute",
+        "planner-executor",
+        "planning",
+        "replanning",
+        "triggers"
+      ]
+    },
+    {
+      "id": "reflection",
+      "name": "Reflection and self-improvement",
+      "domain": "cognition-planning-memory",
+      "cheat": "cognition",
+      "summary": "Reflexion-style verbal feedback, attempt logs, and how errors compound.",
+      "tags": [
+        "attempt-log",
+        "error-compounding",
+        "evaluator-optimizer",
+        "feedback-loops",
+        "reflection",
+        "reflexion",
+        "self-improvement",
+        "self-written-memory",
+        "verbal-reinforcement"
+      ]
+    },
+    {
+      "id": "memory-types",
+      "name": "Memory types",
+      "domain": "cognition-planning-memory",
+      "cheat": "cognition",
+      "summary": "Working, episodic, semantic, procedural, parametric — and what maps to each.",
+      "tags": [
+        "always-inject",
+        "episodic-memory",
+        "long-term-memory",
+        "memory",
+        "memory-architecture",
+        "memory-design",
+        "memory-types",
+        "personalization",
+        "procedural-memory",
+        "profile-memory",
+        "skill-library",
+        "voyager",
+        "working-memory"
+      ]
+    },
+    {
+      "id": "memory-management",
+      "name": "Memory writes and invalidation",
+      "domain": "cognition-planning-memory",
+      "cheat": "cognition",
+      "summary": "Write policy, supersession, recency-weighted retrieval, stale-state hazards.",
+      "tags": [
+        "caching-mutable-state",
+        "consistency",
+        "curation",
+        "memory-invalidation",
+        "memory-retrieval",
+        "memory-write-policy",
+        "memory-writes",
+        "recency",
+        "retrieval-scoring",
+        "state-freshness",
+        "system-of-record"
+      ]
+    },
+    {
+      "id": "context-management",
+      "name": "Context management",
+      "domain": "cognition-planning-memory",
+      "cheat": "cognition",
+      "summary": "Compaction, offloading, position effects, and assembling what the model reads.",
+      "tags": [
+        "caveats",
+        "completeness",
+        "context-assembly",
+        "context-budget",
+        "context-compaction",
+        "context-engineering",
+        "context-management",
+        "context-position",
+        "granularity",
+        "lost-in-the-middle",
+        "memgpt",
+        "offloading",
+        "position-bias",
+        "position-effects",
+        "prompt-framing",
+        "selective-compression",
+        "summarization"
+      ]
+    },
+    {
+      "id": "test-time-compute",
+      "name": "Test-time compute",
+      "domain": "cognition-planning-memory",
+      "cheat": "cognition",
+      "summary": "Reasoning budgets as a tunable dial with a task-dependent return curve.",
+      "tags": [
+        "diminishing-returns",
+        "inference-scaling",
+        "reasoning-models",
+        "test-time-compute",
+        "thinking-budget"
+      ]
+    },
+    {
+      "id": "grounding",
+      "name": "Grounding vs. parametric knowledge",
+      "domain": "cognition-planning-memory",
+      "cheat": "cognition",
+      "summary": "What belongs in weights, what belongs in retrieval, and why citations matter.",
+      "tags": [
+        "grounding",
+        "grounding-default",
+        "knowledge-cutoff",
+        "parametric-vs-retrieved",
+        "retrieval-policy"
+      ]
+    },
+    {
+      "id": "chunking",
+      "name": "Chunking and ingestion",
+      "domain": "knowledge-data",
+      "cheat": "knowledge",
+      "summary": "Structure-aware splits, overlap, parent-document retrieval, dedupe.",
+      "tags": [
+        "change-detection",
+        "chunking",
+        "chunking-diagnosis",
+        "deduplication",
+        "deletion-propagation",
+        "diversity",
+        "incremental-ingestion",
+        "ingestion",
+        "mmr",
+        "nv-ingest",
+        "parent-document-retrieval",
+        "procedures",
+        "redundancy",
+        "structural-context",
+        "symptom-attribution"
+      ]
+    },
+    {
+      "id": "embeddings-indexes",
+      "name": "Embeddings and vector indexes",
+      "domain": "knowledge-data",
+      "cheat": "knowledge",
+      "summary": "Bi-encoders, HNSW vs IVF-PQ, pre- vs post-filtering, embedding lock-in.",
+      "tags": [
+        "architecture-coupling",
+        "bi-encoder",
+        "cagra",
+        "cuvs",
+        "embedding-lock-in",
+        "hnsw",
+        "index-tradeoffs",
+        "ivf-pq",
+        "pre-vs-post-filtering",
+        "raft",
+        "re-embedding",
+        "scale",
+        "vector-database",
+        "vector-search"
+      ]
+    },
+    {
+      "id": "retrieval-strategies",
+      "name": "Retrieval strategies",
+      "domain": "knowledge-data",
+      "cheat": "knowledge",
+      "summary": "Hybrid search, query rewriting, reranking, Self-RAG/CRAG, GraphRAG, RAPTOR.",
+      "tags": [
+        "adaptive-retrieval",
+        "bm25",
+        "coreference",
+        "crag",
+        "cross-encoder",
+        "document-grading",
+        "exact-match",
+        "graphrag",
+        "hierarchical-retrieval",
+        "hybrid-search",
+        "hyde",
+        "knowledge-graph",
+        "multi-hop",
+        "multi-query",
+        "query-rewriting",
+        "rag",
+        "rag-pipeline",
+        "ranking",
+        "raptor",
+        "reranking",
+        "retrieval",
+        "retrieval-debugging",
+        "self-rag",
+        "summarization-tree"
+      ]
+    },
+    {
+      "id": "citations",
+      "name": "Citations and verifiability",
+      "domain": "knowledge-data",
+      "cheat": "knowledge",
+      "summary": "Stable identifiers, per-claim citation, post-generation attribution checks.",
+      "tags": [
+        "attribution-verification",
+        "citations",
+        "clinical",
+        "explainability",
+        "identifiers",
+        "verifiability"
+      ]
+    },
+    {
+      "id": "data-freshness",
+      "name": "Freshness and versioning",
+      "domain": "knowledge-data",
+      "cheat": "knowledge",
+      "summary": "Effective-date metadata, query-time filters, retiring superseded documents.",
+      "tags": [
+        "data-governance",
+        "freshness",
+        "metadata-filtering",
+        "retrieval-vs-tuning",
+        "supersession"
+      ]
+    },
+    {
+      "id": "rag-metrics",
+      "name": "RAG metrics",
+      "domain": "evaluation-tuning",
+      "cheat": "evaluation",
+      "summary": "Faithfulness, answer relevancy, context precision/recall — and which need labels.",
+      "tags": [
+        "context-precision",
+        "context-recall",
+        "faithfulness",
+        "ground-truth",
+        "rag-metrics",
+        "rag-triad",
+        "ragas",
+        "reference-free",
+        "trulens"
+      ]
+    },
+    {
+      "id": "agent-evaluation",
+      "name": "Agent evaluation",
+      "domain": "evaluation-tuning",
+      "cheat": "evaluation",
+      "summary": "Trajectory over outcome, tool correctness, benchmarks, failure attribution.",
+      "tags": [
+        "agent-metrics",
+        "attribution",
+        "benchmarks",
+        "bfcl",
+        "classic-framework",
+        "deepeval",
+        "diagnosis",
+        "efficiency",
+        "multi-dimensional-evaluation",
+        "pass-at-k",
+        "root-cause",
+        "tool-correctness",
+        "tool-evaluation",
+        "trajectory-evaluation"
+      ]
+    },
+    {
+      "id": "llm-as-judge",
+      "name": "LLM-as-judge",
+      "domain": "evaluation-tuning",
+      "cheat": "evaluation",
+      "summary": "Rubrics, calibration against humans, pairwise preference, position bias.",
+      "tags": [
+        "ab-comparison",
+        "calibration",
+        "false-negatives",
+        "judge-calibration",
+        "llm-as-judge",
+        "llm-judge",
+        "pairwise-evaluation",
+        "rubrics",
+        "semantic-equivalence"
+      ]
+    },
+    {
+      "id": "eval-datasets",
+      "name": "Evaluation datasets",
+      "domain": "evaluation-tuning",
+      "cheat": "evaluation",
+      "summary": "Sourcing from real failures, adversarial slices, refresh, and overfitting.",
+      "tags": [
+        "adversarial-slice",
+        "adversarial-testing",
+        "aggregate-vs-segment",
+        "data-sourcing",
+        "disaggregated-reporting",
+        "distribution-shift",
+        "eval-datasets",
+        "eval-refresh",
+        "metric-gaming",
+        "offline-online-gap",
+        "offline-vs-online",
+        "overfitting",
+        "release-gates",
+        "stale-eval-set",
+        "task-breakdown"
+      ]
+    },
+    {
+      "id": "experiment-design",
+      "name": "Experiment design",
+      "domain": "evaluation-tuning",
+      "cheat": "evaluation",
+      "summary": "Power, minimum detectable effect, and why small offline deltas mean little.",
+      "tags": [
+        "ab-testing",
+        "experiment-design",
+        "low-traffic",
+        "minimum-detectable-effect",
+        "statistical-power",
+        "statistical-significance"
+      ]
+    },
+    {
+      "id": "tuning-techniques",
+      "name": "Tuning techniques",
+      "domain": "evaluation-tuning",
+      "cheat": "evaluation",
+      "summary": "LoRA/QLoRA, SFT, DPO vs RLHF, RL post-training, catastrophic forgetting.",
+      "tags": [
+        "agentic-training",
+        "alignment",
+        "catastrophic-forgetting",
+        "dpo",
+        "fine-tuning",
+        "lora",
+        "nemo-gym",
+        "peft",
+        "replay-data",
+        "rl-post-training",
+        "rlhf",
+        "sft"
+      ]
+    },
+    {
+      "id": "intervention-choice",
+      "name": "Choosing the intervention",
+      "domain": "evaluation-tuning",
+      "cheat": "evaluation",
+      "summary": "Tune, retrieve, constrain or fix the tool: matching the fix to the failure.",
+      "tags": [
+        "decision-criteria",
+        "finetune-vs-prompt",
+        "finetune-vs-rag",
+        "intervention-choice",
+        "intervention-ordering",
+        "knowledge-volatility",
+        "style-vs-facts",
+        "tuning",
+        "tuning-decisions"
+      ]
+    },
+    {
+      "id": "quantization-eval",
+      "name": "Quantization and capability loss",
+      "domain": "evaluation-tuning",
+      "cheat": "evaluation",
+      "summary": "Why aggregate benchmarks hide damage to schema conformance and recall.",
+      "tags": [
+        "capability-specific",
+        "evaluation-gap",
+        "quantization-evaluation"
+      ]
+    },
+    {
+      "id": "inference-latency",
+      "name": "Latency and batching",
+      "domain": "deployment-scaling",
+      "cheat": "deployment",
+      "summary": "TTFT, TPOT, continuous batching, tail latency, head-of-line blocking.",
+      "tags": [
+        "batch-size",
+        "chunked-prefill",
+        "continuous-batching",
+        "head-of-line-blocking",
+        "latency",
+        "latency-metrics",
+        "latency-quality-tradeoff",
+        "scheduling",
+        "slo",
+        "tail-latency",
+        "throughput",
+        "throughput-latency-tradeoff",
+        "tpot",
+        "ttft"
+      ]
+    },
+    {
+      "id": "kv-cache",
+      "name": "KV cache and prefill",
+      "domain": "deployment-scaling",
+      "cheat": "deployment",
+      "summary": "The memory term that scales with concurrency; prefix reuse and cache-aware routing.",
+      "tags": [
+        "kv-aware-routing",
+        "kv-cache",
+        "kv-cache-reuse",
+        "long-context",
+        "memory-fragmentation",
+        "multi-turn",
+        "oom",
+        "pagedattention",
+        "prefill",
+        "prefill-cost",
+        "prefill-decode",
+        "prefill-vs-decode",
+        "prefix-cache",
+        "prefix-caching",
+        "retrieval-tradeoff",
+        "session-affinity"
+      ]
+    },
+    {
+      "id": "parallelism-sizing",
+      "name": "Parallelism and sizing",
+      "domain": "deployment-scaling",
+      "cheat": "deployment",
+      "summary": "TP inside NVLink, PP across nodes, MoE memory-vs-compute arithmetic.",
+      "tags": [
+        "hybrid-architecture",
+        "interconnect",
+        "mamba",
+        "memory-vs-compute",
+        "model-sharding",
+        "moe",
+        "nvlink",
+        "nvswitch",
+        "sizing",
+        "tensor-parallelism"
+      ]
+    },
+    {
+      "id": "quantization",
+      "name": "Quantization and precision",
+      "domain": "deployment-scaling",
+      "cheat": "deployment",
+      "summary": "INT8/INT4/FP8/NVFP4 and what each trades away.",
+      "tags": [
+        "fp8",
+        "int4",
+        "low-bit-training",
+        "nvfp4",
+        "precision",
+        "quantization"
+      ]
+    },
+    {
+      "id": "decode-acceleration",
+      "name": "Decode acceleration",
+      "domain": "deployment-scaling",
+      "cheat": "deployment",
+      "summary": "Speculative decoding and multi-token prediction.",
+      "tags": [
+        "acceptance-rate",
+        "decode-throughput",
+        "draft-model",
+        "multi-token-prediction",
+        "speculative-decoding"
+      ]
+    },
+    {
+      "id": "serving-platforms",
+      "name": "Serving platforms",
+      "domain": "nvidia-platform",
+      "cheat": "nvidia-platform",
+      "summary": "NIM, Triton, TensorRT-LLM, vLLM, Dynamo — and where each boundary sits.",
+      "tags": [
+        "disaggregated-serving",
+        "dynamo",
+        "inference-optimization",
+        "multi-model-serving",
+        "nim",
+        "nim-vs-vllm",
+        "packaging",
+        "portability",
+        "self-hosting",
+        "serving-efficiency",
+        "tensorrt-llm",
+        "triton",
+        "vllm"
+      ]
+    },
+    {
+      "id": "kubernetes-ops",
+      "name": "Kubernetes and capacity",
+      "domain": "deployment-scaling",
+      "cheat": "deployment",
+      "summary": "Probes, GPU scheduling, autoscaling signals, cold starts, load-test realism.",
+      "tags": [
+        "autoscaling",
+        "bursty-traffic",
+        "call-graph",
+        "capacity-planning",
+        "cold-start",
+        "containers",
+        "dependency-capacity",
+        "deployment",
+        "gpu-scheduling",
+        "hpa",
+        "independent-scaling",
+        "kubernetes",
+        "load-testing",
+        "probes",
+        "queue-depth",
+        "scaling",
+        "tiering",
+        "utilization",
+        "wrong-signal"
+      ]
+    },
+    {
+      "id": "gpu-hardware",
+      "name": "GPU selection",
+      "domain": "nvidia-platform",
+      "cheat": "nvidia-platform",
+      "summary": "H100 vs H200, MIG partitioning, DGX, on-prem vs cloud economics.",
+      "tags": [
+        "dgx",
+        "gpu-partitioning",
+        "gpu-selection",
+        "h100",
+        "h200",
+        "mig",
+        "on-prem",
+        "on-prem-vs-cloud",
+        "small-models"
+      ]
+    },
+    {
+      "id": "multi-lora",
+      "name": "Multi-tenant model serving",
+      "domain": "nvidia-platform",
+      "cheat": "nvidia-platform",
+      "summary": "Serving many fine-tuned variants over one base model.",
+      "tags": [
+        "family-tiering",
+        "model-selection",
+        "multi-lora"
+      ]
+    },
+    {
+      "id": "nvidia-product-map",
+      "name": "NVIDIA product map",
+      "domain": "nvidia-platform",
+      "cheat": "nvidia-platform",
+      "summary": "Which NeMo or NVIDIA component does what, and the confusable pairs.",
+      "tags": [
+        "ai-blueprints",
+        "bottlenecks",
+        "build.nvidia.com",
+        "cudf",
+        "data-curation",
+        "etl",
+        "licensing",
+        "nemo-agent-toolkit",
+        "nemo-curator",
+        "nemo-customizer",
+        "nemo-data-designer",
+        "nemo-evaluator",
+        "nemo-retriever",
+        "ngc",
+        "nvidia",
+        "nvidia-ai-enterprise",
+        "open-model-license",
+        "product-mapping",
+        "profiling",
+        "rapids",
+        "reference-architectures",
+        "reference-workflows",
+        "retrieval-path",
+        "stack-assembly",
+        "synthetic-data",
+        "tooling",
+        "tradeoffs"
+      ]
+    },
+    {
+      "id": "nemotron",
+      "name": "Nemotron models",
+      "domain": "nvidia-platform",
+      "cheat": "nvidia-platform",
+      "summary": "The open-weight family: sizes, hybrid MoE architecture, licensing.",
+      "tags": [
+        "nemotron",
+        "nemotron-3"
+      ]
+    },
+    {
+      "id": "observability",
+      "name": "Observability and tracing",
+      "domain": "run-monitor-maintain",
+      "cheat": "operations",
+      "summary": "Span trees over agent steps, OpenTelemetry GenAI conventions, trace-led debugging.",
+      "tags": [
+        "causal-tree",
+        "dashboards",
+        "debugging",
+        "monitoring",
+        "observability",
+        "opentelemetry",
+        "production-monitoring",
+        "semantic-conventions",
+        "span-structure",
+        "spans",
+        "standards",
+        "trace-linkage",
+        "traces",
+        "tracing"
+      ]
+    },
+    {
+      "id": "agent-telemetry",
+      "name": "Cost and token telemetry",
+      "domain": "run-monitor-maintain",
+      "cheat": "operations",
+      "summary": "Per-step token accounting, cost per task, agentic SLIs.",
+      "tags": [
+        "agentic-sli",
+        "cost-analysis",
+        "cost-attribution",
+        "cost-tracking",
+        "end-to-end",
+        "prompt-cost",
+        "sli",
+        "task-level-metrics",
+        "telemetry",
+        "token-accounting",
+        "token-attribution",
+        "top-k-tradeoff"
+      ]
+    },
+    {
+      "id": "drift-alerting",
+      "name": "Drift and alerting",
+      "domain": "run-monitor-maintain",
+      "cheat": "operations",
+      "summary": "Leading indicators, frozen-stack decline, scheduled re-evaluation.",
+      "tags": [
+        "alerting",
+        "automated-proxies",
+        "drift",
+        "frozen-stack",
+        "leading-indicators",
+        "maintenance",
+        "re-evaluation",
+        "regression-detection"
+      ]
+    },
+    {
+      "id": "incident-response",
+      "name": "Incident response",
+      "domain": "run-monitor-maintain",
+      "cheat": "operations",
+      "summary": "Correlating the time boundary with changes, then diffing traces across it.",
+      "tags": [
+        "change-correlation",
+        "incident-response",
+        "postmortem",
+        "regression-suite",
+        "timeline"
+      ]
+    },
+    {
+      "id": "release-management",
+      "name": "Release management",
+      "domain": "run-monitor-maintain",
+      "cheat": "operations",
+      "summary": "Versioning prompts and models together, canaries, shadow mode, rollback.",
+      "tags": [
+        "canary",
+        "capability-rollout",
+        "change-management",
+        "comparison-design",
+        "configuration-management",
+        "model-rollout",
+        "model-updates",
+        "progressive-delivery",
+        "progressive-rollout",
+        "prompt-versioning",
+        "regression-testing",
+        "rollback",
+        "shadow-mode",
+        "version-control",
+        "version-pinning",
+        "versioning"
+      ]
+    },
+    {
+      "id": "hitl-design",
+      "name": "Human in vs. on the loop",
+      "domain": "human-ai-oversight",
+      "cheat": "oversight",
+      "summary": "Blocking approval for irreversible actions, supervisory monitoring otherwise.",
+      "tags": [
+        "approval-gates",
+        "consequence",
+        "gate-design",
+        "hitl",
+        "hotl",
+        "human-in-the-loop",
+        "interrupts",
+        "oversight-models",
+        "pre-vs-post-review"
+      ]
+    },
+    {
+      "id": "automation-bias",
+      "name": "Automation bias",
+      "domain": "human-ai-oversight",
+      "cheat": "oversight",
+      "summary": "Rubber-stamping, anchoring, and reviewer interfaces that restore real review.",
+      "tags": [
+        "anchoring",
+        "automation-bias",
+        "defaults",
+        "design",
+        "evidence",
+        "evidence-presentation",
+        "oversight-theater",
+        "review-fatigue",
+        "review-quality",
+        "reviewer-ux",
+        "rubber-stamping",
+        "ux"
+      ]
+    },
+    {
+      "id": "escalation",
+      "name": "Escalation and uncertainty",
+      "domain": "human-ai-oversight",
+      "cheat": "oversight",
+      "summary": "Verifiable escalation triggers; why self-reported confidence is not one.",
+      "tags": [
+        "confidence",
+        "escalation",
+        "escalation-thresholds",
+        "escalation-triggers",
+        "risk-tiering",
+        "sampling-audit",
+        "signal-quality",
+        "throughput",
+        "uncertainty",
+        "uncertainty-disclosure"
+      ]
+    },
+    {
+      "id": "autonomy-governance",
+      "name": "Graduated autonomy",
+      "domain": "human-ai-oversight",
+      "cheat": "oversight",
+      "summary": "Scoping autonomy to where reliability was actually measured.",
+      "tags": [
+        "autonomy-scoping",
+        "evidence-boundaries",
+        "fallback",
+        "graduated-autonomy",
+        "out-of-distribution"
+      ]
+    },
+    {
+      "id": "handoff",
+      "name": "Handoff design",
+      "domain": "human-ai-oversight",
+      "cheat": "oversight",
+      "summary": "Transferring understanding, not transcripts; measuring rework.",
+      "tags": [
+        "clarification-quality",
+        "context-transfer",
+        "handoff",
+        "handoff-metrics",
+        "rework",
+        "user-effort"
+      ]
+    },
+    {
+      "id": "user-feedback",
+      "name": "Feedback loops",
+      "domain": "human-ai-oversight",
+      "cheat": "oversight",
+      "summary": "Turning reviewer and user signal into fixes rather than reflexive tuning.",
+      "tags": [
+        "continuous-improvement",
+        "evaluation",
+        "preference-data",
+        "response-bias",
+        "signal-quality",
+        "user-feedback"
+      ]
+    },
+    {
+      "id": "transparency",
+      "name": "Transparency to users",
+      "domain": "human-ai-oversight",
+      "cheat": "oversight",
+      "summary": "AI disclosure, source citation, and a route to a human.",
+      "tags": [
+        "disclosure",
+        "transparency",
+        "user-decisions",
+        "user-rights",
+        "verifiability"
+      ]
+    }
+  ]
+}

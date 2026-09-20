@@ -417,6 +417,145 @@
         "out-of-distribution"
       ],
       "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "HO-019",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent has been fully autonomous on refund approvals under $50 for three months at 98% accuracy. Product asks to raise the threshold to $500. What does the existing evidence support?",
+      "choices": [
+        "Raising it to $500, since 98% accuracy is well established",
+        "Nothing about $500: reliability was measured on a distribution of sub-$50 cases, which may differ systematically from larger ones, so the higher band needs its own measurement before autonomy extends to it",
+        "Raising it to $250 as a compromise",
+        "Lowering it, since three months is too short"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Evidence of reliability is evidence about the distribution it was gathered on. Larger refunds may involve different customers, reasons and edge cases, so the measured accuracy does not transfer. The disciplined move is to run the higher band in shadow or with approval until it has its own track record.",
+      "tags": [
+        "autonomy-scoping",
+        "evidence-boundaries",
+        "out-of-distribution",
+        "graduated-autonomy"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "HO-020",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO conditions should automatically drop an agent to a lower autonomy level without waiting for a human decision?",
+      "choices": [
+        "A sustained rise in the rate of runs terminating at the step limit or with tool errors",
+        "Input that falls outside the distribution autonomy was granted on, such as an unseen request type or an unusually large value",
+        "A single customer complaint",
+        "An increase in total request volume"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Autonomy should be conditional on the evidence that justified it still holding. Degradation signals and out-of-distribution inputs both indicate the conditions no longer apply, so the system should fall back automatically rather than wait for someone to notice. A single complaint is too noisy to act on alone, and volume growth is not a reliability signal.",
+      "tags": [
+        "autonomy-scoping",
+        "graduated-autonomy",
+        "out-of-distribution",
+        "fallback"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "HO-021",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Users can rate agent answers. 92% of ratings are positive, yet support tickets about the agent are rising. What is the most likely explanation?",
+      "choices": [
+        "The rating widget is broken",
+        "Response bias: users who are satisfied rate and leave, while frustrated users abandon the agent and open a ticket instead, so the rating pool excludes the failures",
+        "Users do not understand the rating scale",
+        "The agent is improving and tickets are unrelated"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Voluntary feedback is a self-selected sample, and the people most affected by failures are often the least likely to stay and rate. Reconciling in-product ratings against downstream signals such as ticket volume, escalations and abandonment is what makes the feedback interpretable.",
+      "tags": [
+        "user-feedback",
+        "response-bias",
+        "signal-quality",
+        "sampling"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "HO-022",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You want end-user feedback that actually improves the agent. Which capture design is most useful?",
+      "choices": [
+        "A thumbs up/down on every response",
+        "A thumbs-down that asks for a reason category, attaches the trace id, and is reconciled against escalation and abandonment data",
+        "A five-star rating at the end of each session",
+        "A free-text comment box with no other metadata"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Useful feedback is attributable and groupable: a reason category turns a negative signal into a cause, the trace id localizes it to a step, and reconciliation against behavioral signals corrects for who chose to respond. Bare ratings and unlinked free text cannot be converted into a fix.",
+      "tags": [
+        "user-feedback",
+        "attribution",
+        "trace-linkage",
+        "signal-quality"
+      ],
+      "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "HO-023",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An agent handles a request partially, then escalates. Which practice most reduces the human's time to resolution?",
+      "choices": [
+        "Providing the complete conversation transcript",
+        "A structured package: the user's goal, what the agent already did and confirmed, what it attempted that failed, and the specific blocker",
+        "Starting the human on a clean slate to avoid bias",
+        "Routing to whichever human is free soonest"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Handoff quality is measured by how little the receiver must reconstruct. Stating the goal, the confirmed work, the failed attempts and the precise blocker prevents duplicated effort and points straight at the decision. Transcripts force reconstruction, and a clean slate guarantees the user repeats themselves.",
+      "tags": [
+        "handoff",
+        "context-transfer",
+        "rework",
+        "escalation"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/"
+    },
+    {
+      "id": "HO-024",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which disclosure is required when an agent's answer is based on retrieved documents the user cannot access?",
+      "choices": [
+        "Nothing, as long as the answer is correct",
+        "That the answer rests on sources the user cannot open, so they know verification requires someone who can — silently citing inaccessible sources creates false verifiability",
+        "The full text of the restricted documents",
+        "The names of the people who can access them"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A citation the reader cannot follow looks like evidence while providing none, which is worse than no citation because it invites misplaced confidence. Saying the basis exists but is not reachable by this user preserves honesty and points to the right escalation. Disclosing restricted content or personnel would breach the access control itself.",
+      "tags": [
+        "transparency",
+        "citations",
+        "disclosure",
+        "verifiability"
+      ],
+      "ref": "https://artificialintelligenceact.eu/"
     }
   ]
 }

@@ -26,6 +26,7 @@ for path in sorted((ROOT / "cases").glob("*.json")):
         q["case"] = case["id"]
         questions.append(q)
 
+concepts = json.loads((ROOT / "concepts.json").read_text())["concepts"]
 cheats = json.loads((ROOT / "cheatsheet.json").read_text())
 cards = []
 for sec in cheats["sections"]:
@@ -41,6 +42,7 @@ payload = {
     "exam": bp["exam"],
     "cheats": cheats,
     "cases": cases,
+    "concepts": concepts,
     "cards": cards,
     "domains": [{k: v for k, v in d.items() if k != "note"} for d in bp["domains"]],
     "questions": questions,
@@ -55,4 +57,5 @@ out = template.replace(marker, json.dumps(payload, separators=(",", ":"), ensure
 dest = ROOT / "web" / "simulator.html"
 dest.write_text(out)
 print(f"{dest.relative_to(ROOT)}  {len(questions)} questions  "
-      f"{len(cases)} cases  {len(cards)} cards  {dest.stat().st_size // 1024} KB")
+      f"{len(cases)} cases  {len(cards)} cards  {len(concepts)} concepts  "
+      f"{dest.stat().st_size // 1024} KB")

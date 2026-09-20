@@ -660,6 +660,29 @@
         "task-breakdown"
       ],
       "ref": "https://docs.smith.langchain.com/evaluation/concepts"
+    },
+    {
+      "id": "ET-030",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "You are comparing an FP16 model against its INT4 quantization for an agent that relies on long-context recall and strict tool schemas. Which evaluation design is appropriate?",
+      "choices": [
+        "A general benchmark suite, since it covers many capabilities",
+        "Targeted suites for the capabilities the agent depends on — needle-in-a-haystack style long-context recall and schema-conformance rates on real tool calls — reported separately from any aggregate",
+        "Only a latency and throughput comparison",
+        "A single side-by-side sample of a few outputs"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Aggregate benchmarks average across behaviors and can stay nearly flat while a narrow capability collapses. Evaluating precisely what the agent leans on, and reporting those numbers separately rather than folding them into a mean, is what makes a quantization decision defensible.",
+      "tags": [
+        "quantization-evaluation",
+        "capability-specific",
+        "long-context",
+        "evaluation-gap"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/reference/precision.html"
     }
   ]
 }

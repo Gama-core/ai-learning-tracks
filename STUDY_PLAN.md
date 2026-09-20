@@ -12,6 +12,10 @@ Every week ends with the same loop:
 ./sim.py stats                  # check where you actually stand
 ```
 
+`stats` ends with your weakest **concepts**, ranked by what each gap costs on the exam, and
+hands you the two commands that fix it: `practice -c <concept>` to drill it and
+`cheat -d <section>` to read it. Work that list top-down rather than guessing.
+
 And every day you study at all, start with:
 
 ```bash
@@ -209,7 +213,7 @@ the room scan, the 14-day retake wait, and that NVIDIA returns **pass/fail with 
 so your last mock here is the only diagnostic you will ever get.
 
 Ship it when `./sim.py stats` shows blueprint-weighted accuracy above 80% with every domain
-attempted. The margin over the 75% target absorbs the gap between a question bank you have
+attempted **and** no concept below target in a 13-15% topic area. The margin over the 75% target absorbs the gap between a question bank you have
 seen and one you have not.
 
 ---

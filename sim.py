@@ -28,10 +28,12 @@ BANK_DIR = ROOT / "bank"
 BLUEPRINT = ROOT / "blueprint.json"
 CHEATS = ROOT / "cheatsheet.json"
 CASE_DIR = ROOT / "cases"
+CONCEPTS = ROOT / "concepts.json"
 HISTORY = ROOT / ".history.json"
 
 LABELS = "ABCD"
 PASS_MARK = 0.75
+MIN_ATTEMPTS = 4   # Below this, a concept's accuracy is noise, not a signal.
 
 
 # ---------------------------------------------------------------- presentation
@@ -177,6 +179,41 @@ def load_questions(include_cases: bool = True) -> list:
     if not qs:
         sys.exit(f"No questions found in {BANK_DIR}")
     return qs
+
+
+def load_concepts() -> tuple:
+    """Return (concepts, tag -> [concept ids]). Concepts are a diagnostic layer
+    over the blueprint: a question's concepts are derived from its tags."""
+    if not CONCEPTS.exists():
+        return [], {}
+    concepts = json.loads(CONCEPTS.read_text())["concepts"]
+    index: dict = {}
+    for c in concepts:
+        for tag in c["tags"]:
+            index.setdefault(tag, []).append(c["id"])
+    return concepts, index
+
+
+def concepts_of(q: Question, index: dict) -> set:
+    return {cid for tag in q.tags for cid in index.get(tag, [])}
+
+
+def concept_stats(questions: list, hist: dict, concepts: list, index: dict) -> dict:
+    """Per-concept bank size, attempts and accuracy."""
+    out = {c["id"]: {"bank": 0, "attempts": 0, "correct": 0, "seen": 0}
+           for c in concepts}
+    for q in questions:
+        rec = hist["questions"].get(q.id, {})
+        for cid in concepts_of(q, index):
+            st = out[cid]
+            st["bank"] += 1
+            if rec.get("seen"):
+                st["seen"] += 1
+                st["attempts"] += rec["seen"]
+                st["correct"] += rec["correct"]
+    for st in out.values():
+        st["acc"] = st["correct"] / st["attempts"] if st["attempts"] else None
+    return out
 
 
 def load_cases() -> list:
@@ -558,6 +595,20 @@ def mode_exam(args, questions, bp, hist) -> None:
 def mode_practice(args, questions, bp, hist) -> None:
     pool = questions
     title = "Practice"
+    if getattr(args, "concept", None):
+        concepts, index = load_concepts()
+        by_id = {c["id"]: c for c in concepts}
+        if args.concept not in by_id:
+            print(f"{C.BOLD}Concepts{C.RESET}")
+            for c in concepts:
+                print(f"  {C.CYAN}{c['id']:<26}{C.RESET} {c['name']}")
+            sys.exit(f"\nUnknown concept '{args.concept}'.")
+        pool = [q for q in questions if args.concept in concepts_of(q, index)]
+        title = f"Concept — {by_id[args.concept]['name']}"
+        random.shuffle(pool)
+        pool = pool[: args.count or len(pool)]
+        run_quiz(pool, bp, hist, timed=False, feedback=True, title=title)
+        return
     if args.domain:
         pool = [q for q in questions if q.domain == args.domain]
         if not pool:
@@ -659,6 +710,34 @@ def mode_stats(args, questions, bp, hist) -> None:
             mark = f"{C.GREEN}pass{C.RESET}" if f >= PASS_MARK else f"{C.RED}below{C.RESET}"
             print(f"    {e['at'][:16].replace('T', ' ')}   {f*100:5.1f}%  "
                   f"({int(f*e['n'])}/{e['n']})  {e['seconds']//60}m  {mark}")
+
+    concepts, index = load_concepts()
+    if concepts:
+        cstats = concept_stats(questions, hist, concepts, index)
+        by_id = {c["id"]: c for c in concepts}
+        weight = {d["id"]: d["weight"] for d in bp["domains"]}
+        scored = [(c["id"], cstats[c["id"]]) for c in concepts
+                  if cstats[c["id"]]["attempts"] >= MIN_ATTEMPTS
+                  and cstats[c["id"]]["acc"] < PASS_MARK]
+        # Rank by exam impact: how wrong, weighted by how much the domain counts.
+        scored.sort(key=lambda t: -(1 - t[1]["acc"]) * weight.get(by_id[t[0]]["domain"], 5))
+        if scored:
+            print(f"\n  {C.BOLD}Weakest concepts{C.RESET}  "
+                  f"{C.DIM}ranked by exam impact — accuracy gap x domain weight{C.RESET}")
+            for cid, st in scored[:8]:
+                c = by_id[cid]
+                print(f"    {C.YELLOW}→{C.RESET} {C.BOLD}{c['name']}{C.RESET}  "
+                      f"{C.DIM}{st['correct']}/{st['attempts']} · "
+                      f"{bp['by_id'][c['domain']]['name']} {weight.get(c['domain'], 0)}%{C.RESET}")
+                print(wrap(c["summary"], width=80, indent="        " + C.DIM) + C.RESET)
+                print(f"        {C.CYAN}./sim.py practice -c {cid}{C.RESET}"
+                      f"{C.DIM}   ·   ./sim.py cheat -d {c['cheat']}{C.RESET}")
+        unmeasured = sum(1 for c in concepts
+                         if cstats[c["id"]]["attempts"] < MIN_ATTEMPTS)
+        if unmeasured:
+            print(f"\n  {C.DIM}{unmeasured} of {len(concepts)} concepts not yet measured "
+                  f"({MIN_ATTEMPTS}+ attempts needed before accuracy means anything)."
+                  f"{C.RESET}")
 
     counts = due_counts(questions, hist)
     print(f"\n  {C.BOLD}Review schedule{C.RESET}")
@@ -833,6 +912,39 @@ def mode_case(args, questions, bp, hist) -> None:
              title=f"Case {chosen['id']}", shuffle=False)
 
 
+def mode_concepts(args, questions, bp, hist) -> None:
+    """List the concept taxonomy with your measured accuracy on each."""
+    concepts, index = load_concepts()
+    if not concepts:
+        sys.exit("concepts.json not found")
+    cstats = concept_stats(questions, hist, concepts, index)
+    weight = {d["id"]: d["weight"] for d in bp["domains"]}
+
+    by_domain: dict = {}
+    for c in concepts:
+        by_domain.setdefault(c["domain"], []).append(c)
+
+    print(f"\n{C.BOLD}Concept taxonomy{C.RESET}  "
+          f"{C.DIM}{len(concepts)} concepts across {len(by_domain)} topic areas{C.RESET}")
+    for dom in sorted(by_domain, key=lambda d: -weight.get(d, 0)):
+        print(f"\n{rule('=')}")
+        print(f"{C.BOLD}{C.CYAN}{bp['by_id'][dom]['name']}{C.RESET}  "
+              f"{C.DIM}{weight.get(dom, 0)}% of exam{C.RESET}")
+        print(rule("="))
+        for c in by_domain[dom]:
+            st = cstats[c["id"]]
+            if st["attempts"] >= MIN_ATTEMPTS:
+                acc = f"{st['acc'] * 100:5.1f}%"
+                mark = (C.GREEN if st["acc"] >= PASS_MARK
+                        else C.YELLOW if st["acc"] >= 0.6 else C.RED)
+            else:
+                acc, mark = "    — ", C.DIM
+            print(f"  {mark}{acc}{C.RESET}  {C.BOLD}{c['name']:<34}{C.RESET}"
+                  f"{C.DIM}{st['bank']:>3} q   {c['id']}{C.RESET}")
+    print(f"\n{C.DIM}./sim.py practice -c <id>   ·   accuracy shown once a concept has "
+          f"{MIN_ATTEMPTS}+ attempts{C.RESET}\n")
+
+
 def mode_cheat(args, questions, bp, hist) -> None:
     """Condensed reference, rendered for a terminal."""
     if not CHEATS.exists():
@@ -886,9 +998,10 @@ def mode_menu(args, questions, bp, hist) -> None:
         print(f"  {C.BOLD}7{C.RESET}  Cheat sheets     {C.DIM}condensed reference tables{C.RESET}")
         print(f"  {C.BOLD}8{C.RESET}  Case studies     {C.DIM}one scenario, several linked questions{C.RESET}")
         print(f"  {C.BOLD}9{C.RESET}  Flashcards       {C.DIM}recall drill over the cheat sheets{C.RESET}")
+        print(f"  {C.BOLD}0{C.RESET}  Concepts         {C.DIM}taxonomy + per-concept accuracy{C.RESET}")
         print(f"  {C.BOLD}q{C.RESET}  Quit\n")
         choice = input("> ").strip().lower()
-        ns = argparse.Namespace(count=None, domain=None)
+        ns = argparse.Namespace(count=None, domain=None, concept=None)
         if choice == "1":
             mode_exam(ns, questions, bp, hist)
         elif choice == "2":
@@ -921,6 +1034,8 @@ def mode_menu(args, questions, bp, hist) -> None:
             mode_case(ns, questions, bp, hist)
         elif choice == "9":
             mode_flash(ns, questions, bp, hist)
+        elif choice == "0":
+            mode_concepts(ns, questions, bp, hist)
         elif choice in {"q", "quit", "exit"}:
             print()
             return
@@ -949,10 +1064,13 @@ def main() -> None:
                "  ./sim.py case                     pick a case study\n"
                "  ./sim.py case -d CS03\n"
                "  ./sim.py flash                    flashcards from the cheat sheets\n"
-               "  ./sim.py flash -d nvidia-platform\n")
+               "  ./sim.py flash -d nvidia-platform\n"
+               "  ./sim.py concepts                 concept taxonomy + your accuracy\n"
+               "  ./sim.py practice -c kv-cache\n")
     p.add_argument("mode", nargs="?", default="menu",
-                   choices=["menu", "exam", "practice", "drill", "stats", "cram", "cheat", "case", "review", "flash"])
+                   choices=["menu", "exam", "practice", "drill", "stats", "cram", "cheat", "case", "review", "flash", "concepts"])
     p.add_argument("-n", "--count", type=int, help="number of questions")
+    p.add_argument("-c", "--concept", help="concept id (see `./sim.py concepts`)")
     p.add_argument("-d", "--domain",
                    help="blueprint domain id, or cheat-sheet section id for `cheat`")
     p.add_argument("--seed", type=int, help="fix the RNG for a reproducible set")

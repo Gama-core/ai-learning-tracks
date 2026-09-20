@@ -670,6 +670,75 @@
         "capacity-planning"
       ],
       "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "DS-030",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement about FP8 versus INT8 quantization is accurate?",
+      "choices": [
+        "They are equivalent formats with different names",
+        "FP8 keeps a floating-point exponent so it handles wide dynamic range and outlier activations better, while INT8 is uniform and usually needs more careful per-channel scaling or calibration",
+        "INT8 always produces higher quality than FP8",
+        "FP8 can only be used for training, not inference"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The practical difference is dynamic range. Floating-point formats devote bits to an exponent, which tolerates the activation outliers that are common in transformers, whereas integer quantization spreads a uniform grid across the range and therefore depends more on good scaling and calibration to avoid clipping. Both are used at inference on supporting hardware.",
+      "tags": [
+        "quantization",
+        "precision",
+        "fp8",
+        "int4"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/reference/precision.html"
+    },
+    {
+      "id": "DS-031",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A team quantizes weights only, leaving activations in higher precision. What do they gain and what do they not?",
+      "choices": [
+        "Both memory and compute throughput improve proportionally",
+        "Memory footprint and memory bandwidth improve, which helps the bandwidth-bound decode phase, but compute-bound prefill benefits far less than with full weight-and-activation quantization",
+        "Nothing improves unless activations are quantized too",
+        "Only latency improves, never memory"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Weight-only quantization shrinks what must be read from memory each decode step, which is exactly the bottleneck during decode, so tokens per second rises. Prefill is compute-bound, and without quantized activations the matrix multiplications still run at the higher precision, so the speedup there is much smaller.",
+      "tags": [
+        "quantization",
+        "precision",
+        "prefill-vs-decode",
+        "memory"
+      ],
+      "ref": "https://nvidia.github.io/TensorRT-LLM/reference/precision.html"
+    },
+    {
+      "id": "DS-032",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Speculative decoding gives a large speedup on one workload and almost none on another. What most likely explains the difference?",
+      "choices": [
+        "The second workload uses a larger target model",
+        "Acceptance rate: speculative decoding only pays off when the draft model's proposals are frequently accepted, which depends on how predictable the target's output is for that workload",
+        "The second workload has shorter prompts",
+        "Speculative decoding only works with greedy decoding"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The speedup is governed by how many drafted tokens survive verification. Predictable output — boilerplate, structured formats, code with strong conventions — yields high acceptance and large gains, while highly variable output rejects most drafts and the drafting cost is close to wasted. Target model size and prompt length are secondary.",
+      "tags": [
+        "speculative-decoding",
+        "acceptance-rate",
+        "draft-model",
+        "decode-throughput"
+      ],
+      "ref": "https://arxiv.org/abs/2211.17192"
     }
   ]
 }

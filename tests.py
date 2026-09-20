@@ -124,6 +124,53 @@ if cheat_path.exists():
             elif block["type"] not in ("bullets", "note"):
                 errors.append(f"{where}: unknown block type '{block['type']}'")
 
+# ---- concept taxonomy ----------------------------------------------------
+concepts_path = ROOT / "concepts.json"
+n_concepts = 0
+if concepts_path.exists():
+    cons = json.loads(concepts_path.read_text())["concepts"]
+    n_concepts = len(cons)
+    cheat_ids = {sec["id"] for sec in cs["sections"]} if cheat_path.exists() else set()
+    cids, tag_index = set(), {}
+    for c in cons:
+        where = f"concepts.json:{c['id']}"
+        if c["id"] in cids:
+            errors.append(f"{where}: duplicate concept id")
+        cids.add(c["id"])
+        if c["domain"] not in domains:
+            errors.append(f"{where}: domain '{c['domain']}' not in blueprint")
+        if cheat_ids and c["cheat"] not in cheat_ids:
+            errors.append(f"{where}: cheat section '{c['cheat']}' does not exist")
+        if not c.get("summary") or not c.get("tags"):
+            errors.append(f"{where}: needs a summary and at least one tag")
+        for tag in c["tags"]:
+            tag_index.setdefault(tag, []).append(c["id"])
+
+    # Every tag a question uses must belong to a concept, or the taxonomy has
+    # silently stopped covering the bank.
+    used_tags, no_concept, per_concept = set(), [], {c["id"]: 0 for c in cons}
+    for path in (list((ROOT / "bank").glob("*.json"))
+                 + list((ROOT / "cases").glob("*.json"))):
+        for q in json.loads(path.read_text())["questions"]:
+            used_tags.update(q["tags"])
+            mapped = {cid for t in q["tags"] for cid in tag_index.get(t, [])}
+            if not mapped:
+                no_concept.append(q["id"])
+            for cid in mapped:
+                per_concept[cid] += 1
+
+    for tag in sorted(used_tags - set(tag_index)):
+        errors.append(f"concepts.json: tag '{tag}' is used by questions but "
+                      f"belongs to no concept")
+    for qid in no_concept:
+        errors.append(f"{qid}: maps to no concept")
+    for tag in sorted(set(tag_index) - used_tags):
+        warnings.append(f"concepts.json: tag '{tag}' is declared but unused")
+    for cid, n in sorted(per_concept.items(), key=lambda kv: kv[1]):
+        if n < 4:
+            warnings.append(f"concepts.json:{cid}: only {n} question(s) — "
+                            f"too thin to report accuracy on")
+
 total = sum(counts.values())
 for d in bp["domains"]:
     have = counts.get(d["id"], 0)
@@ -134,7 +181,7 @@ for d in bp["domains"]:
                       f"needs {need}")
 
 print(f"{total} bank questions across {len(counts)} domains, "
-      f"{case_q} case questions, {cards} flashcards")
+      f"{case_q} case questions, {cards} flashcards, {n_concepts} concepts")
 for w in warnings:
     print(f"  warn  {w}")
 for e in errors:

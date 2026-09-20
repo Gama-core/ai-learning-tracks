@@ -18,9 +18,10 @@ NVIDIA does not publish a cut score. This kit targets **75%** so you train with 
 
 ```
 blueprint.json      The 10 official topic areas with their published weights.
+concepts.json       69-concept taxonomy mapping tags to diagnosable concepts.
 cheatsheet.json     Condensed reference — source of truth for CHEATSHEET.md and the web page.
 CHEATSHEET.md       Generated. 12 sections of tables: product map, metrics, patterns, acronyms.
-bank/*.json         256 standalone questions — stem, 4 choices, answer, explanation, source.
+bank/*.json         277 standalone questions — stem, 4 choices, answer, explanation, source.
 cases/*.json        10 case studies — one scenario, 3-4 linked questions each (40 total).
 sim.py              Terminal simulator: mock exam, practice, drill, stats, cram.
 build_web.py        Rebuilds the web simulator from the bank + cheatsheet.
@@ -94,6 +95,14 @@ Case questions also appear individually in mock exams, carrying their scenario w
 **Flashcards** drill pure recall over the cheat-sheet tables: 206 cards across 13 decks,
 including the 33-row NVIDIA product map and 28 acronyms. Self-graded, on the same
 scheduler as the questions.
+
+**Concepts** are the diagnostic layer the domain scores cannot give you. Domains tell you
+*Knowledge Integration is at 62%*; concepts tell you it is **retrieval strategies** at 40%
+while **chunking** is fine. 69 concepts, each owning a set of tags, each carrying a summary
+and a pointer to the cheat-sheet section that covers it. Weak concepts are ranked by
+**exam impact** — accuracy shortfall multiplied by the topic area's weight — so a gap in a
+15% area outranks the same gap in a 5% one. A concept needs 4+ attempts before its accuracy
+is reported at all; below that it is noise.
 
 **Cheat sheets** are condensed reference, not questions: the NVIDIA product map, the RAG
 metric table with a needs-ground-truth column, reasoning and memory patterns, serving
@@ -181,6 +190,23 @@ Drop a file in `cases/`, named for its id:
 
 Each question carries its own `domain`, so a case can span the blueprint. `tests.py`
 enforces the id format, the four-choice rule, and that a case has at least three questions.
+
+## The concept taxonomy
+
+`concepts.json` maps free-form question tags onto a fixed set of diagnosable concepts:
+
+```json
+{ "id": "kv-cache", "name": "KV cache and prefill", "domain": "deployment-scaling",
+  "cheat": "deployment",
+  "summary": "The memory term that scales with concurrency; prefix reuse and cache-aware routing.",
+  "tags": ["kv-cache", "prefix-caching", "pagedattention", "oom", "prefill", "..."] }
+```
+
+Tags stay free-form when authoring; concepts claim them. A question's concepts are the
+union over its tags, so adding a question needs no extra work — but `tests.py` **fails** if
+a tag belongs to no concept, or if a question maps to no concept. That is what stops the
+taxonomy silently drifting out of date as the bank grows. It also warns when a concept has
+fewer than 4 questions, since accuracy on such a concept cannot be reported.
 
 ## CI
 
