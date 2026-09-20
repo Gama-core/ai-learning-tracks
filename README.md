@@ -191,6 +191,23 @@ Four tabs:
 The console is deliberately status-only — what to do next and what to fix. Content you
 browse rather than check lives on the other tabs.
 
+### Mobile
+
+Audited across all seven views (console, case studies, cheat sheets, cram, question,
+flashcard, results) at 320 / 360 / 390 / 430px: **no horizontal page scroll at any
+combination**. Wide reference tables scroll inside their own container, which is the only
+thing allowed to exceed the viewport. Tap targets are at least 40px on tabs and buttons
+below 640px.
+
+Two fixes were needed to get there, both worth knowing if you edit the layout:
+
+- Grid and flex children default to `min-width: auto` and refuse to shrink below their
+  content's min-content width. The rail was blowing 357px past a 360px viewport until
+  `.cols > * { min-width: 0 }` was added.
+- `.wrap` carries `overflow-x: clip` as a backstop. `clip` rather than `hidden`, because
+  `hidden` would create a scroll container and change the containing block for
+  `position: sticky` descendants.
+
 Keys: `A`–`D` answer · `←` `→` move · `F` flag · `Enter` check/next. In flashcards, Space
 to reveal, `Y`/`N` to grade.
 
