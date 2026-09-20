@@ -1,5 +1,7 @@
 # NCP-AAI prep kit
 
+<sub>A [Gama Core](https://www.gamacore.com) project.</sub>
+
 Study material and a working exam simulator for the **NVIDIA-Certified Professional:
 Agentic AI LLMs (NCP-AAI)** exam.
 
@@ -111,6 +113,10 @@ acronym glossary. Twelve sections, in the terminal (`./sim.py cheat`), in the re
 (`CHEATSHEET.md`), and in the web simulator under the **Cheat sheets** tab, which prints.
 
 ## Web simulator
+
+Styled in the Gama Core design system — their palette (crimson `#C5184B`, blue `#1D98D6`),
+their typefaces (Space Grotesk / Inter / IBM Plex Mono), their light and dark themes.
+Tokens live at the top of `web/template.html`; change them there and rebuild.
 
 Same bank, same weighting, usable on a phone. Progress syncs to your account when
 available and falls back to local browser storage.

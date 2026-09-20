@@ -48,9 +48,11 @@ class C:
     GREEN = "\033[32m" if _on else ""
     RED = "\033[31m" if _on else ""
     YELLOW = "\033[33m" if _on else ""
-    CYAN = "\033[36m" if _on else ""
-    ACCENT = "\033[36m" if _on else ""
-    MAGENTA = "\033[35m" if _on else ""
+    CYAN = "\033[38;5;74m" if _on else ""
+    ACCENT = "\033[38;5;74m" if _on else ""
+    BRAND = "\033[38;5;161m" if _on else ""      # Gama Core crimson
+    BRANDB = "\033[38;5;74m" if _on else ""      # Gama Core blue
+    MAGENTA = "\033[38;5;161m" if _on else ""
 
 
 def wrap(text: str, width: int = 88, indent: str = "") -> str:
@@ -580,7 +582,8 @@ def mode_exam(args, questions, bp, hist) -> None:
                                      bp["exam"]["question_count_max"])
     n = min(n, len(questions))
     clear()
-    print(f"\n{C.BOLD}{bp['exam']['name']} — Mock Exam{C.RESET}")
+    print(f"\n{C.BRAND}◣{C.BRANDB}◥{C.RESET}  {C.BOLD}{bp['exam']['name']} — Mock Exam"
+          f"{C.RESET}")
     print(rule("="))
     print(f"\n  {n} questions · {bp['exam']['duration_minutes']} minutes · "
           f"target {PASS_MARK*100:.0f}%")
@@ -984,7 +987,10 @@ def mode_menu(args, questions, bp, hist) -> None:
     while True:
         clear()
         e = bp["exam"]
-        print(f"\n{C.BOLD}{e['name']}{C.RESET}  {C.DIM}({e['code']}){C.RESET}")
+        print(f"\n{C.BRAND}◣{C.BRANDB}◥{C.RESET}  {C.BOLD}Gama Core{C.RESET}"
+              f"  {C.DIM}certification simulator{C.RESET}")
+        print(f"{C.BOLD}{e['name']}{C.RESET}  "
+              f"{C.BRAND}{e['code']}{C.RESET}")
         print(rule("="))
         print(f"  {C.DIM}{e['duration_minutes']} min · {e['question_count_min']}-"
               f"{e['question_count_max']} questions · ${e['price_usd']} · "
