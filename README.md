@@ -179,6 +179,18 @@ palette (crimson `#C5184B`, blue `#1D98D6`), their typefaces (Space Grotesk / In
 Plex Mono), their light and dark themes. Tokens sit at the top of `web/template.html`;
 change them there and rebuild.
 
+Four tabs:
+
+| Tab | Holds |
+|---|---|
+| **Console** | Readiness gauge, the four start-a-session cards, weakest concepts, mock exam history, coverage |
+| **Case studies** | The 10 scenarios, plus links to other people's practice exams |
+| **Cheat sheets** | The 13 condensed reference sections. Prints. |
+| **Cram sheet** | Every question with its answer and explanation, by topic area |
+
+The console is deliberately status-only — what to do next and what to fix. Content you
+browse rather than check lives on the other tabs.
+
 Keys: `A`–`D` answer · `←` `→` move · `F` flag · `Enter` check/next. In flashcards, Space
 to reveal, `Y`/`N` to grade.
 

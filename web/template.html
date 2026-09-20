@@ -852,6 +852,7 @@ function render() {
   if (view === "home") main.innerHTML = homeHTML();
   else if (view === "quiz") main.innerHTML = quizHTML();
   else if (view === "report") main.innerHTML = reportHTML();
+  else if (view === "cases") main.innerHTML = casesHTML();
   else if (view === "cards") main.innerHTML = cardsHTML();
   else if (view === "cheat") main.innerHTML = cheatHTML();
   else if (view === "cram") main.innerHTML = cramHTML();
@@ -860,7 +861,8 @@ function render() {
 }
 
 function renderTabs() {
-  const tabs = [["home", "Console"], ["cheat", "Cheat sheets"], ["cram", "Cram sheet"]];
+  const tabs = [["home", "Console"], ["cases", "Case studies"],
+                ["cheat", "Cheat sheets"], ["cram", "Cram sheet"]];
   document.getElementById("tabs").innerHTML = tabs.map(([k, label]) =>
     `<button class="tab" data-tab="${k}" aria-current="${view === k}">${label}</button>`).join("");
 }
@@ -1011,18 +1013,6 @@ function homeHTML() {
     </div>`;
   })()}
 
-  <div class="panel history">
-    <div class="panel-hd"><span class="eyebrow">Case studies</span>
-      <span class="mono" style="margin-left:auto;font-size:11px;color:var(--muted)">${DATA.cases.length} scenarios · ${DATA.cases.reduce((n, c) => n + c.questions.length, 0)} linked questions</span></div>
-    <ul class="caselist">${DATA.cases.map(c => {
-      const done = c.questions.filter(id => progress.q[id]?.seen).length;
-      return `<li><button data-case="${esc(c.id)}">
-        <span class="t"><b>${esc(c.title)}</b>
-          <span class="mono" style="font-size:10.5px;color:var(--muted)">${esc(c.id)} · ${c.questions.length} questions${done ? ` · ${done} seen` : ""}</span></span>
-        <span class="sc">${esc(c.scenario.slice(0, 160))}…</span>
-      </button></li>`;
-    }).join("")}</ul>
-  </div>
 
   ${exams.length ? `<div class="panel history">
     <div class="panel-hd"><span class="eyebrow">Mock exam history</span>
@@ -1042,22 +1032,6 @@ function homeHTML() {
     </div>
   </div>` : ""}
 
-  <div class="panel history">
-    <div class="panel-hd"><span class="eyebrow">Practice elsewhere</span>
-      <span class="mono" style="margin-left:auto;font-size:11px;color:var(--muted)">opens in a new tab</span></div>
-    <p class="lk-note">A second opinion is worth having — different authors probe different
-      corners of the blueprint. These are other people's practice exams, linked rather than
-      copied: every question in this simulator is original. Sites advertising
-      <em>actual</em> or <em>real</em> exam questions are deliberately absent; that content is
-      reconstructed from live exams, breaches the candidate agreement, and is frequently wrong.</p>
-    <ul class="links" style="margin-top:10px">
-      ${ELSEWHERE.map(l => `<li><a class="row" href="${esc(l.url)}" target="_blank" rel="noopener">
-        <span class="lk-nm">${esc(l.name)} <span style="color:var(--muted);font-weight:400">↗</span></span>
-        <span class="lk-sub">${esc(l.sub)}</span>
-        <span class="lk-tag">${esc(l.tag)}</span>
-      </a></li>`).join("")}
-    </ul>
-  </div>
 
   <div class="panel history">
     <div class="panel-hd"><span class="eyebrow">Coverage</span></div>
@@ -1301,6 +1275,55 @@ function cardsHTML() {
     </div>
   </div>
   <div class="foot" style="margin-top:14px">Space or Enter to reveal · Y / N to grade</div>`;
+}
+
+function casesHTML() {
+  const total = DATA.cases.reduce((n, c) => n + c.questions.length, 0);
+  const done = DATA.cases.filter(c => c.questions.every(id => progress.q[id]?.seen)).length;
+  return `<div class="panel">
+    <div class="hero" style="padding:22px 24px 20px">
+      <span class="eyebrow">Scenario practice</span>
+      <h1 style="font-size:clamp(23px,2.9vw,31px);margin-top:9px;max-width:25ch">One situation, several linked questions.</h1>
+      <p style="margin-top:11px">Closer to the exam's scenario-heavy style than standalone items:
+      each case asks whether you can hold a situation in mind across four questions that span
+      different topic areas. The scenario stays on screen throughout.</p>
+    </div>
+    <div class="facts">
+      <div class="fact"><small>Scenarios</small><b>${DATA.cases.length}</b></div>
+      <div class="fact"><small>Questions</small><b>${total}</b></div>
+      <div class="fact"><small>Completed</small><b>${done}</b></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-hd"><span class="eyebrow">Choose a case</span>
+      <span class="mono" style="margin-left:auto;font-size:11px;color:var(--muted)">${DATA.cases.length} scenarios · ${DATA.cases.reduce((n, c) => n + c.questions.length, 0)} linked questions</span></div>
+    <ul class="caselist">${DATA.cases.map(c => {
+      const done = c.questions.filter(id => progress.q[id]?.seen).length;
+      return `<li><button data-case="${esc(c.id)}">
+        <span class="t"><b>${esc(c.title)}</b>
+          <span class="mono" style="font-size:10.5px;color:var(--muted)">${esc(c.id)} · ${c.questions.length} questions${done ? ` · ${done} seen` : ""}</span></span>
+        <span class="sc">${esc(c.scenario.slice(0, 160))}…</span>
+      </button></li>`;
+    }).join("")}</ul>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <div class="panel-hd"><span class="eyebrow">Practice elsewhere</span>
+      <span class="mono" style="margin-left:auto;font-size:11px;color:var(--muted)">opens in a new tab</span></div>
+    <p class="lk-note">A second opinion is worth having — different authors probe different
+      corners of the blueprint. These are other people's practice exams, linked rather than
+      copied: every question in this simulator is original. Sites advertising
+      <em>actual</em> or <em>real</em> exam questions are deliberately absent; that content is
+      reconstructed from live exams, breaches the candidate agreement, and is frequently wrong.</p>
+    <ul class="links" style="margin-top:10px">
+      ${ELSEWHERE.map(l => `<li><a class="row" href="${esc(l.url)}" target="_blank" rel="noopener">
+        <span class="lk-nm">${esc(l.name)} <span style="color:var(--muted);font-weight:400">↗</span></span>
+        <span class="lk-sub">${esc(l.sub)}</span>
+        <span class="lk-tag">${esc(l.tag)}</span>
+      </a></li>`).join("")}
+    </ul>
+  </div>`;
 }
 
 function cheatHTML() {
