@@ -552,6 +552,54 @@
         "redundancy"
       ],
       "ref": "https://docs.nvidia.com/nemo-framework/user-guide/latest/datacuration/index.html"
+    },
+    {
+      "id": "KD-025",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "When does a knowledge graph earn its construction cost over plain vector retrieval?",
+      "choices": [
+        "Whenever the corpus exceeds a million documents",
+        "When the questions depend on relationships between entities — ownership chains, dependencies, hierarchies — that no single passage states in full",
+        "When documents are short",
+        "When the embedding model is weak"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Vector search retrieves passages similar to the question, which fails when the answer exists only in the connections between facts held in different documents. A graph makes those relations explicit and traversable. Corpus size alone does not justify the extraction and maintenance cost.",
+      "tags": [
+        "knowledge-graph",
+        "relational-reasoning",
+        "multi-hop",
+        "when-to-use"
+      ],
+      "ref": "https://arxiv.org/abs/2404.16130"
+    },
+    {
+      "id": "KD-026",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO are real costs of putting a knowledge graph in front of an agent?",
+      "choices": [
+        "Entity and relation extraction is itself error-prone, and extraction mistakes become confidently wrong graph edges",
+        "The graph must be kept in sync as source documents change, or traversals return relationships that no longer hold",
+        "Graphs cannot be queried programmatically",
+        "Graph traversal cannot be combined with vector retrieval"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "A graph is a derived artefact, so it inherits every extraction error as a hard assertion and goes stale whenever its sources move. Both are maintenance burdens that vector indexes largely avoid. Graphs are queryable and hybrid graph-plus-vector retrieval is common, which is why those are not the costs.",
+      "tags": [
+        "knowledge-graph",
+        "extraction-error",
+        "freshness",
+        "maintenance",
+        "relational-reasoning"
+      ],
+      "ref": "https://arxiv.org/abs/2404.16130"
     }
   ]
 }

@@ -717,6 +717,7 @@
         "cross-encoder",
         "document-grading",
         "exact-match",
+        "extraction-error",
         "graphrag",
         "hierarchical-retrieval",
         "hybrid-search",
@@ -729,6 +730,7 @@
         "rag-pipeline",
         "ranking",
         "raptor",
+        "relational-reasoning",
         "reranking",
         "retrieval",
         "retrieval-debugging",
@@ -760,6 +762,7 @@
       "tags": [
         "data-governance",
         "freshness",
+        "maintenance",
         "metadata-filtering",
         "retrieval-vs-tuning",
         "supersession"
@@ -1190,10 +1193,14 @@
       "tags": [
         "alerting",
         "automated-proxies",
+        "continuous-improvement",
+        "data-flywheel",
         "drift",
+        "feedback-loop",
         "frozen-stack",
         "leading-indicators",
         "maintenance",
+        "production",
         "re-evaluation",
         "regression-detection"
       ]
@@ -1262,17 +1269,24 @@
       "cheat": "oversight",
       "summary": "Rubber-stamping, anchoring, and reviewer interfaces that restore real review.",
       "tags": [
+        "agent-ui",
         "anchoring",
         "automation-bias",
+        "calibrated-trust",
         "defaults",
         "design",
         "evidence",
         "evidence-presentation",
+        "interaction-design",
+        "interruption",
         "oversight-theater",
+        "perceived-latency",
         "review-fatigue",
         "review-quality",
         "reviewer-ux",
         "rubber-stamping",
+        "user-control",
+        "user-trust",
         "ux"
       ]
     },

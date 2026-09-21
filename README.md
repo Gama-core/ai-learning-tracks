@@ -14,7 +14,7 @@ what it reads from there.
 
 | | Questions | Topic areas | Shape |
 |---|---|---|---|
-| **`ncp-aai`** — NVIDIA-Certified Professional: Agentic AI LLMs | 317 | 10 | One proctored exam, published blueprint with weighted domains |
+| **`ncp-aai`** — NVIDIA-Certified Professional: Agentic AI LLMs | 323 | 10 | One proctored exam, published blueprint with weighted domains |
 | **`ibm-genai`** — IBM Generative AI Engineering (Coursera) | 197 | 10 | 16 self-paced courses, per-course quizzes plus a capstone |
 | **`applied-cv`** — Applied Computer Vision | 192 | 10 | **Not a certification.** A Gama Core learning track. |
 
@@ -88,8 +88,34 @@ Every practice set is apportioned to these weights, so effort lands where the ex
 | 9 | Safety, Ethics, and Compliance | 5% |
 | 10 | Human-AI Interaction and Oversight | 5% |
 
-NVIDIA's published figures sum to 98%; the simulator normalizes them. With 317 questions,
-four consecutive 65-question mocks draw almost no repeats.
+These weights reconcile two official NVIDIA sources that disagree. The certification page
+gives Deployment 13% and Run/Monitor 5% (summing to 98%); the official study guide PDF gives
+5% and 7% (summing to 92%). Taking the higher figure from each sums to **exactly 100%**, so
+each document appears to carry one typo. See `certs/ncp-aai/RESOURCES.md` §0.
+
+With 323 questions, four consecutive 65-question mocks draw almost no repeats.
+
+### How closely does this track the real exam?
+
+For NCP-AAI this is answerable, because NVIDIA publishes a
+[20-page study guide](https://dam-cdn.nvd.orangelogic.com/AssetLink/64tei188l3tt132l265u1ipjoexdl1p5.pdf)
+containing **54 numbered exam objectives**. The bank was checked against all 54:
+
+| | |
+|---|---|
+| Objectives with 4+ covering questions | **52 of 54** |
+| Gaps found and filled | 1.1 agent UI design, 1.7 knowledge graphs |
+| Format match | 60–70 multiple-choice, 120 min, no hands-on component (confirmed on the live page) |
+
+What remains **unverified**: question *phrasing* and difficulty calibration. NVIDIA publishes
+no sample questions, so the scenario style here is inferred from the exam being Professional
+level and from third-party descriptions. The objectives are matched; the house style is a
+best guess.
+
+Two things worth knowing. NVIDIA is rolling out performance-based hands-on lab components
+for *select* professional exams — NCP-AIO is already 30 MCQ plus 3 labs. NCP-AAI has not
+changed, but re-check the certification page before booking. And community sources cite a
+**70%** cut score against this repo's 75% target; the higher bar is deliberate margin.
 
 ### Applied Computer Vision: the topic areas
 
@@ -159,7 +185,7 @@ certs/<id>/
 .progress/<id>.json  Your progress, per certification. Gitignored.
 ```
 
-**Content at a glance:** 706 questions across three tracks · 317 verified source links ·
+**Content at a glance:** 712 questions across three tracks · 341 verified source links ·
 458 flashcards · 164 concepts.
 
 ---

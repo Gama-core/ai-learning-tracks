@@ -776,6 +776,79 @@
         "capability-rollout"
       ],
       "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "id": "AA-035",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "You are designing the interface for an agent that takes several seconds and multiple tool calls per request. Which design most improves perceived responsiveness and user trust?",
+      "choices": [
+        "Show a spinner until the final answer is ready",
+        "Stream the response and surface what the agent is currently doing — which tool it called, what it found — so the wait is legible rather than blank",
+        "Return a cached answer immediately and correct it later",
+        "Reduce the number of tools so requests finish faster"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A blank wait of several seconds reads as a hung system, and users abandon or retry. Streaming tokens plus visible step narration turns dead time into progress and simultaneously builds trust by showing the basis for the answer. Cutting capability to shorten the wait trades the wrong thing.",
+      "tags": [
+        "agent-ui",
+        "streaming",
+        "perceived-latency",
+        "user-trust",
+        "interaction-design"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/streaming/"
+    },
+    {
+      "id": "AA-036",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO interface affordances most reduce user frustration with an agent that sometimes misunderstands a request?",
+      "choices": [
+        "Let the user see and edit the agent's interpretation of the request before it acts",
+        "Allow the user to interrupt a run in progress and redirect it rather than waiting for a wrong answer",
+        "Hide intermediate steps so the interface stays clean",
+        "Automatically retry with a different phrasing when confidence is low"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Both give the user control at the moment misunderstanding becomes visible. Showing the interpretation catches the error before work is wasted, and interruption stops a run heading the wrong way. Hiding steps removes exactly the signal that would reveal the problem, and silent retries multiply cost without telling the user anything.",
+      "tags": [
+        "agent-ui",
+        "interruption",
+        "user-control",
+        "interaction-design",
+        "clarification"
+      ],
+      "ref": "https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/"
+    },
+    {
+      "id": "AA-037",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An agent UI shows only the final answer. Users trust it initially, then abandon the product after encountering a few confident errors. What design change addresses the root cause?",
+      "choices": [
+        "Improve model accuracy until errors stop",
+        "Surface the evidence and steps behind each answer, so users can calibrate when to rely on it rather than treating every answer as equally authoritative",
+        "Add a disclaimer that the agent may be wrong",
+        "Slow the response so it appears more considered"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Trust collapses when an interface presents uniform confidence and reality turns out to be uneven. Showing sources and reasoning lets users develop a calibrated sense of when the agent is reliable, which survives occasional errors. A blanket disclaimer conveys no per-answer information, and no achievable accuracy makes errors disappear.",
+      "tags": [
+        "agent-ui",
+        "calibrated-trust",
+        "transparency",
+        "evidence",
+        "interaction-design"
+      ],
+      "ref": "https://www.nist.gov/itl/ai-risk-management-framework"
     }
   ]
 }

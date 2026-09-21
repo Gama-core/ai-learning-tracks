@@ -464,6 +464,30 @@
         "incident-response"
       ],
       "ref": "https://docs.nvidia.com/nemo/agent-toolkit/latest/"
+    },
+    {
+      "id": "RM-021",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does NVIDIA's 'data flywheel' describe in a deployed AI system?",
+      "choices": [
+        "A hardware component that accelerates data loading",
+        "A loop in which production usage generates data that is curated and fed back into evaluation and tuning, so the system improves as it is used",
+        "A technique for caching embeddings",
+        "A scheduling policy for GPU jobs"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The flywheel is the compounding loop from deployment back into improvement: real traffic surfaces failures, those become evaluation and training data, the model improves, and better performance drives more usage. Building the capture and curation path deliberately is what turns usage into an asset rather than just logs.",
+      "tags": [
+        "data-flywheel",
+        "continuous-improvement",
+        "feedback-loop",
+        "production",
+        "nvidia"
+      ],
+      "ref": "https://www.nvidia.com/en-us/glossary/data-flywheel/"
     }
   ]
 }

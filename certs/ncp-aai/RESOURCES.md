@@ -8,6 +8,47 @@ know what you are *not* missing. Each entry is tagged with the blueprint domains
 
 ---
 
+## 0. The official exam study guide — read this first
+
+NVIDIA publishes a **20-page study guide PDF** for this exam. It is linked from the
+certification page and is the single most authoritative free resource:
+
+**<https://dam-cdn.nvd.orangelogic.com/AssetLink/64tei188l3tt132l265u1ipjoexdl1p5.pdf>**
+
+It contains what no third-party guide has:
+
+- the **54 numbered exam objectives**, four to eight per domain — far more specific than the
+  one-line domain descriptions on the web page
+- the job description and expected experience (2–3 years, where the web page says 1–2)
+- NVIDIA's own **recommended course and suggested readings per domain**, about 88 links
+
+> Two cautions. The guide's weights disagree with the certification page on two domains:
+> it gives Deployment and Scaling 5% and Run/Monitor/Maintain 7%, where the page gives 13%
+> and 5%. Taking the higher figure from each source sums to exactly 100%, so each document
+> appears to carry one typo — this repo uses the reconciled 13% and 7%. Also, NVIDIA's
+> suggested readings lean heavily on Medium and vendor blog posts; treat the primary
+> documentation below as the stronger source.
+
+### NVIDIA's own suggested readings not already listed elsewhere here
+
+| Resource | Domain |
+|---|---|
+| [Mastering LLM techniques: inference optimization](https://developer.nvidia.com/blog/mastering-llm-techniques-inference-optimization/) | Deployment |
+| [Scaling LLMs with Triton and TensorRT-LLM on Kubernetes](https://developer.nvidia.com/blog/scaling-llms-with-nvidia-triton-and-nvidia-tensorrt-llm-using-kubernetes/) | Deployment |
+| [TensorRT best practices](https://docs.nvidia.com/deeplearning/tensorrt/latest/performance/best-practices.html) · [perf analysis](https://nvidia.github.io/TensorRT-LLM/performance/perf-analysis.html) · [troubleshooting](https://nvidia.github.io/TensorRT-LLM/reference/troubleshooting.html) | Deployment |
+| [Triton dynamic batching](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/batcher.html) · [optimization](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/optimization.html) | Deployment |
+| [GPU telemetry with Kube-Prometheus](https://docs.nvidia.com/datacenter/cloud-native/gpu-telemetry/latest/kube-prometheus.html) | Run/Monitor |
+| [Monitoring ML models in production](https://developer.nvidia.com/blog/a-guide-to-monitoring-machine-learning-models-in-production) | Run/Monitor |
+| [Securing generative AI deployments with NIM and NeMo Guardrails](https://developer.nvidia.com/blog/securing-generative-ai-deployments-with-nvidia-nim-and-nvidia-nemo-guardrails/) | Safety |
+| [Building safer LLM apps with LangChain templates and NeMo Guardrails](https://developer.nvidia.com/blog/building-safer-llm-apps-with-langchain-templates-and-nvidia-nemo-guardrails/) | Safety |
+| [NeMo Curator docs](https://docs.nvidia.com/nemo/curator/latest/) — NVIDIA's guide links a best-practices page that now 404s; this is its current home | Knowledge |
+| [Agentic AI in the factory](https://docs.nvidia.com/ai-enterprise/planning-resource/ai-factory-white-paper/latest/agentic-ai-in-the-factory.html) | Architecture |
+| [Data flywheel glossary](https://www.nvidia.com/en-us/glossary/data-flywheel/) · [Multi-agent systems glossary](https://www.nvidia.com/en-us/glossary/multi-agent-systems/) | Run/Monitor, Architecture |
+| [Nsight Systems](https://developer.nvidia.com/nsight-systems) — profiling | Deployment |
+| [LangChain structured outputs](https://python.langchain.com/docs/concepts/structured_outputs/) · [tracing](https://python.langchain.com/docs/concepts/tracing/) | Development, Run/Monitor |
+| [Azure patterns: retry](https://learn.microsoft.com/en-us/azure/architecture/patterns/retry) · [circuit breaker](https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker) · [transient faults](https://learn.microsoft.com/en-us/azure/architecture/best-practices/transient-faults) | Development |
+| [FDA guidance on AI/ML software as a medical device](https://www.fda.gov/medical-devices/software-medical-device-samd/artificial-intelligence-and-machine-learning-software-medical-device) | Safety |
+
 ## 1. Official NVIDIA — free courses (DLI)
 
 Register free at learn.nvidia.com with an NVIDIA Developer account. Free courses issue a

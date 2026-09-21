@@ -12,7 +12,7 @@
     "delivery": "Online, remotely proctored (Certiverse)",
     "passing_score_note": "NVIDIA does not publish the cut score. Community reports cluster around 70-75%. This simulator defaults to 75% so you train with margin.",
     "source": "https://www.nvidia.com/en-us/learn/certification/agentic-ai-professional/",
-    "weights_note": "NVIDIA's published percentages sum to 98%. The simulator normalizes them to 100% when building an exam.",
+    "weights_note": "NVIDIA publishes these weights in two places that disagree. The certification page gives Deployment and Scaling 13% and Run, Monitor and Maintain 5% (summing to 98%); the official study guide PDF gives 5% and 7% (summing to 92%). Taking the higher figure from each source sums to exactly 100%, so each document appears to carry one typo. This blueprint uses the reconciled figures: Deployment 13%, Run/Monitor 7%.",
     "facts": [
       {
         "label": "Questions",
@@ -39,7 +39,7 @@
       "eyebrow": "NVIDIA-Certified Professional",
       "hero_title": "Train against the published blueprint, not a guess at it.",
       "hero_body": "Every mock exam here is apportioned across the ten official topic areas in their real proportions, so a weak 15% domain costs you what it would cost you on exam day. {N} questions, each with the reasoning and a primary source.",
-      "footer_note": "Topic weights are NVIDIA's published figures, which sum to 98%; sets are apportioned on the normalized shares. Target of 75% is this tool's own margin — NVIDIA does not publish a cut score.",
+      "footer_note": "Topic weights reconcile NVIDIA's two published sources, which disagree on two domains — taking the higher figure from each sums to exactly 100%. Target of 75% is this tool's own margin; NVIDIA does not publish a cut score, though community reports and prep sites cite 70%.",
       "exam_mode_sub": "Blueprint-weighted, no feedback until you submit. Flag and revisit like the real thing."
     },
     "target_pct": 75
@@ -98,7 +98,7 @@
     {
       "id": "run-monitor-maintain",
       "name": "Run, Monitor, and Maintain",
-      "weight": 5,
+      "weight": 7,
       "prefix": "RM",
       "scope": "Post-deployment operations. Tracing/observability (OpenTelemetry, spans over agent steps), token and cost telemetry, drift detection, incident response, canary and rollback, versioning prompts/tools/models, SLOs for agents, profiling."
     },
