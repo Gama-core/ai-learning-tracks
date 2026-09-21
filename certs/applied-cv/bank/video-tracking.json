@@ -1,0 +1,421 @@
+{
+  "domain": "video-tracking",
+  "questions": [
+    {
+      "id": "VD-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is running a per-frame detector on every frame of a 30 FPS stream often wasteful?",
+      "choices": [
+        "Detectors cannot process video",
+        "Consecutive frames are highly redundant; detecting on a subset and tracking between detections gives similar results at a fraction of the compute",
+        "Video frames are lower quality",
+        "Detectors require batching"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "At 30 FPS a scene barely changes between adjacent frames. Detect-and-track runs the expensive detector periodically and propagates identities cheaply in between, which is the standard architecture for real-time video analytics on constrained hardware.",
+      "tags": [
+        "temporal-redundancy",
+        "detect-and-track",
+        "compute-budget",
+        "streaming"
+      ],
+      "ref": "https://arxiv.org/abs/1602.00763"
+    },
+    {
+      "id": "VD-002",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does optical flow estimate?",
+      "choices": [
+        "The 3D motion of objects in world coordinates",
+        "The apparent per-pixel motion between two frames, as a 2D displacement field",
+        "The depth of each pixel",
+        "The camera's exposure"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Optical flow is apparent motion in the image plane, which conflates object motion, camera motion and even lighting change. Recovering true 3D motion needs additional geometry. The distinction matters because flow can be large where nothing physically moved.",
+      "tags": [
+        "optical-flow",
+        "apparent-motion",
+        "displacement-field",
+        "definitions"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d4/dee/tutorial_optical_flow.html"
+    },
+    {
+      "id": "VD-003",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What is the brightness constancy assumption in classical optical flow, and when does it break?",
+      "choices": [
+        "That the image is grayscale; it breaks for colour",
+        "That a physical point keeps the same intensity between frames; it breaks under lighting change, specular highlights and occlusion",
+        "That motion is always horizontal; it breaks for vertical motion",
+        "That frames are equally spaced; it breaks at variable frame rate"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Classical methods match pixels by assuming their brightness is preserved. Changing illumination, a moving specular highlight, or a point becoming occluded all violate it, producing confidently wrong flow. Learned flow models are more robust but inherit the limitation where the evidence genuinely disappears.",
+      "tags": [
+        "brightness-constancy",
+        "optical-flow",
+        "assumptions",
+        "occlusion"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d4/dee/tutorial_optical_flow.html"
+    },
+    {
+      "id": "VD-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the difference between sparse and dense optical flow?",
+      "choices": [
+        "Sparse is faster but less accurate at every pixel",
+        "Sparse tracks a selected set of feature points between frames; dense estimates a displacement for every pixel",
+        "Sparse works on grayscale only",
+        "Dense requires two cameras"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Lucas-Kanade tracks chosen keypoints and is cheap, which suits tracking a few objects or estimating camera motion. Farneback or learned dense flow produce a full field, needed for motion segmentation or frame interpolation, at much higher cost.",
+      "tags": [
+        "sparse-flow",
+        "dense-flow",
+        "lucas-kanade",
+        "cost"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d4/dee/tutorial_optical_flow.html"
+    },
+    {
+      "id": "VD-005",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In multi-object tracking, what does the association step do?",
+      "choices": [
+        "Classifies each detection",
+        "Decides which detection in the current frame corresponds to which existing track, so identities persist over time",
+        "Removes duplicate detections",
+        "Estimates the camera pose"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Detection answers what is present in this frame; association answers which of these is the same object as before. It is usually posed as a bipartite assignment between predicted track positions and new detections, solved by the Hungarian algorithm over a cost matrix.",
+      "tags": [
+        "association",
+        "mot",
+        "hungarian",
+        "identity"
+      ],
+      "ref": "https://arxiv.org/abs/1602.00763"
+    },
+    {
+      "id": "VD-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What role does a Kalman filter play in SORT-style tracking?",
+      "choices": [
+        "It detects objects",
+        "It predicts each track's next position from a motion model and fuses that prediction with the new measurement, smoothing noise and bridging brief gaps",
+        "It computes appearance features",
+        "It performs non-maximum suppression"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The filter maintains a state — position and velocity — and predicts forward, giving association a expected location to match against. Fusing prediction with measurement also smooths jitter and lets a track survive a frame or two of missed detection.",
+      "tags": [
+        "kalman-filter",
+        "motion-model",
+        "prediction",
+        "sort"
+      ],
+      "ref": "https://arxiv.org/abs/1602.00763"
+    },
+    {
+      "id": "VD-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Two people cross paths and their track IDs swap. What is this failure and what mitigates it?",
+      "choices": [
+        "A detection failure; retrain the detector",
+        "An identity switch; add appearance-based re-identification features so association uses visual similarity rather than position alone",
+        "A calibration error; recalibrate the camera",
+        "An NMS failure; raise the threshold"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "When two tracks occupy nearly the same position, a motion-only cost cannot separate them. DeepSORT-style methods add an appearance embedding so the association cost includes visual similarity, which survives the crossing. Identity switches are a standard MOT metric for exactly this reason.",
+      "tags": [
+        "identity-switch",
+        "re-identification",
+        "deepsort",
+        "appearance"
+      ],
+      "ref": "https://arxiv.org/abs/1703.07402"
+    },
+    {
+      "id": "VD-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does a re-identification embedding provide?",
+      "choices": [
+        "The object's class",
+        "A compact appearance descriptor such that views of the same individual are close together and different individuals far apart, even across cameras",
+        "The object's 3D position",
+        "The object's velocity"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Re-ID is trained so identity, not category, determines distance — two different people are far apart even though both are 'person'. That is what allows a track to be recovered after a long occlusion or matched across non-overlapping cameras.",
+      "tags": [
+        "re-identification",
+        "embedding",
+        "cross-camera",
+        "appearance"
+      ],
+      "ref": "https://arxiv.org/abs/1703.07402"
+    },
+    {
+      "id": "VD-009",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO metrics are standard for evaluating multi-object tracking?",
+      "choices": [
+        "MOTA, combining false positives, false negatives and identity switches into one score",
+        "IDF1, measuring how consistently the correct identity is assigned over a track's lifetime",
+        "mAP at IoU 0.5",
+        "Mean squared error of the bounding boxes"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "MOTA aggregates detection errors and identity switches; IDF1 focuses specifically on identity consistency, which MOTA under-weights. Reporting both is normal because a tracker can detect well while switching identities constantly. mAP evaluates per-frame detection and ignores identity entirely.",
+      "tags": [
+        "mota",
+        "idf1",
+        "tracking-metrics",
+        "evaluation"
+      ],
+      "ref": "https://arxiv.org/abs/1603.00831"
+    },
+    {
+      "id": "VD-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A tracker performs well on benchmark footage but poorly on your 5 FPS camera. Why?",
+      "choices": [
+        "The resolution is too low",
+        "Objects move much further between frames, so motion-model predictions and IoU-based association break down at that displacement",
+        "The colour space differs",
+        "The detector needs retraining"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Association costs built on IoU or a constant-velocity prediction assume small inter-frame displacement. At 5 FPS a walking person may not overlap their previous box at all. Widening the search, relying more on appearance, or raising the capture rate are the available fixes.",
+      "tags": [
+        "frame-rate",
+        "displacement",
+        "association-failure",
+        "deployment"
+      ],
+      "ref": "https://arxiv.org/abs/1602.00763"
+    },
+    {
+      "id": "VD-011",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why does action recognition need a temporal model rather than a per-frame classifier?",
+      "choices": [
+        "Single frames are too noisy",
+        "Many actions are defined by how appearance changes over time — sitting down and standing up look identical in a single frame",
+        "Per-frame classifiers are too slow",
+        "Frames lack colour information"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Appearance at one instant is often ambiguous about the action; the discriminating information is the direction of change. Temporal modelling — 3D convolution, two-stream networks with flow, or temporal attention — is what supplies it.",
+      "tags": [
+        "action-recognition",
+        "temporal-modelling",
+        "ambiguity",
+        "3d-convolution"
+      ],
+      "ref": "https://arxiv.org/abs/1705.07750"
+    },
+    {
+      "id": "VD-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does a two-stream network use as its second stream?",
+      "choices": [
+        "A second colour space",
+        "Stacked optical flow, so one stream models appearance and the other models motion explicitly",
+        "A depth map",
+        "Audio"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Feeding precomputed flow gives the network motion information directly rather than requiring it to learn temporal derivatives from raw frames. It was a strong early approach; the cost is computing flow, which is why later work moved toward 3D convolutions and temporal attention that learn motion implicitly.",
+      "tags": [
+        "two-stream",
+        "optical-flow",
+        "action-recognition",
+        "motion"
+      ],
+      "ref": "https://arxiv.org/abs/1406.2199"
+    },
+    {
+      "id": "VD-013",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO design choices matter most for a 24/7 multi-camera analytics pipeline?",
+      "choices": [
+        "Decoding on the GPU and batching frames across cameras, since video decode is often the real bottleneck",
+        "Dropping frames under load in a controlled way rather than letting queues grow unboundedly",
+        "Maximising model accuracy regardless of latency",
+        "Storing every frame indefinitely"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "At scale the constraint is throughput, and H.264 decode on CPU frequently costs more than inference. Hardware decode plus cross-camera batching addresses it. A deliberate shedding policy is what keeps latency bounded when demand exceeds capacity — unbounded queues turn overload into unbounded delay.",
+      "tags": [
+        "video-pipeline",
+        "hardware-decode",
+        "batching",
+        "backpressure"
+      ],
+      "ref": "https://developer.nvidia.com/deepstream-sdk"
+    },
+    {
+      "id": "VD-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is a tracking-by-detection pipeline?",
+      "choices": [
+        "Tracking without any detector",
+        "Running a detector each processed frame and linking detections across frames into tracks, rather than tracking appearance templates independently",
+        "Detecting only the first frame then tracking",
+        "Using optical flow alone"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Tracking-by-detection dominates modern MOT because detector quality has improved so much: it recovers naturally from drift and handles objects entering and leaving. Its weakness is dependence on detection quality — a missed detection creates a gap the association step must bridge.",
+      "tags": [
+        "tracking-by-detection",
+        "mot",
+        "architecture",
+        "drift"
+      ],
+      "ref": "https://arxiv.org/abs/1602.00763"
+    },
+    {
+      "id": "VD-015",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A counting application double-counts people who pause at the boundary line. What design fixes this?",
+      "choices": [
+        "Increase the detection threshold",
+        "Count on track identity crossing the line with direction and hysteresis, rather than counting detections present in a region",
+        "Reduce the frame rate",
+        "Use a larger model"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Counting per-frame presence means any jitter around the boundary re-triggers. Attaching the count to a persistent track identity, requiring a directional crossing, and adding a small hysteresis band makes the event fire once per person. It is a state-machine problem, not a model-accuracy problem.",
+      "tags": [
+        "line-crossing",
+        "counting",
+        "hysteresis",
+        "track-identity"
+      ],
+      "ref": "https://arxiv.org/abs/1703.07402"
+    },
+    {
+      "id": "VD-016",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why does a 3D convolution suit video where a 2D convolution does not?",
+      "choices": [
+        "It processes colour better",
+        "Its kernel extends across time as well as space, so it can learn motion patterns directly from stacked frames",
+        "It uses less memory",
+        "It requires fewer frames"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A 2D kernel sees one frame and can only describe appearance. Extending the kernel along the temporal axis lets a single operation respond to how a region changes, which is what distinguishes actions that look identical in any single frame.",
+      "tags": [
+        "3d-convolution",
+        "temporal-modelling",
+        "action-recognition",
+        "motion"
+      ],
+      "ref": "https://arxiv.org/abs/1705.07750"
+    },
+    {
+      "id": "VD-017",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An action recogniser trained on trimmed clips performs poorly on continuous untrimmed video. Why?",
+      "choices": [
+        "The resolution differs",
+        "Trimmed clips contain the action throughout, so the model never learned to locate it in time or to reject background segments",
+        "Untrimmed video is compressed differently",
+        "The frame rate is higher"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Classification on trimmed clips assumes the action is already isolated. Continuous footage requires temporal localisation — deciding when the action starts and ends, and recognising that most segments contain nothing of interest, which is a different task the training never posed.",
+      "tags": [
+        "temporal-modelling",
+        "action-recognition",
+        "ambiguity",
+        "localisation"
+      ],
+      "ref": "https://arxiv.org/abs/1705.07750"
+    },
+    {
+      "id": "VD-018",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A tracker reports MOTA of 0.78 and IDF1 of 0.41. What does the gap indicate?",
+      "choices": [
+        "The metrics disagree because one is computed wrongly",
+        "Detection is good but identities are unstable — many switches and fragmented tracks, which MOTA under-penalises and IDF1 exposes",
+        "The dataset is too small",
+        "The tracker is missing most objects"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "MOTA is dominated by detection errors and counts each identity switch once, so a tracker that detects well but reassigns identities constantly still scores respectably. IDF1 measures how consistently the right identity is held over a track's lifetime, which is exactly what has failed here.",
+      "tags": [
+        "mota",
+        "idf1",
+        "tracking-metrics",
+        "evaluation"
+      ],
+      "ref": "https://arxiv.org/abs/1609.01775"
+    }
+  ]
+}

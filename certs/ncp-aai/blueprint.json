@@ -39,7 +39,8 @@
       "eyebrow": "NVIDIA-Certified Professional",
       "hero_title": "Train against the published blueprint, not a guess at it.",
       "hero_body": "Every mock exam here is apportioned across the ten official topic areas in their real proportions, so a weak 15% domain costs you what it would cost you on exam day. {N} questions, each with the reasoning and a primary source.",
-      "footer_note": "Topic weights are NVIDIA's published figures, which sum to 98%; sets are apportioned on the normalized shares. Target of 75% is this tool's own margin — NVIDIA does not publish a cut score."
+      "footer_note": "Topic weights are NVIDIA's published figures, which sum to 98%; sets are apportioned on the normalized shares. Target of 75% is this tool's own margin — NVIDIA does not publish a cut score.",
+      "exam_mode_sub": "Blueprint-weighted, no feedback until you submit. Flag and revisit like the real thing."
     },
     "target_pct": 75
   },

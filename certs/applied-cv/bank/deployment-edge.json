@@ -1,0 +1,399 @@
+{
+  "domain": "deployment-edge",
+  "questions": [
+    {
+      "id": "DP-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is ONNX used for in a vision deployment?",
+      "choices": [
+        "Training models faster",
+        "An interchange format describing the model graph, so a model trained in one framework can be run by a different runtime or compiler",
+        "Compressing images",
+        "Annotating datasets"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "ONNX decouples where a model is trained from where it runs. Export once and the graph can be consumed by ONNX Runtime, TensorRT, OpenVINO or a mobile runtime, which is what makes a PyTorch model deployable on hardware PyTorch does not target well.",
+      "tags": [
+        "onnx",
+        "interchange",
+        "portability",
+        "deployment"
+      ],
+      "ref": "https://onnx.ai/"
+    },
+    {
+      "id": "DP-002",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "ONNX export succeeds but the exported model produces wrong results for some input sizes. What is the most likely cause?",
+      "choices": [
+        "The opset version is too new",
+        "Python control flow or shape arithmetic was traced with a fixed example, baking in constants instead of dynamic axes; declare dynamic axes and validate at several shapes",
+        "ONNX does not support convolution",
+        "The model is too large"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Tracing records the operations executed for one concrete input, so any branch or computed shape becomes a constant. Marking batch and spatial dimensions as dynamic, and testing the exported graph at multiple sizes against the original, catches this before it reaches production.",
+      "tags": [
+        "onnx-export",
+        "tracing",
+        "dynamic-axes",
+        "validation"
+      ],
+      "ref": "https://pytorch.org/docs/stable/onnx.html"
+    },
+    {
+      "id": "DP-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does TensorRT do with a model graph?",
+      "choices": [
+        "Retrains it on new data",
+        "Optimises it for a specific GPU — fusing layers, selecting kernels, choosing precision — and compiles a serialised engine",
+        "Converts it to ONNX",
+        "Compresses the weights losslessly"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "TensorRT profiles candidate kernel implementations on the target hardware and builds a plan tuned to it. The resulting engine is fast but tied to that GPU architecture, TensorRT version and precision — which is why engines are built as part of deployment rather than shipped as portable artefacts.",
+      "tags": [
+        "tensorrt",
+        "engine",
+        "kernel-selection",
+        "optimisation"
+      ],
+      "ref": "https://docs.nvidia.com/deeplearning/tensorrt/"
+    },
+    {
+      "id": "DP-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why must a TensorRT engine be rebuilt when moving to a different GPU model?",
+      "choices": [
+        "The weights change",
+        "The engine encodes hardware-specific kernel choices and tactics selected for the original architecture, so it is not portable across GPU generations",
+        "TensorRT licences are per-device",
+        "The ONNX file expires"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Optimisation is the point: the builder picks tactics measured on that device. Those choices may be invalid or simply slow elsewhere. Build on the deployment hardware, or on an identical model, and treat the engine as a build artefact rather than a shipped asset.",
+      "tags": [
+        "engine-portability",
+        "hardware-specific",
+        "tensorrt",
+        "build-process"
+      ],
+      "ref": "https://docs.nvidia.com/deeplearning/tensorrt/"
+    },
+    {
+      "id": "DP-005",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What does INT8 post-training quantisation require that FP16 conversion does not?",
+      "choices": [
+        "A different model architecture",
+        "A calibration pass over representative data to determine activation ranges, because integer quantisation needs a scale per tensor",
+        "More GPU memory",
+        "Retraining from scratch"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "FP16 keeps a floating exponent and needs no range estimation. INT8 maps a float range onto 256 levels, so the range must be measured — from a few hundred representative images. Calibrating on unrepresentative data produces clipping or wasted resolution and is a common cause of accuracy loss.",
+      "tags": [
+        "int8",
+        "calibration",
+        "quantisation",
+        "activation-range"
+      ],
+      "ref": "https://docs.nvidia.com/deeplearning/tensorrt/"
+    },
+    {
+      "id": "DP-006",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "After INT8 quantisation, classification accuracy holds but detection mAP drops sharply. Why is that plausible?",
+      "choices": [
+        "Detection models cannot be quantised",
+        "Box regression needs finer numerical precision than class scores, and quantisation error in coordinates directly degrades IoU, which mAP measures strictly",
+        "INT8 does not support convolution",
+        "The calibration set was too large"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A class decision survives small perturbations because only the argmax matters. Coordinates are consumed at full precision by the IoU computation, so a small numerical shift moves boxes and costs mAP at stricter thresholds. Keeping sensitive layers in higher precision — mixed-precision quantisation — is the usual remedy.",
+      "tags": [
+        "quantisation-sensitivity",
+        "detection",
+        "mixed-precision",
+        "mAP"
+      ],
+      "ref": "https://docs.nvidia.com/deeplearning/tensorrt/"
+    },
+    {
+      "id": "DP-007",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO reduce model size and latency without changing the architecture family?",
+      "choices": [
+        "Quantisation to lower precision",
+        "Pruning redundant channels or weights, followed by fine-tuning to recover accuracy",
+        "Increasing input resolution",
+        "Adding more augmentation"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Both shrink the deployed model from an existing trained one. Quantisation reduces the bits per value; structured pruning removes whole channels so the speedup is realisable on real hardware. Resolution and augmentation change cost and training but not the model's size.",
+      "tags": [
+        "quantisation",
+        "pruning",
+        "compression",
+        "latency"
+      ],
+      "ref": "https://docs.nvidia.com/deeplearning/tensorrt/"
+    },
+    {
+      "id": "DP-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is knowledge distillation in a deployment context?",
+      "choices": [
+        "Compressing the dataset",
+        "Training a small student model to match a large teacher's outputs, transferring much of its behaviour into a cheaper architecture",
+        "Removing layers at inference",
+        "Quantising the weights"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The teacher's soft output distribution carries more information than a hard label — it expresses which classes are plausible — and a student trained against it typically beats one trained on labels alone. It is architecture-agnostic and composes with quantisation and pruning.",
+      "tags": [
+        "distillation",
+        "student-teacher",
+        "soft-targets",
+        "compression"
+      ],
+      "ref": "https://arxiv.org/abs/1503.02531"
+    },
+    {
+      "id": "DP-009",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A model must process one frame at a time from a live camera. Why does increasing batch size not help?",
+      "choices": [
+        "Batching always helps",
+        "There is only one frame available at a time; batching would require waiting for more frames, adding latency to reduce per-frame cost — a trade a real-time path usually cannot make",
+        "Batch size does not affect GPUs",
+        "The model does not support batching"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Batching amortises fixed overhead across samples, raising throughput. To fill a batch from a single stream you must wait, so latency rises by the collection window. Batching pays when several cameras can be combined, or in offline processing — not for a single low-latency stream.",
+      "tags": [
+        "batching",
+        "latency-vs-throughput",
+        "real-time",
+        "streaming"
+      ],
+      "ref": "https://docs.nvidia.com/deeplearning/tensorrt/"
+    },
+    {
+      "id": "DP-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A model is accurate in a notebook and poor in the C++ production service, with identical weights. What should you check first?",
+      "choices": [
+        "The GPU driver",
+        "Preprocessing parity: resize interpolation, channel order, normalisation constants and letterbox padding must match training exactly",
+        "The batch size",
+        "The model file format"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The most common cause is preprocessing divergence, and BGR versus RGB is the classic. A different interpolation method, a missing normalisation, or a different padding convention all shift the input away from what the model was trained on. Comparing intermediate tensors between the two paths localises it quickly.",
+      "tags": [
+        "preprocessing-parity",
+        "train-serve-skew",
+        "bgr-rgb",
+        "debugging"
+      ],
+      "ref": "https://pytorch.org/vision/stable/transforms.html"
+    },
+    {
+      "id": "DP-011",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO steps genuinely reduce end-to-end latency in a camera-to-result pipeline?",
+      "choices": [
+        "Decode video on the GPU so frames never make a round trip through host memory",
+        "Run preprocessing on the GPU, keeping the frame on the device from decode through inference",
+        "Increase the model's input resolution",
+        "Add test-time augmentation"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "In real pipelines, memory transfers and CPU-side decode and resize often exceed inference itself. Keeping the frame resident on the device from decode to output removes those copies. Higher resolution and TTA both increase work, which is the opposite of the goal.",
+      "tags": [
+        "gpu-decode",
+        "zero-copy",
+        "pipeline-latency",
+        "memory-transfer"
+      ],
+      "ref": "https://developer.nvidia.com/deepstream-sdk"
+    },
+    {
+      "id": "DP-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the practical difference between latency and throughput for a vision service?",
+      "choices": [
+        "They are the same measured differently",
+        "Latency is the time for one frame to produce a result; throughput is frames processed per second in aggregate — batching raises throughput while raising latency",
+        "Latency applies to training, throughput to inference",
+        "Throughput is latency divided by batch size"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A system can have excellent throughput and unacceptable latency, which is exactly what heavy batching produces. Which one is the requirement determines the design: an interactive or safety-critical path is latency-bound, offline archive processing is throughput-bound.",
+      "tags": [
+        "latency",
+        "throughput",
+        "batching",
+        "requirements"
+      ],
+      "ref": "https://docs.nvidia.com/deeplearning/tensorrt/"
+    },
+    {
+      "id": "DP-013",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An edge device runs a model at 28 FPS in isolation but 9 FPS in the full application. What is the most likely explanation?",
+      "choices": [
+        "The model degraded",
+        "Other stages — decode, preprocessing, post-processing, NMS, drawing, encoding — contend for the same compute, so the model's isolated speed was never the system's speed",
+        "The device is overheating only",
+        "The camera is too slow"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Benchmarking a model alone measures one stage. NMS on CPU, colour conversion, annotation drawing and re-encoding all consume the same limited resources, and on edge devices thermal throttling compounds it. Profiling the whole pipeline is the only way to find the real bottleneck.",
+      "tags": [
+        "end-to-end-profiling",
+        "contention",
+        "edge",
+        "bottleneck"
+      ],
+      "ref": "https://developer.nvidia.com/deepstream-sdk"
+    },
+    {
+      "id": "DP-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What should be monitored for a deployed vision model beyond uptime and latency?",
+      "choices": [
+        "Only the error rate",
+        "Input distribution statistics and prediction distribution over time, since silent drift — a dirty lens, a moved camera, a seasonal change — degrades accuracy with no errors raised",
+        "The number of model parameters",
+        "The size of the container image"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A vision model fails quietly: it returns confident predictions on inputs it no longer understands. Tracking brightness, sharpness, detection counts and score distributions gives an early signal without needing labels. Sampling frames for periodic human review closes the loop.",
+      "tags": [
+        "monitoring",
+        "silent-drift",
+        "input-statistics",
+        "production"
+      ],
+      "ref": "https://arxiv.org/abs/1902.07208"
+    },
+    {
+      "id": "DP-015",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why should the exported model be validated against the original on a fixed set of inputs after every export or engine build?",
+      "choices": [
+        "To measure speed",
+        "Because export, quantisation and engine building can each silently change numerical behaviour; comparing outputs on fixed inputs catches a regression before it ships",
+        "To check the file size",
+        "Because the framework requires it"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Each conversion step is an opportunity for a silent change — a fused operation behaving differently, a dynamic axis lost, quantisation shifting a decision. A small fixed input set with stored reference outputs turns that risk into a build-time check, which is far cheaper than discovering it in the field.",
+      "tags": [
+        "export-validation",
+        "numerical-parity",
+        "regression",
+        "build-check"
+      ],
+      "ref": "https://pytorch.org/docs/stable/onnx.html"
+    },
+    {
+      "id": "DP-016",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Unstructured pruning removes 60% of weights but inference is no faster. Why?",
+      "choices": [
+        "The model was not retrained",
+        "Scattered zero weights still occupy dense tensors and standard kernels do no less work; structured pruning that removes whole channels or filters is what shrinks the actual computation",
+        "Pruning only reduces memory",
+        "The GPU does not support pruning"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Sparsity yields a speedup only if the hardware and kernels can exploit it. Removing individual weights leaves the tensor shapes unchanged, so dense matrix multiplication proceeds as before. Removing entire channels changes the shapes and therefore the work, which is why structured pruning is preferred for deployment.",
+      "tags": [
+        "pruning",
+        "structured-pruning",
+        "sparsity",
+        "compression"
+      ],
+      "ref": "https://arxiv.org/abs/1608.08710"
+    },
+    {
+      "id": "DP-017",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "You must fit an accurate model onto a constrained device. Which TWO combine well?",
+      "choices": [
+        "Distil the large model into a smaller architecture, then quantise the student",
+        "Prune structurally and fine-tune to recover the accuracy the pruning cost",
+        "Train the small model from scratch and skip the large one",
+        "Increase input resolution to compensate for the smaller model"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "These compress along different axes and compose: distillation transfers behaviour into a cheaper architecture, quantisation then reduces the bits, and structured pruning plus fine-tuning removes redundant capacity. Training small from scratch forgoes the teacher's guidance, and raising resolution increases the cost you are trying to reduce.",
+      "tags": [
+        "distillation",
+        "compression",
+        "pruning",
+        "quantisation"
+      ],
+      "ref": "https://arxiv.org/abs/1503.02531"
+    }
+  ]
+}

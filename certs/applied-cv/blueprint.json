@@ -1,0 +1,120 @@
+{
+  "exam": {
+    "name": "Applied Computer Vision",
+    "code": "ACV",
+    "level": "Gama Core learning track — not a vendor certification",
+    "target_pct": 80,
+    "duration_minutes": 90,
+    "question_count_min": 50,
+    "question_count_max": 60,
+    "price_usd": 0,
+    "language": "English",
+    "validity_years": 0,
+    "delivery": "Self-assessment · no vendor exam exists for this material",
+    "passing_score_note": "There is no external exam and therefore no cut score. The 80% target is this track's own bar for readiness.",
+    "source": "https://opencv.org/university/",
+    "weights_note": "No vendor publishes a computer vision blueprint, so these weights are Gama Core's editorial judgement of what an applied CV engineer actually spends time on. They are a claim, not a citation.",
+    "scope_note": "Vendor-neutral and framework-agnostic. Grounded in OpenCV, PyTorch/torchvision, Ultralytics and the primary papers rather than any one provider's course.",
+    "facts": [
+      {
+        "label": "Topic areas",
+        "value": "10"
+      },
+      {
+        "label": "Practice set",
+        "value": "50–60"
+      },
+      {
+        "label": "Target",
+        "value": "80%"
+      },
+      {
+        "label": "Credential",
+        "value": "None"
+      },
+      {
+        "label": "Cost",
+        "value": "Free"
+      }
+    ],
+    "ui": {
+      "eyebrow": "Gama Core · learning track",
+      "hero_title": "No vendor certifies this. That is why the track exists.",
+      "hero_body": "Every computer vision credential is either multimodal generative AI, a cloud platform exam where vision is a fifth of the content, or a course completion badge. This track covers the work itself: {N} questions across image fundamentals, detection, segmentation, video and edge deployment — each with the reasoning and a primary source.",
+      "footer_note": "This is a Gama Core learning track, not a certification. No vendor exam, credential or cut score exists for this material. Topic weights are our editorial judgement of where applied CV work concentrates, not a published blueprint.",
+      "exam_mode_sub": "Weighted across the ten topic areas, no feedback until you submit. No vendor exam exists — this is the self-check instead."
+    }
+  },
+  "domains": [
+    {
+      "id": "image-fundamentals",
+      "name": "Image Fundamentals and Processing",
+      "weight": 8,
+      "prefix": "IF",
+      "scope": "Image formation and sampling, colour spaces and when each matters, point operations and histograms, convolution and linear filtering, non-linear filters, morphology, geometric transforms and interpolation, and the arithmetic traps of 8-bit image data."
+    },
+    {
+      "id": "classical-cv",
+      "name": "Classical Vision and Geometry",
+      "weight": 8,
+      "prefix": "CV",
+      "scope": "Edges and contours, corner and blob detection, local descriptors and matching, RANSAC and homography, camera models, intrinsics and distortion, calibration, stereo and depth, and where classical methods still beat learned ones."
+    },
+    {
+      "id": "cnn-architectures",
+      "name": "Convolutional Architectures",
+      "weight": 12,
+      "prefix": "CN",
+      "scope": "Convolution mechanics, stride, padding and dilation, receptive fields, pooling and downsampling, batch normalisation, residual and dense connections, depthwise separable convolutions, backbone families and how to choose one, and transfer learning."
+    },
+    {
+      "id": "training-vision",
+      "name": "Training Vision Models",
+      "weight": 12,
+      "prefix": "TV",
+      "scope": "Data augmentation and what it simulates, loss functions for vision tasks, class imbalance and focal loss, regularisation, learning-rate schedules and warmup, mixed precision, overfitting diagnosis, and reproducibility."
+    },
+    {
+      "id": "detection",
+      "name": "Object Detection",
+      "weight": 14,
+      "prefix": "DE",
+      "scope": "One-stage versus two-stage detectors, anchors and anchor-free designs, the YOLO family, feature pyramids, IoU, non-maximum suppression, confidence thresholds, mean average precision and its pitfalls, and small-object and dense-scene failure modes."
+    },
+    {
+      "id": "segmentation",
+      "name": "Segmentation",
+      "weight": 11,
+      "prefix": "SG",
+      "scope": "Semantic, instance and panoptic segmentation, encoder-decoder and U-Net, skip connections, transposed convolution versus upsampling, Mask R-CNN and RoIAlign, promptable segmentation, Dice and IoU losses, and boundary quality."
+    },
+    {
+      "id": "vision-transformers",
+      "name": "Vision Transformers and Multimodal",
+      "weight": 10,
+      "prefix": "VT",
+      "scope": "Patch embedding and the class token, why ViTs need more data than CNNs, hierarchical and windowed attention, self-supervised pretraining, CLIP and contrastive image-text training, zero-shot and open-vocabulary recognition, and diffusion for image generation."
+    },
+    {
+      "id": "video-tracking",
+      "name": "Video and Tracking",
+      "weight": 8,
+      "prefix": "VD",
+      "scope": "Temporal redundancy, optical flow, frame sampling, action recognition, multi-object tracking, association and Kalman filtering, re-identification, identity switches, and streaming pipeline design."
+    },
+    {
+      "id": "data-evaluation",
+      "name": "Data and Evaluation",
+      "weight": 9,
+      "prefix": "EV",
+      "scope": "Annotation quality and guidelines, splitting without leakage, long-tailed distributions, precision-recall curves, choosing an operating threshold, confusion analysis, dataset bias and domain shift, and what a benchmark number does not tell you."
+    },
+    {
+      "id": "deployment-edge",
+      "name": "Deployment and Edge",
+      "weight": 8,
+      "prefix": "DP",
+      "scope": "ONNX export and graph pitfalls, TensorRT and engine building, quantisation and calibration, pruning and distillation, batching and latency versus throughput, camera capture and colour-order bugs, preprocessing parity between training and serving, and monitoring in the field."
+    }
+  ]
+}

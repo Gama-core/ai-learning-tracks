@@ -1,0 +1,375 @@
+{
+  "domain": "image-fundamentals",
+  "questions": [
+    {
+      "id": "IF-001",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "OpenCV's imread returns an array whose channels are ordered differently from most other libraries. What is the ordering and why does it matter?",
+      "choices": [
+        "RGB; it matters only for display",
+        "BGR; passing it directly to a model or library expecting RGB silently degrades accuracy because the colour channels are swapped",
+        "Grayscale always; colour must be requested explicitly",
+        "RGBA; the alpha channel must be stripped"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "OpenCV uses BGR for historical reasons while PIL, matplotlib, torchvision and nearly every trained model expect RGB. Nothing errors when you mix them — the image just looks and scores subtly wrong, which makes it one of the most common and longest-lived bugs in a vision pipeline.",
+      "tags": [
+        "bgr-rgb",
+        "opencv",
+        "channel-order",
+        "pipeline-bugs"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html"
+    },
+    {
+      "id": "IF-002",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why convert to HSV before thresholding for a coloured object under changing illumination?",
+      "choices": [
+        "HSV uses less memory",
+        "HSV separates hue from intensity, so a colour range stays valid as brightness changes, whereas in RGB all three channels shift together",
+        "HSV is required by OpenCV",
+        "HSV removes noise"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "In RGB, making an object brighter changes every channel, so a fixed threshold box stops matching. HSV isolates the chromatic content in hue and pushes illumination into value, so a hue range survives lighting change. That decoupling is the whole reason the conversion exists in colour segmentation work.",
+      "tags": [
+        "hsv",
+        "colour-spaces",
+        "thresholding",
+        "illumination"
+      ],
+      "ref": "https://docs.opencv.org/4.x/df/d9d/tutorial_py_colorspaces.html"
+    },
+    {
+      "id": "IF-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "You add two uint8 images and bright regions come out dark. What happened?",
+      "choices": [
+        "The images had different sizes",
+        "Integer overflow: values above 255 wrapped around. Use a saturating add or convert to a wider type first",
+        "The colour space was wrong",
+        "The images were not normalised"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Plain NumPy addition on uint8 wraps modulo 256, so 200 + 100 becomes 44. OpenCV's cv2.add saturates at 255 instead, which is almost always what you want. Mixing the two conventions in one pipeline produces exactly this class of bug.",
+      "tags": [
+        "uint8",
+        "overflow",
+        "saturation",
+        "arithmetic"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d0/d86/tutorial_py_image_arithmetics.html"
+    },
+    {
+      "id": "IF-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which filter removes salt-and-pepper noise best while keeping edges sharp?",
+      "choices": [
+        "Gaussian blur",
+        "Median filter",
+        "Box filter",
+        "Sobel filter"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Salt-and-pepper noise is extreme outlier pixels. A median takes the middle value of the neighbourhood, so isolated outliers are discarded entirely and edges survive because the median is not dragged by them. Averaging filters smear the outlier across the neighbourhood and blur the edge; Sobel computes derivatives rather than denoising.",
+      "tags": [
+        "median-filter",
+        "noise",
+        "edge-preserving",
+        "filtering"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d4/d13/tutorial_py_filtering.html"
+    },
+    {
+      "id": "IF-005",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO statements about Gaussian blur are correct?",
+      "choices": [
+        "Larger sigma removes more detail and more noise together",
+        "It is separable, so a 2D blur can be computed as two 1D passes, which is much cheaper for large kernels",
+        "It preserves edges better than a median filter",
+        "It is a non-linear operation"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Gaussian blur is a linear low-pass filter: sigma controls the cutoff, and because the 2D kernel is the outer product of two 1D kernels it decomposes into a horizontal and a vertical pass, turning O(k squared) into O(k) per pixel. It blurs edges along with noise, which is precisely what edge-preserving filters like the median or bilateral exist to avoid.",
+      "tags": [
+        "gaussian-blur",
+        "separability",
+        "linear-filter",
+        "complexity"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d4/d13/tutorial_py_filtering.html"
+    },
+    {
+      "id": "IF-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does morphological opening do?",
+      "choices": [
+        "Erosion followed by dilation, which removes small bright specks while leaving larger shapes roughly their original size",
+        "Dilation followed by erosion, which fills small holes",
+        "Thresholds the image at its mean",
+        "Computes the image gradient"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Opening erodes then dilates: the erosion deletes structures smaller than the kernel and the dilation restores what survived to roughly its original extent. Closing is the reverse pair and fills small dark gaps. Remembering which order does which is a standard exam distinction.",
+      "tags": [
+        "morphology",
+        "opening",
+        "closing",
+        "binary-images"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d9/d61/tutorial_py_morphological_ops.html"
+    },
+    {
+      "id": "IF-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You downscale images by 4x with nearest-neighbour interpolation and thin structures develop jagged, flickering artefacts. What is the cause and fix?",
+      "choices": [
+        "The images were compressed; use PNG",
+        "Aliasing: downsampling without low-pass filtering first folds high frequencies into the result. Use area interpolation, or blur before resizing",
+        "The colour space is wrong",
+        "The interpolation must be bilinear for upsampling only"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Nearest-neighbour simply samples every fourth pixel, so detail finer than the new sampling rate aliases into false patterns. Area interpolation averages the source block, which acts as the required low-pass step. The same reasoning is why cv2.INTER_AREA is recommended for shrinking and bilinear or cubic for enlarging.",
+      "tags": [
+        "aliasing",
+        "interpolation",
+        "downsampling",
+        "inter-area"
+      ],
+      "ref": "https://docs.opencv.org/4.x/da/d54/group__imgproc__transform.html"
+    },
+    {
+      "id": "IF-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does histogram equalisation do, and when is CLAHE preferable?",
+      "choices": [
+        "Spreads intensity values to use the full range; CLAHE applies it in tiles with contrast limiting, which avoids over-amplifying noise in locally flat regions",
+        "Removes colour; CLAHE keeps it",
+        "Sharpens edges; CLAHE blurs them",
+        "Normalises to zero mean; CLAHE normalises to unit variance"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Global equalisation redistributes intensities across the whole image, which can blow out noise wherever the local histogram is narrow. CLAHE equalises per tile and clips the histogram before redistributing, giving local contrast without amplifying flat-region noise. It is the standard choice for medical and low-light imagery.",
+      "tags": [
+        "histogram-equalisation",
+        "clahe",
+        "contrast",
+        "preprocessing"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d5/daf/tutorial_py_histogram_equalization.html"
+    },
+    {
+      "id": "IF-009",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An affine transform and a perspective (homography) transform differ in what way?",
+      "choices": [
+        "Affine has 6 degrees of freedom and preserves parallel lines; perspective has 8 and can map a rectangle to an arbitrary quadrilateral",
+        "Affine works only on grayscale",
+        "Perspective cannot rotate",
+        "Affine requires four point pairs, perspective three"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "An affine map keeps parallelism and needs three point correspondences to solve its six parameters. A homography has eight degrees of freedom, needs four correspondences, and introduces the foreshortening that lets you rectify a photographed document or map a ground plane.",
+      "tags": [
+        "affine",
+        "homography",
+        "geometric-transforms",
+        "degrees-of-freedom"
+      ],
+      "ref": "https://docs.opencv.org/4.x/da/d6e/tutorial_py_geometric_transformations.html"
+    },
+    {
+      "id": "IF-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why is it usually wrong to resize an image and then apply a fixed-pixel Gaussian kernel to match a training pipeline that blurred before resizing?",
+      "choices": [
+        "The kernel must be odd-sized",
+        "Blur radius is relative to image scale, so the same pixel kernel represents a different physical amount of smoothing at a different resolution",
+        "Gaussian kernels cannot be applied after resizing",
+        "Resizing already applies a blur"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A 5-pixel kernel on a 1024-wide image and on a 256-wide image smooth quite different amounts of real-world structure. If training blurred first, inference must blur first too, or scale the kernel accordingly. Preprocessing parity between training and serving is a recurring source of silent accuracy loss.",
+      "tags": [
+        "preprocessing-parity",
+        "scale",
+        "gaussian-blur",
+        "train-serve-skew"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d4/d13/tutorial_py_filtering.html"
+    },
+    {
+      "id": "IF-011",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does Otsu's method compute?",
+      "choices": [
+        "An optimal edge map",
+        "A global threshold chosen to maximise between-class variance of the intensity histogram, assuming a bimodal distribution",
+        "The mean intensity",
+        "A per-pixel adaptive threshold"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Otsu searches all thresholds for the one that best separates the histogram into two classes by variance. It works well when foreground and background form two clear modes and poorly under uneven illumination, which is where adaptive thresholding over local windows takes over.",
+      "tags": [
+        "otsu",
+        "thresholding",
+        "histogram",
+        "bimodal"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html"
+    },
+    {
+      "id": "IF-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is a model trained on images normalised with ImageNet mean and standard deviation likely to underperform if you feed it raw 0-255 arrays?",
+      "choices": [
+        "The model expects a different file format",
+        "The network's learned weights assume inputs roughly zero-centred with unit scale; unnormalised inputs are two orders of magnitude larger and push activations far outside the trained range",
+        "The image size is wrong",
+        "Normalisation only matters during training"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Normalisation is part of the model's input contract, not an optional nicety. Feeding values around 0-255 into a network trained on values around -2 to 2 saturates activations and produces meaningless output. It is the single most common transfer-learning mistake.",
+      "tags": [
+        "normalisation",
+        "imagenet-stats",
+        "input-contract",
+        "transfer-learning"
+      ],
+      "ref": "https://pytorch.org/vision/stable/models.html"
+    },
+    {
+      "id": "IF-013",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "An image arrives rotated in a viewer but appears upright when loaded in code. Which TWO explain this?",
+      "choices": [
+        "The file carries an EXIF orientation tag that the viewer honours and the loader ignores",
+        "Some loaders apply EXIF rotation automatically and others return raw pixel order, so behaviour differs by library",
+        "The image is corrupted",
+        "The colour space is YUV"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Cameras often store sensor-order pixels plus an EXIF orientation flag. PIL can apply it, cv2.imread does not, so the same file can differ between libraries and between your training and serving paths. Normalising orientation explicitly at ingestion avoids a whole class of silent data inconsistency.",
+      "tags": [
+        "exif",
+        "orientation",
+        "loader-differences",
+        "ingestion"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html"
+    },
+    {
+      "id": "IF-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "When converting colour to grayscale, why is a weighted sum used rather than a plain average of R, G and B?",
+      "choices": [
+        "To save computation",
+        "Because human luminance perception weights green most and blue least, so a weighted sum preserves perceived brightness relationships",
+        "Because averaging overflows uint8",
+        "Because OpenCV requires it"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The standard luma coefficients, roughly 0.299 R, 0.587 G and 0.114 B, reflect the eye's sensitivity. A flat average makes blues look too bright and greens too dark relative to how they appear, which distorts contrast in any downstream thresholding or feature detection.",
+      "tags": [
+        "grayscale",
+        "luminance",
+        "colour-weights",
+        "perception"
+      ],
+      "ref": "https://docs.opencv.org/4.x/de/d25/imgproc_color_conversions.html"
+    },
+    {
+      "id": "IF-015",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A pipeline resizes to 224x224 by squashing the aspect ratio. Detection accuracy on tall objects is poor. What is the principled fix?",
+      "choices": [
+        "Increase the input size to 512x512 with the same squash",
+        "Preserve aspect ratio by letterboxing — resize the long side and pad the short one — so object shapes are not distorted relative to training",
+        "Convert to grayscale first",
+        "Use nearest-neighbour interpolation"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Non-uniform scaling changes every object's aspect ratio, so a model that learned what a person or a bottle looks like now sees a stretched version. Letterboxing keeps geometry intact and pads the remainder, which is why detection frameworks default to it. Padding must be accounted for when mapping predictions back to original coordinates.",
+      "tags": [
+        "aspect-ratio",
+        "letterbox",
+        "resize",
+        "geometry"
+      ],
+      "ref": "https://docs.ultralytics.com/modes/predict/"
+    },
+    {
+      "id": "IF-016",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A document photographed under a desk lamp is bright on one side and dark on the other. Global Otsu thresholding fails. What works?",
+      "choices": [
+        "Increase the image resolution",
+        "Adaptive thresholding, which computes a threshold per local window so each region is judged against its own neighbourhood",
+        "Convert to HSV first",
+        "Apply a median filter"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Otsu picks one value for the whole image, which cannot be right for both the lit and shadowed halves. Adaptive thresholding computes a local threshold from each pixel's surroundings, so uneven illumination stops mattering. It is the standard choice for document and whiteboard capture.",
+      "tags": [
+        "adaptive-threshold",
+        "thresholding",
+        "illumination",
+        "otsu"
+      ],
+      "ref": "https://docs.opencv.org/4.x/d7/d4d/tutorial_py_thresholding.html"
+    }
+  ]
+}

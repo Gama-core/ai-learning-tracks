@@ -1,0 +1,328 @@
+# Applied Computer Vision cheat sheets
+
+Condensed reference for the NVIDIA-Certified Professional: Agentic AI LLMs exam.
+Generated from `cheatsheet.json` by `build_md.py` — edit the JSON, not this file.
+Also available in the web simulator under **Cheat sheets**, and in the terminal via
+`./sim.py cheat`.
+
+## Contents
+
+1. [The traps that cost the most](#the-traps-that-cost-the-most) — *Every one of these has silently broken a production pipeline*
+2. [Image fundamentals](#image-fundamentals) — *8% of the track*
+3. [Classical vision and geometry](#classical-vision-and-geometry) — *8% · still the right tool in controlled settings*
+4. [Convolutional architectures](#convolutional-architectures) — *12%*
+5. [Training vision models](#training-vision-models) — *12%*
+6. [Object detection](#object-detection) — *14% · the heaviest topic*
+7. [Segmentation](#segmentation) — *11%*
+8. [Vision transformers and multimodal](#vision-transformers-and-multimodal) — *10%*
+9. [Video and tracking](#video-and-tracking) — *8%*
+10. [Data and evaluation](#data-and-evaluation) — *9%*
+11. [Deployment and edge](#deployment-and-edge) — *8%*
+12. [Acronyms](#acronyms) — *Blank on one of these and you lose the question*
+
+---
+
+## The traps that cost the most
+
+*Every one of these has silently broken a production pipeline*
+
+| Trap | What happens |
+|---|---|
+| BGR vs RGB | OpenCV loads BGR; models expect RGB. Nothing errors — accuracy just drops. |
+| uint8 overflow | 200 + 100 = 44 in NumPy. cv2.add saturates at 255; plain + wraps. |
+| Aspect-ratio squash | Stretching to a square distorts every object. Letterbox instead. |
+| Forgetting the pad offset | Undo scale AND padding when mapping boxes back, or all boxes shift. |
+| Normalisation mismatch | Feeding 0-255 to a model trained on ImageNet-normalised input saturates it. |
+| EXIF orientation | PIL may rotate, cv2 does not. Same file, different pixels, different library. |
+| Mask interpolation | Bilinear on a label mask invents class 1.5. Always nearest-neighbour. |
+| Random split on video frames | Adjacent frames are near-duplicates. Group by video, patient or site. |
+| Preprocessing drift | Training and serving must resize, pad and normalise identically. |
+
+> When a model is accurate in the notebook and poor in production with identical weights, it is almost always preprocessing parity. Compare intermediate tensors between the two paths before suspecting anything else.
+
+---
+
+## Image fundamentals
+
+*8% of the track*
+
+| Operation | Use for |
+|---|---|
+| HSV conversion | Colour thresholding under changing light — hue survives brightness change |
+| Median filter | Salt-and-pepper noise; keeps edges sharp |
+| Gaussian blur | General smoothing; separable, so two 1D passes; blurs edges too |
+| Bilateral filter | Smoothing that preserves edges, at higher cost |
+| Opening (erode then dilate) | Remove small bright specks, keep larger shapes |
+| Closing (dilate then erode) | Fill small dark holes and gaps |
+| CLAHE | Local contrast without amplifying noise in flat regions |
+| Otsu threshold | Automatic global threshold when the histogram is bimodal |
+| Adaptive threshold | Uneven illumination, where a single global value fails |
+
+| Resize direction | Interpolation |
+|---|---|
+| Shrinking | INTER_AREA — averages the source block, avoids aliasing |
+| Enlarging | INTER_LINEAR or INTER_CUBIC |
+| Label masks | INTER_NEAREST — never blend class indices |
+
+- Affine: 6 DOF, 3 point pairs, preserves parallel lines. Homography: 8 DOF, 4 point pairs, maps a rectangle to any quadrilateral.
+- Grayscale uses weighted luma (~0.299R + 0.587G + 0.114B), not a flat average, because the eye weights green most.
+- Blur radius is relative to image scale. The same pixel kernel means different smoothing at different resolutions.
+
+---
+
+## Classical vision and geometry
+
+*8% · still the right tool in controlled settings*
+
+| Concept | Detail |
+|---|---|
+| Canny two thresholds | Hysteresis: high starts an edge, low extends it along connected pixels |
+| NMS in Canny | Thins gradient ridges to one pixel. Different from NMS in detection. |
+| Aperture problem | An edge is ambiguous along its own direction; a corner pins both axes |
+| RANSAC | Fits from random minimal subsets, keeps the model with most inliers. Survives gross outliers. |
+| Intrinsics | Focal length, principal point, skew: camera to pixel mapping |
+| Extrinsics | Where the camera sits in the world |
+| Radial distortion | Straight lines bow near edges. Calibrate and undistort before measuring. |
+| Rectification | Aligns epipolar lines with rows, turning 2D stereo search into 1D |
+| Disparity | Depth = focal length x baseline / disparity. Far points have tiny disparity. |
+| Hough transform | Edge pixels vote in parameter space; robust to gaps and occlusion |
+
+> A homography is only valid for a planar scene or a purely rotating camera. Two viewpoints of a 3D scene produce parallax that no homography can explain — low inlier counts are the symptom.
+
+---
+
+## Convolutional architectures
+
+*12%*
+
+| Component | What it does |
+|---|---|
+| Weight sharing | One kernel slides everywhere: few parameters, translation equivariance |
+| Receptive field | Input region that can influence a unit; compounds with depth |
+| Two 3x3 vs one 5x5 | Same receptive field, fewer parameters, extra non-linearity |
+| Stride 2 | Downsample while convolving instead of pooling |
+| Dilated convolution | Wider receptive field at no parameter cost, no resolution loss |
+| 1x1 convolution | Mixes channels at each position; cheap depth change |
+| Depthwise separable | Per-channel spatial filter + 1x1 mixing. MobileNet's efficiency. |
+| Residual connection | Direct gradient path; makes very deep stacks trainable |
+| BatchNorm | Batch stats in training, running stats at inference. eval() matters. |
+| GroupNorm | Normalises within an example; use when batches are tiny |
+| Global average pooling | Replaces the flatten+dense head; tolerates variable input size |
+| Feature pyramid (FPN) | Top-down path gives every scale both semantics and resolution |
+
+- Early layers learn generic edges and textures; later layers become task-specific. That is why transfer learning works and why you unfreeze from the top.
+- CNNs are translation-equivariant by construction, but not rotation-invariant — that must come from augmentation or the data.
+- EfficientNet: scale depth, width and resolution together, not one axis alone.
+- ReLU is the default because it does not saturate for positive inputs, so gradients survive depth.
+
+---
+
+## Training vision models
+
+*12%*
+
+- An augmentation should simulate a variation you will actually meet. Vertical flip is wrong for street scenes (gravity fixes orientation) and fine for satellite imagery (no canonical up).
+- Detection augmentation must transform the boxes too, and handle boxes cropped away or made degenerate.
+- Mixup suits classification, where labels are class distributions. Detection uses mosaic instead — it composes spatially rather than blending.
+- Augment the training set only. Validation is a measurement instrument and must stay fixed.
+- Warmup ramps the learning rate up so early noisy gradients cannot destabilise training.
+- Mixed precision needs a loss scaler: small FP16 gradients would otherwise underflow to zero.
+- Gradient clipping caps the norm so one pathological batch cannot destroy the run.
+- Larger batch = less gradient noise, fewer steps per epoch. Scale the learning rate with it.
+- Sawtooth GPU utilisation means the data pipeline is starving the GPU, not that the model is slow.
+
+| Symptom | Diagnosis |
+|---|---|
+| Train loss falls, validation rises | Overfitting. Stop at the validation minimum; add data, augmentation or regularisation. |
+| Both plateau high from the start | Underfitting or a pipeline bug. Check labels, normalisation, learning rate before capacity. |
+| 99% train / 55% val on a tiny set | Expected memorisation — but also check for leakage across the split. |
+| Background swamps the loss | Focal loss down-weights easy negatives so hard cases drive learning. |
+
+---
+
+## Object detection
+
+*14% · the heaviest topic*
+
+| Concept | Detail |
+|---|---|
+| Two-stage | Propose regions, then classify and refine (Faster R-CNN) |
+| One-stage | Predict boxes and classes densely in one pass (YOLO, RetinaNet) |
+| Anchor | Preset box prior; the network predicts an offset from it |
+| Anchor-free | Regress boundary distances or a centre heatmap; no anchor tuning (FCOS, CenterNet) |
+| Objectness | Is anything here, separate from which class. Final score often multiplies the two. |
+| IoU | Intersection / union. Used in anchor assignment, NMS and evaluation — different thresholds, different meanings. |
+| NMS | Keep the top-scoring box, suppress overlaps above a threshold |
+| Soft-NMS | Decay overlapping scores instead of deleting — for crowded scenes |
+| mAP | Area under precision-recall per class, averaged. COCO also averages IoU 0.5:0.95. |
+| IoU loss | Optimises the overlap evaluation measures; scale-invariant, unlike L1 on coordinates |
+| DETR | Set prediction with bipartite matching. No anchors, no NMS. |
+| Mosaic | Tiles four images: many scales and contexts per sample |
+
+> COCO mAP (IoU 0.5:0.95) is systematically lower than VOC mAP (IoU 0.5). Never compare the two numbers directly. And mAP averages over all thresholds, so it says nothing about the one operating point you will actually deploy at.
+
+| Failure | Likely cause |
+|---|---|
+| Small objects missed | Resolution too low, or no shallow pyramid level assigned to small scales |
+| High precision, low recall | Confidence threshold too high, or anchor priors do not match object shapes |
+| Crowded objects deleted | NMS IoU threshold too aggressive — try Soft-NMS |
+| Boxes consistently offset | Letterbox padding not undone when mapping back to original coordinates |
+| Good on val, poor on a new camera | Domain shift: new viewpoint, scale distribution and lighting |
+
+---
+
+## Segmentation
+
+*11%*
+
+| Type | What it produces |
+|---|---|
+| Semantic | Class per pixel. Cannot separate two touching cars, so cannot count. |
+| Instance | Separate mask per object; traditionally ignores amorphous 'stuff' |
+| Panoptic | Every pixel gets a class, and countable things also get an instance id |
+
+| Concept | Detail |
+|---|---|
+| Encoder-decoder | Downsample for semantics, upsample to recover per-pixel resolution |
+| U-Net skip connections | Carry high-resolution detail to the decoder; recover sharp boundaries |
+| Checkerboard artefacts | Transposed conv with stride not dividing kernel size. Use resize-then-convolve. |
+| Dice loss | Region overlap; stays sensitive when foreground is tiny. Often summed with cross-entropy. |
+| mIoU | Per-class IoU averaged over classes — refuses to let big classes hide failures |
+| Mask R-CNN | Faster R-CNN plus a per-region mask branch |
+| RoIAlign | Bilinear sampling instead of quantised pooling; sub-pixel alignment for masks |
+| ASPP | Parallel dilated convolutions at several rates for multi-scale context |
+| SAM | Promptable, class-agnostic masks from a point, box or rough mask |
+
+> Dice = 2·IoU/(1+IoU). They rank models identically but report different numbers — 0.8 Dice is about 0.67 IoU. Check which a paper used before comparing.
+
+- 97% pixel accuracy with 0.41 mIoU means a few large classes dominate the pixel count. Read the per-class table.
+- For images too large to fit in memory: tile with overlap, segment, blend the overlaps to avoid seams.
+- Binary threshold is rarely optimal at 0.5 under class imbalance. Sweep it on validation.
+
+---
+
+## Vision transformers and multimodal
+
+*10%*
+
+| Concept | Detail |
+|---|---|
+| Patch embedding | 224x224 at 16x16 patches = 196 tokens, not 50,176 pixels |
+| Positional embedding | Attention is permutation-invariant; patches need position restored |
+| Class token | Prepended learnable token whose output represents the whole image |
+| Inductive bias | CNNs get locality and translation equivariance free; ViTs must learn them from data |
+| Swin | Windowed attention, shifted between layers: linear cost plus a hierarchy |
+| CLIP | Contrastive image-text training in a shared embedding space |
+| Zero-shot | Embed class names as text, match the image against them. New class = a string. |
+| Open-vocabulary detection | Categories specified by text at inference, not fixed at training |
+| DINO / MAE | Self-supervised pretraining: strong features from unlabelled images |
+| Latent diffusion | Denoise in a compressed latent space, not at pixel resolution |
+| Classifier-free guidance | Dial between prompt adherence and diversity |
+
+> Attention cost scales with the square of token count, and token count scales with the square of resolution — so resolution enters at the fourth power. That single fact explains windowed, hierarchical and linear-attention designs.
+
+- Fine-tuning a ViT at a new resolution requires interpolating the positional embeddings to the new patch grid.
+- With a few thousand images, fine-tune or freeze a pretrained backbone. Never train a ViT from scratch at that scale.
+- Attention maps show where the model looked, not what caused the prediction. Suggestive, not causal.
+
+---
+
+## Video and tracking
+
+*8%*
+
+| Concept | Detail |
+|---|---|
+| Detect-and-track | Detect periodically, propagate cheaply between. Frames are highly redundant. |
+| Optical flow | Apparent per-pixel motion — conflates object motion, camera motion and lighting |
+| Brightness constancy | Breaks under lighting change, specular highlights and occlusion |
+| Sparse vs dense flow | Lucas-Kanade tracks keypoints; Farneback/learned give a full field |
+| Association | Which detection is which existing track. Hungarian matching over a cost matrix. |
+| Kalman filter | Predicts next position, fuses with measurement, bridges brief gaps |
+| Identity switch | Two tracks swap IDs when paths cross. Add appearance re-ID to fix. |
+| Re-ID embedding | Identity, not category, determines distance. Survives occlusion and camera changes. |
+| MOTA / IDF1 | MOTA folds detection errors and switches together; IDF1 isolates identity consistency |
+
+- A tracker tuned at 30 FPS can fail at 5 FPS: objects move too far for IoU-based association or constant-velocity prediction.
+- Actions are defined by change over time — sitting down and standing up look identical in one frame.
+- Count on track identity crossing a line with direction and hysteresis, not on per-frame presence in a region.
+- In multi-camera pipelines, H.264 decode on CPU often costs more than inference. Decode on the GPU and batch across cameras.
+
+---
+
+## Data and evaluation
+
+*9%*
+
+- Inter-annotator agreement is a ceiling on measured performance. Where humans disagree, the ground truth is noise.
+- Annotation guidelines must state the occlusion rule and how to treat depictions — posters, screens, reflections.
+- Group splits by video, patient, site or session. Random splits leak near-duplicates.
+- ROC flatters imbalanced problems: FPR divides by a huge negative count. Use precision-recall.
+- Aggregate accuracy hides regressions in small but important slices. Report per class and per capture condition.
+- A confusion matrix tells you which classes are confused — often a taxonomy or guideline problem, not a model one.
+- 0.812 vs 0.807 mAP on 400 images is noise. Check variance across seeds before declaring a winner.
+- Benchmark scores rank architectures; they do not predict your accuracy on your domain.
+- Keep a small regression suite of known-hard cases that once failed, and run it on every change.
+- Pseudo-labels inherit the teacher's systematic errors — and random spot-checking cannot see consistent errors.
+
+| Shift | Meaning |
+|---|---|
+| Covariate shift | Inputs change, task unchanged. New camera, lighting, season. The common one. |
+| Label shift | Class frequencies change between training and deployment |
+| Concept drift | The relationship between input and label changes |
+
+---
+
+## Deployment and edge
+
+*8%*
+
+| Step | Detail |
+|---|---|
+| ONNX | Interchange graph format: train anywhere, run on any compatible runtime |
+| Tracing pitfall | Python control flow and computed shapes become constants. Declare dynamic axes and test several shapes. |
+| TensorRT engine | Kernel choices tuned to one GPU architecture. Not portable — rebuild per target. |
+| FP16 | Floating exponent; no calibration needed |
+| INT8 | Needs a calibration pass over representative data to set per-tensor scales |
+| Pruning | Remove channels, then fine-tune to recover. Structured pruning gives real speedups. |
+| Distillation | Small student matches a large teacher's soft outputs |
+
+> INT8 often preserves classification accuracy while hurting detection mAP: class decisions survive small perturbations because only the argmax matters, but box coordinates feed straight into IoU. Keep sensitive layers at higher precision.
+
+- Latency is one frame's time to result; throughput is frames per second in aggregate. Batching raises throughput and raises latency.
+- A single live camera cannot be batched without waiting for frames, which adds exactly the latency batching was meant to avoid.
+- Keep the frame on the GPU from decode through preprocessing to inference. Host round trips often cost more than the model.
+- A model benchmarked at 28 FPS alone may run at 9 FPS in the application: decode, NMS, drawing and encoding contend for the same compute.
+- Monitor input statistics — brightness, sharpness, detection counts — because vision models fail silently on drifted input.
+- Validate the exported or quantised model against the original on fixed inputs after every build.
+
+---
+
+## Acronyms
+
+*Blank on one of these and you lose the question*
+
+| Term | Meaning |
+|---|---|
+| ASPP | Atrous Spatial Pyramid Pooling — parallel dilated convolutions |
+| CLAHE | Contrast Limited Adaptive Histogram Equalisation |
+| CLIP | Contrastive Language-Image Pretraining |
+| DETR | DEtection TRansformer — set prediction, no NMS |
+| DOF | Degrees of freedom (affine 6, homography 8) |
+| FPN | Feature Pyramid Network |
+| FCOS | Fully Convolutional One-Stage detector — anchor-free |
+| IoU | Intersection over Union |
+| IDF1 | Identity F1 — tracking identity consistency |
+| MAE | Masked Autoencoder (self-supervised pretraining) |
+| mAP | mean Average Precision |
+| mIoU | mean Intersection over Union, averaged per class |
+| MOT / MOTA | Multi-Object Tracking / MOT Accuracy |
+| NMS | Non-Maximum Suppression |
+| ONNX | Open Neural Network Exchange |
+| RANSAC | RANdom SAmple Consensus |
+| Re-ID | Re-Identification |
+| RoI | Region of Interest |
+| SAM | Segment Anything Model |
+| SORT | Simple Online and Realtime Tracking |
+| TTA | Test-Time Augmentation |
+| ViT | Vision Transformer |

@@ -1,0 +1,467 @@
+{
+  "domain": "vision-transformers",
+  "questions": [
+    {
+      "id": "VT-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "How does a Vision Transformer turn an image into a sequence?",
+      "choices": [
+        "It flattens the image into one long vector of pixels",
+        "It splits the image into fixed-size non-overlapping patches, flattens each, and linearly projects it into a token embedding",
+        "It uses a CNN to produce tokens",
+        "It converts the image to text"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Patchifying is what makes attention tractable: a 224x224 image at 16x16 patches becomes 196 tokens rather than 50,176 pixels, since attention cost grows with the square of sequence length. Each patch is linearly projected to the model dimension, exactly as a word embedding would be.",
+      "tags": [
+        "vit",
+        "patch-embedding",
+        "tokenisation",
+        "sequence-length"
+      ],
+      "ref": "https://arxiv.org/abs/2010.11929"
+    },
+    {
+      "id": "VT-002",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why does a ViT need positional embeddings when a CNN does not?",
+      "choices": [
+        "Because images are larger than text",
+        "Self-attention is permutation-invariant, so without position information the model would treat the patches as an unordered set",
+        "Because patches overlap",
+        "Because transformers cannot process colour"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Convolution encodes spatial arrangement structurally — a kernel sees a specific neighbourhood. Attention treats tokens as a set, so shuffling patches would leave the representation unchanged. Positional embeddings restore the geometry that patchifying discarded.",
+      "tags": [
+        "positional-embedding",
+        "permutation-invariance",
+        "vit",
+        "spatial-structure"
+      ],
+      "ref": "https://arxiv.org/abs/2010.11929"
+    },
+    {
+      "id": "VT-003",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "ViTs underperform CNNs when trained from scratch on small datasets. Why?",
+      "choices": [
+        "They have fewer parameters",
+        "CNNs build in locality and translation equivariance as inductive biases; a ViT must learn those from data, which takes far more of it",
+        "ViTs cannot use augmentation",
+        "Attention is numerically unstable at small scale"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A convolution assumes nearby pixels are related and that a feature means the same thing anywhere — assumptions that are correct for images and free. A ViT starts with no such prior, so it needs either large-scale pretraining or heavy augmentation and regularisation to discover them.",
+      "tags": [
+        "inductive-bias",
+        "data-efficiency",
+        "vit-vs-cnn",
+        "scratch-training"
+      ],
+      "ref": "https://arxiv.org/abs/2010.11929"
+    },
+    {
+      "id": "VT-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the class token in a ViT for?",
+      "choices": [
+        "It stores the ground-truth label",
+        "A learnable token prepended to the patch sequence whose final representation is used as the whole-image embedding for classification",
+        "It marks the end of the sequence",
+        "It encodes the patch size"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Borrowed from BERT's [CLS], it gives a position that belongs to no particular patch and can therefore aggregate across all of them through attention. Some later architectures drop it and use global average pooling over patch tokens instead, which works comparably.",
+      "tags": [
+        "class-token",
+        "cls",
+        "pooling",
+        "classification"
+      ],
+      "ref": "https://arxiv.org/abs/2010.11929"
+    },
+    {
+      "id": "VT-005",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What does Swin Transformer change to make ViTs practical for dense prediction?",
+      "choices": [
+        "It removes attention entirely",
+        "It computes attention within local windows and shifts those windows between layers, giving linear cost in image size plus a hierarchical multi-scale feature map",
+        "It uses larger patches",
+        "It replaces the decoder"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Global attention over high-resolution feature maps is quadratic and unaffordable for detection or segmentation. Windowed attention makes cost linear, and shifting the window partition between consecutive blocks lets information cross window boundaries. The hierarchy then plugs into FPN-style heads like a CNN backbone.",
+      "tags": [
+        "swin",
+        "windowed-attention",
+        "hierarchical",
+        "dense-prediction"
+      ],
+      "ref": "https://arxiv.org/abs/2103.14030"
+    },
+    {
+      "id": "VT-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "How is CLIP trained?",
+      "choices": [
+        "By classifying images into 1,000 ImageNet categories",
+        "Contrastively on image-text pairs: matching pairs are pulled together in a shared embedding space and mismatched pairs pushed apart",
+        "By predicting the next word of an image caption",
+        "By reconstructing masked image patches"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Two encoders, one for images and one for text, are trained so that a photo and its caption land near each other. No fixed label set is ever defined, which is precisely what makes the resulting model able to recognise categories it was never explicitly trained on.",
+      "tags": [
+        "clip",
+        "contrastive-learning",
+        "image-text",
+        "shared-embedding"
+      ],
+      "ref": "https://arxiv.org/abs/2103.00020"
+    },
+    {
+      "id": "VT-007",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "How does CLIP perform zero-shot classification?",
+      "choices": [
+        "It is fine-tuned on each new class",
+        "Candidate class names are embedded as text prompts and the image embedding is matched against them, so new classes need only a name",
+        "It generates a caption then parses it",
+        "It requires one labelled example per class"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Because images and text share an embedding space, classification becomes nearest-neighbour retrieval against text embeddings of the candidate labels. Adding a class costs a string. Prompt wording measurably affects accuracy, which is why prompt ensembling is common.",
+      "tags": [
+        "zero-shot",
+        "clip",
+        "prompt",
+        "open-vocabulary"
+      ],
+      "ref": "https://arxiv.org/abs/2103.00020"
+    },
+    {
+      "id": "VT-008",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO are genuine limitations of CLIP-style zero-shot recognition?",
+      "choices": [
+        "Performance depends heavily on how class names are phrased in the prompt",
+        "It reflects the biases and coverage gaps of its web-scraped training data, so fine-grained or specialist categories are often weak",
+        "It cannot process colour images",
+        "It requires the class list at training time"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Prompt sensitivity and training-distribution coverage are the two practical failure modes. A specialist category absent from web text — a specific industrial defect, a rare species — has no useful text embedding to match against. The class list being needed only at inference is the whole point, not a limitation.",
+      "tags": [
+        "clip-limits",
+        "prompt-sensitivity",
+        "distribution-coverage",
+        "fine-grained"
+      ],
+      "ref": "https://arxiv.org/abs/2103.00020"
+    },
+    {
+      "id": "VT-009",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is open-vocabulary detection?",
+      "choices": [
+        "Detecting an unlimited number of objects per image",
+        "Detecting object categories specified at inference by text rather than fixed at training by a closed label set",
+        "Detecting text in images",
+        "Detecting objects without any training"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A conventional detector has a fixed head sized to its class list; adding a category means retraining. Open-vocabulary detectors align region features with text embeddings, so a new category is a new phrase at inference — enormously valuable when the taxonomy is fluid.",
+      "tags": [
+        "open-vocabulary",
+        "detection",
+        "text-conditioned",
+        "flexibility"
+      ],
+      "ref": "https://arxiv.org/abs/2103.00020"
+    },
+    {
+      "id": "VT-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What does self-supervised pretraining such as DINO or masked autoencoding give you?",
+      "choices": [
+        "Labels for free",
+        "Strong visual representations learned from unlabelled images, which then need far fewer labels to fine-tune for a downstream task",
+        "A complete classifier",
+        "Faster inference"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The pretext task — matching views of the same image, or reconstructing masked patches — needs no annotation, so it can consume vastly more data than any labelled set. The learned features transfer, so the expensive labelled data is spent only on adaptation. That economics is why self-supervision matters in practice.",
+      "tags": [
+        "self-supervised",
+        "dino",
+        "masked-autoencoder",
+        "label-efficiency"
+      ],
+      "ref": "https://arxiv.org/abs/2104.14294"
+    },
+    {
+      "id": "VT-011",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In a masked autoencoder for images, what is the model trained to do?",
+      "choices": [
+        "Classify the masked patches",
+        "Reconstruct the pixel content of patches that were hidden from the encoder, forcing it to learn structure and context",
+        "Predict the next image in a sequence",
+        "Match the image to its caption"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Masking a large fraction of patches — often 75% — and reconstructing them makes the task hard enough to require genuine understanding of object structure rather than local texture copying. The decoder is discarded after pretraining; only the encoder's representation is kept.",
+      "tags": [
+        "masked-autoencoder",
+        "reconstruction",
+        "pretext-task",
+        "self-supervised"
+      ],
+      "ref": "https://arxiv.org/abs/2111.06377"
+    },
+    {
+      "id": "VT-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "How does a latent diffusion model reduce the cost of image generation?",
+      "choices": [
+        "By generating smaller images",
+        "By running the diffusion process in a compressed latent space produced by an autoencoder, rather than directly on high-resolution pixels",
+        "By using fewer denoising steps only",
+        "By generating in grayscale first"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Diffusion needs many sequential denoising passes, and doing them at full pixel resolution is prohibitive. Compressing to a latent roughly 8x smaller per side cuts the work by more than an order of magnitude, with a decoder restoring pixels at the end. That is the key idea behind Stable Diffusion.",
+      "tags": [
+        "latent-diffusion",
+        "autoencoder",
+        "efficiency",
+        "image-generation"
+      ],
+      "ref": "https://arxiv.org/abs/2112.10752"
+    },
+    {
+      "id": "VT-013",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What does classifier-free guidance control in a conditional diffusion model?",
+      "choices": [
+        "The number of denoising steps",
+        "How strongly generation adheres to the conditioning prompt, by extrapolating between the conditional and unconditional predictions",
+        "The image resolution",
+        "The random seed"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The model is trained both with and without conditioning, and at sampling the two predictions are combined with a scale factor. Higher guidance follows the prompt more literally at the cost of diversity and, past a point, visual artefacts — the classic quality-versus-fidelity dial.",
+      "tags": [
+        "classifier-free-guidance",
+        "diffusion",
+        "conditioning",
+        "sampling"
+      ],
+      "ref": "https://arxiv.org/abs/2207.12598"
+    },
+    {
+      "id": "VT-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is attention cost a bigger problem for images than for typical text?",
+      "choices": [
+        "Images use more colours",
+        "Token count scales with the square of image resolution while attention scales with the square of token count, so resolution enters at the fourth power",
+        "Images cannot be batched",
+        "Text tokens are smaller"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Doubling image resolution quadruples patches, and quadrupling tokens raises attention cost sixteenfold. That compounding is why plain global attention is impractical for high-resolution vision and why windowed, hierarchical or linear-attention designs dominate dense prediction.",
+      "tags": [
+        "quadratic-attention",
+        "resolution-scaling",
+        "cost",
+        "efficiency"
+      ],
+      "ref": "https://arxiv.org/abs/2103.14030"
+    },
+    {
+      "id": "VT-015",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "You have 5,000 labelled images of an industrial part. Which TWO transformer-based approaches are sensible?",
+      "choices": [
+        "Fine-tune a self-supervised or ImageNet-pretrained ViT backbone rather than training one from scratch",
+        "Use a CLIP or DINO backbone as a frozen feature extractor and train a small head on top",
+        "Train a ViT from random initialisation on the 5,000 images",
+        "Use classifier-free guidance to generate labels"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Five thousand images is far too few to teach a transformer the inductive biases a CNN gets for free, so the pretrained representation is the asset. Fine-tuning adapts it; freezing it and training a head is cheaper still and often competitive at this data scale. Guidance is a generation control, not a labelling method.",
+      "tags": [
+        "transfer-learning",
+        "frozen-features",
+        "small-data",
+        "vit"
+      ],
+      "ref": "https://arxiv.org/abs/2104.14294"
+    },
+    {
+      "id": "VT-016",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What practical advantage does a hybrid CNN-transformer backbone offer?",
+      "choices": [
+        "It removes the need for pretraining",
+        "Early convolutions supply locality and efficient downsampling while later attention layers model long-range relationships, combining the strengths of both",
+        "It uses less memory than either alone",
+        "It eliminates positional embeddings"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Convolutions are efficient and carry useful priors at high resolution where attention is most expensive; attention excels once the sequence is short and global context is what remains to be modelled. Putting each where it is strongest is why hybrid designs are common in production backbones.",
+      "tags": [
+        "hybrid-architecture",
+        "cnn-transformer",
+        "locality",
+        "long-range"
+      ],
+      "ref": "https://arxiv.org/abs/2103.14030"
+    },
+    {
+      "id": "VT-017",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A ViT pretrained at 224x224 is fine-tuned at 384x384. What must be handled?",
+      "choices": [
+        "The patch size must change",
+        "The positional embeddings were learned for a fixed grid of patches and must be interpolated to the new grid size",
+        "The class token must be removed",
+        "The optimiser must be changed"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A larger input at the same patch size yields more patches, so the learned position table no longer matches the grid. Bicubic interpolation of the positional embeddings to the new layout is the standard fix and is built into most implementations. Skipping it silently scrambles spatial information.",
+      "tags": [
+        "positional-interpolation",
+        "resolution-change",
+        "fine-tuning",
+        "vit"
+      ],
+      "ref": "https://arxiv.org/abs/2010.11929"
+    },
+    {
+      "id": "VT-018",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What makes attention maps attractive but unreliable as explanations?",
+      "choices": [
+        "They are too small to read",
+        "They show where the model attended, which is suggestive but not a faithful account of what caused the prediction — attention weight is not causal attribution",
+        "They are only available during training",
+        "They require a separate model"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Attention is one component in a deep stack with residuals and MLPs, and high weight on a region does not establish that the region determined the output. Attention maps are a useful debugging signal; causal claims need intervention-based attribution methods.",
+      "tags": [
+        "attention-maps",
+        "interpretability",
+        "attribution",
+        "limitations"
+      ],
+      "ref": "https://arxiv.org/abs/2010.11929"
+    },
+    {
+      "id": "VT-019",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why does a diffusion model need many sampling steps while a GAN generates in one forward pass?",
+      "choices": [
+        "Diffusion models are larger",
+        "Diffusion generates by iteratively reversing a noising process, so each step removes a little noise; a GAN's generator maps noise to an image in a single mapping",
+        "GANs use more memory",
+        "Diffusion requires text conditioning"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The iterative structure is what gives diffusion its stability and sample quality — each step is a small, well-conditioned problem — and it is also why inference is slow. Step-distillation and improved solvers exist precisely to cut the step count.",
+      "tags": [
+        "diffusion",
+        "sampling",
+        "image-generation",
+        "iterative"
+      ],
+      "ref": "https://arxiv.org/abs/2112.10752"
+    },
+    {
+      "id": "VT-020",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Raising classifier-free guidance from 3 to 15 makes images match the prompt more literally but look oversaturated and strange. Why?",
+      "choices": [
+        "The model is broken at high values",
+        "Guidance extrapolates away from the unconditional prediction; pushed far enough the result leaves the region the model was trained to produce, trading diversity and realism for prompt adherence",
+        "The latent space is too small",
+        "The random seed changed"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Guidance is an extrapolation, not an interpolation, so large scales move the prediction outside the learned distribution. The artefacts are the signature of over-extrapolation. Practical values sit in a narrow band, and the right one depends on the sampler and model.",
+      "tags": [
+        "classifier-free-guidance",
+        "conditioning",
+        "diffusion",
+        "sampling"
+      ],
+      "ref": "https://arxiv.org/abs/2207.12598"
+    }
+  ]
+}

@@ -44,7 +44,8 @@
       "eyebrow": "IBM · Coursera Professional Certificate",
       "hero_title": "Ten courses, ninety-one hours, one question bank.",
       "hero_body": "The certificate has no cumulative exam, so practice sets here are weighted by each course's share of the hours. {N} questions across prompt engineering, transformer internals, fine-tuning and RAG — each with the reasoning and a primary source.",
-      "footer_note": "No published exam blueprint exists: this is 16 courses, not one exam. Weights are each course's share of the 91 covered hours. The 80% target is this tool's own bar — Coursera quizzes are retakeable and typically pass at 70-80%."
+      "footer_note": "No published exam blueprint exists: this is 16 courses, not one exam. Weights are each course's share of the 91 covered hours. The 80% target is this tool's own bar — Coursera quizzes are retakeable and typically pass at 70-80%.",
+      "exam_mode_sub": "Weighted by course hours, no feedback until you submit. A cumulative self-check the certificate itself never gives you."
     },
     "target_pct": 80
   },

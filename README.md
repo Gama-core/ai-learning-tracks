@@ -16,10 +16,19 @@ what it reads from there.
 |---|---|---|---|
 | **`ncp-aai`** — NVIDIA-Certified Professional: Agentic AI LLMs | 317 | 10 | One proctored exam, published blueprint with weighted domains |
 | **`ibm-genai`** — IBM Generative AI Engineering (Coursera) | 197 | 10 | 16 self-paced courses, per-course quizzes plus a capstone |
+| **`applied-cv`** — Applied Computer Vision | 192 | 10 | **Not a certification.** A Gama Core learning track. |
 
-The two are structurally different and the tool reflects that. NCP-AAI has an official
-blueprint, so mock exams are apportioned to NVIDIA's published weights. The IBM certificate
-has no cumulative exam at all, so its weights are each course's share of the covered hours.
+The three are structurally different and the tool reflects that rather than flattening them.
+NCP-AAI has an official blueprint, so mock exams are apportioned to NVIDIA's published
+weights. The IBM certificate has no cumulative exam at all, so its weights are each course's
+share of the covered hours.
+
+**`applied-cv` is not a certification and does not claim to be.** No vendor certifies applied
+computer vision: every adjacent credential is either multimodal generative AI (NVIDIA
+NCA-GENM), a cloud platform exam where vision is a fifth of the content (Microsoft AI-102),
+or a course-completion badge (OpenCV University). That gap is why the track exists. Its
+weights are Gama Core's editorial judgement of where applied CV work concentrates — a claim,
+not a citation — and the page says so in its own footer.
 
 The IBM track covers the **10 generative-AI courses** (1–3 and 10–16), 91 of the
 certificate's 168 hours. Courses 4–9 — Python, Flask, Pandas, scikit-learn, Keras — are
@@ -82,6 +91,27 @@ Every practice set is apportioned to these weights, so effort lands where the ex
 NVIDIA's published figures sum to 98%; the simulator normalizes them. With 317 questions,
 four consecutive 65-question mocks draw almost no repeats.
 
+### Applied Computer Vision: the topic areas
+
+Weights are editorial, reflecting where applied CV work concentrates rather than any
+published blueprint.
+
+| Topic area | Weight |
+|---|---|
+| Object Detection | 14% |
+| Convolutional Architectures | 12% |
+| Training Vision Models | 12% |
+| Segmentation | 11% |
+| Vision Transformers and Multimodal | 10% |
+| Data and Evaluation | 9% |
+| Image Fundamentals and Processing | 8% |
+| Classical Vision and Geometry | 8% |
+| Video and Tracking | 8% |
+| Deployment and Edge | 8% |
+
+Grounded in OpenCV, PyTorch and torchvision documentation, Ultralytics, and the primary
+papers — not any one provider's course material.
+
 ### IBM Gen AI Engineering: the courses
 
 No blueprint is published, so weights are each course's share of the 91 covered hours.
@@ -129,8 +159,8 @@ certs/<id>/
 .progress/<id>.json  Your progress, per certification. Gitignored.
 ```
 
-**Content at a glance:** 514 questions across both certifications · 212 verified source
-links · 330 flashcards · 115 concepts.
+**Content at a glance:** 706 questions across three tracks · 317 verified source links ·
+458 flashcards · 164 concepts.
 
 ---
 

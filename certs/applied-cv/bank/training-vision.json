@@ -1,0 +1,537 @@
+{
+  "domain": "training-vision",
+  "questions": [
+    {
+      "id": "TV-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the right way to think about choosing data augmentations?",
+      "choices": [
+        "Apply as many as possible",
+        "Each augmentation should simulate a variation the model will genuinely encounter at inference; augmentations that create impossible inputs waste capacity",
+        "Only geometric augmentations are valid",
+        "Augmentation should match the validation set exactly"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Augmentation encodes your assumptions about the deployment distribution. Horizontal flip is right for pedestrians and wrong for reading digits; heavy colour jitter is right for outdoor cameras and wrong for a calibrated microscope. Piling on transforms the model will never see spends capacity on nothing.",
+      "tags": [
+        "augmentation",
+        "invariance-assumptions",
+        "deployment-distribution"
+      ],
+      "ref": "https://pytorch.org/vision/stable/transforms.html"
+    },
+    {
+      "id": "TV-002",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why is vertical flip usually wrong for street-scene detection but fine for satellite imagery?",
+      "choices": [
+        "Vertical flips are computationally expensive",
+        "Street scenes have a consistent gravity direction so upside-down cars never occur, whereas overhead imagery has no canonical up",
+        "Satellite images are grayscale",
+        "Vertical flip breaks bounding boxes"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "An augmentation is valid when the label is preserved and the result is plausible. Gravity fixes orientation in ground-level scenes, so vertical flipping manufactures inputs the model will never meet. Nadir imagery has no preferred rotation, so flips and rotations are free additional data.",
+      "tags": [
+        "augmentation",
+        "orientation-prior",
+        "domain-knowledge",
+        "flips"
+      ],
+      "ref": "https://pytorch.org/vision/stable/transforms.html"
+    },
+    {
+      "id": "TV-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "When applying augmentation to a detection dataset, what must be done that classification does not require?",
+      "choices": [
+        "Nothing extra",
+        "The bounding boxes must be transformed with the image, and boxes that fall outside or become degenerate after cropping must be handled",
+        "Augmentation must be disabled",
+        "The labels must be one-hot encoded"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Geometric augmentation changes the geometry the labels refer to. A flip mirrors box coordinates, a crop can cut a box in half or remove it entirely, and rotation makes axis-aligned boxes inexact. Libraries that handle images and targets jointly exist precisely because doing this by hand is error-prone.",
+      "tags": [
+        "augmentation",
+        "bounding-boxes",
+        "label-transformation",
+        "detection"
+      ],
+      "ref": "https://albumentations.ai/docs/"
+    },
+    {
+      "id": "TV-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does cross-entropy loss measure for a classifier?",
+      "choices": [
+        "The distance between predicted and true bounding boxes",
+        "The negative log probability the model assigned to the correct class, so confident wrong predictions are penalised heavily",
+        "The variance of the predictions",
+        "The number of misclassified samples"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Cross-entropy is minus the log of the probability given to the true class. Being confidently wrong drives the loss toward infinity, which is what pushes the model to be calibrated as well as correct. Counting errors gives no gradient, which is why accuracy is a metric and not a loss.",
+      "tags": [
+        "cross-entropy",
+        "loss-function",
+        "confidence",
+        "classification"
+      ],
+      "ref": "https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html"
+    },
+    {
+      "id": "TV-005",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "In a detection dataset the background vastly outnumbers objects. What does focal loss do about it?",
+      "choices": [
+        "It removes background samples",
+        "It down-weights easy, well-classified examples so the abundant easy negatives stop dominating the gradient and hard examples drive learning",
+        "It increases the learning rate for rare classes",
+        "It balances the batch composition"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "With tens of thousands of easy background anchors per image, their individually small losses sum to overwhelm the few object losses. Focal loss multiplies each term by a factor that shrinks as confidence rises, so easy negatives contribute almost nothing and the rare hard cases dominate instead.",
+      "tags": [
+        "focal-loss",
+        "class-imbalance",
+        "hard-examples",
+        "detection"
+      ],
+      "ref": "https://arxiv.org/abs/1708.02002"
+    },
+    {
+      "id": "TV-006",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO approaches address a long-tailed class distribution?",
+      "choices": [
+        "Re-weight the loss so rare classes contribute proportionally more",
+        "Resample the data, oversampling rare classes or undersampling common ones",
+        "Reduce the learning rate",
+        "Increase the input resolution"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Both rebalance the effective contribution of each class — one at the loss, one at the sampler. Each has a cost: re-weighting can destabilise training, oversampling risks overfitting the few rare examples. Learning rate and resolution do not touch the imbalance.",
+      "tags": [
+        "long-tail",
+        "class-imbalance",
+        "resampling",
+        "loss-weighting"
+      ],
+      "ref": "https://arxiv.org/abs/1708.02002"
+    },
+    {
+      "id": "TV-007",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does a learning-rate warmup period do?",
+      "choices": [
+        "Pre-trains the first layer",
+        "Ramps the learning rate up from near zero over the first iterations, avoiding large destabilising updates while the optimiser state and normalisation statistics are still poor",
+        "Warms up the GPU",
+        "Increases batch size gradually"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "At step zero the weights are random or freshly transferred, the gradient estimates are noisy and the adaptive optimiser has no history. A full learning rate at that moment can throw the model somewhere it never recovers from. Warmup is especially important for large batches and for transformers.",
+      "tags": [
+        "warmup",
+        "learning-rate",
+        "training-stability",
+        "optimisation"
+      ],
+      "ref": "https://arxiv.org/abs/1706.02677"
+    },
+    {
+      "id": "TV-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is a cosine or step decay schedule used rather than a constant learning rate?",
+      "choices": [
+        "Constant rates are not supported by optimisers",
+        "Large steps early explore broadly, and decaying later allows fine convergence into a minimum that a large step would keep overshooting",
+        "Decaying reduces memory",
+        "It makes training deterministic"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The two phases want different step sizes: coarse movement first, precise settling after. A constant rate either converges slowly or oscillates around the minimum forever. Decay resolves the tension, and the particular schedule matters much less than having one.",
+      "tags": [
+        "lr-schedule",
+        "cosine-decay",
+        "convergence",
+        "optimisation"
+      ],
+      "ref": "https://pytorch.org/docs/stable/optim.html"
+    },
+    {
+      "id": "TV-009",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO are genuine regularisation techniques for vision models?",
+      "choices": [
+        "Weight decay, penalising large parameter magnitudes",
+        "Dropout or stochastic depth, randomly removing units or blocks during training",
+        "Increasing the number of epochs",
+        "Raising the learning rate"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Both constrain effective capacity so the model cannot simply memorise. Weight decay biases toward smaller weights; dropout and stochastic depth prevent co-adaptation by making any individual path unreliable. Longer training and larger steps are not regularisers — more epochs typically increases overfitting.",
+      "tags": [
+        "regularisation",
+        "weight-decay",
+        "dropout",
+        "stochastic-depth"
+      ],
+      "ref": "https://pytorch.org/docs/stable/optim.html"
+    },
+    {
+      "id": "TV-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What does mixed-precision training do, and why does it need a loss scaler?",
+      "choices": [
+        "It trains two models; the scaler averages them",
+        "It computes in half precision for speed and memory while keeping master weights in float32; small gradients would underflow to zero in FP16, so the loss is scaled up before backward and unscaled after",
+        "It mixes datasets; the scaler balances them",
+        "It alternates precision by layer; the scaler chooses which"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "FP16 has a narrow exponent range and many gradients fall below its smallest representable value, silently becoming zero. Multiplying the loss by a large factor shifts them into range, and dividing the gradients back before the optimiser step restores the correct magnitude.",
+      "tags": [
+        "mixed-precision",
+        "loss-scaling",
+        "fp16",
+        "underflow"
+      ],
+      "ref": "https://pytorch.org/docs/stable/amp.html"
+    },
+    {
+      "id": "TV-011",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Training loss keeps falling while validation loss has risen for several epochs. What does this indicate?",
+      "choices": [
+        "The learning rate is too low",
+        "Overfitting: the model is memorising the training set. Stop at the validation minimum, and add data, augmentation or regularisation",
+        "The batch size is too small",
+        "The data is not normalised"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Diverging curves are the textbook signature. Early stopping keeps the best generalising checkpoint; more data, stronger augmentation or heavier regularisation pushes the divergence point later. Both curves rising together would instead mean a training problem.",
+      "tags": [
+        "overfitting",
+        "early-stopping",
+        "validation-curve",
+        "diagnosis"
+      ],
+      "ref": "https://pytorch.org/tutorials/"
+    },
+    {
+      "id": "TV-012",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Both training and validation loss plateau at a high value from the start. What should you check first?",
+      "choices": [
+        "Add more regularisation",
+        "Underfitting or a pipeline bug: verify labels align with images, the learning rate is not absurdly low or high, and the model has enough capacity",
+        "Reduce the dataset size",
+        "Increase dropout"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Failure to fit even the training data means the model is not learning at all. Before touching capacity, confirm the data pipeline: mismatched labels, an incorrect normalisation, or a learning rate off by orders of magnitude all produce this. Adding regularisation makes underfitting worse.",
+      "tags": [
+        "underfitting",
+        "pipeline-bugs",
+        "diagnosis",
+        "capacity"
+      ],
+      "ref": "https://pytorch.org/tutorials/"
+    },
+    {
+      "id": "TV-013",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A model reaches 99% training accuracy in two epochs on a 500-image dataset, and 55% on validation. Beyond regularisation, what is worth checking?",
+      "choices": [
+        "Whether the GPU is faulty",
+        "Whether near-duplicate images span the train and validation split, and whether the split is random rather than grouped by patient, site or session",
+        "Whether the loss function is correct",
+        "Whether the images are RGB"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Fast memorisation of a tiny set is expected, but a suspicious split can also inflate or deflate the gap. Frames from one video, several images of one patient, or repeated product photos must stay on the same side of the split, or the validation score measures recall of near-copies rather than generalisation.",
+      "tags": [
+        "data-leakage",
+        "grouped-splits",
+        "near-duplicates",
+        "validation"
+      ],
+      "ref": "https://scikit-learn.org/stable/modules/cross_validation.html"
+    },
+    {
+      "id": "TV-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why should augmentation be applied to the training set but not the validation set?",
+      "choices": [
+        "Augmentation is too slow for validation",
+        "Validation must measure performance on the real distribution; augmenting it changes what is being measured and makes runs incomparable",
+        "Validation images are already augmented",
+        "Augmentation breaks the loss computation"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Validation is a measurement instrument and must stay fixed. Random augmentation makes the number fluctuate for reasons unrelated to the model and destroys comparability between epochs and experiments. Test-time augmentation is a deliberate inference technique, not part of validation measurement.",
+      "tags": [
+        "augmentation",
+        "validation",
+        "measurement",
+        "methodology"
+      ],
+      "ref": "https://pytorch.org/vision/stable/transforms.html"
+    },
+    {
+      "id": "TV-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does label smoothing do?",
+      "choices": [
+        "Removes noisy labels",
+        "Replaces hard 0/1 targets with slightly softened values, discouraging over-confident predictions and improving calibration",
+        "Smooths the loss curve",
+        "Averages labels across the batch"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Training toward a target of exactly 1 pushes the model to drive logits arbitrarily high, which overfits and produces badly calibrated confidence. Distributing a little probability mass to other classes caps that pressure and usually improves both calibration and generalisation slightly.",
+      "tags": [
+        "label-smoothing",
+        "calibration",
+        "overconfidence",
+        "regularisation"
+      ],
+      "ref": "https://arxiv.org/abs/1512.00567"
+    },
+    {
+      "id": "TV-016",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO steps make a training run reproducible enough to compare experiments?",
+      "choices": [
+        "Fix the random seeds for the framework, NumPy and the data sampler, and record them",
+        "Pin the data split and the exact library and dataset versions alongside the result",
+        "Train on a faster GPU",
+        "Disable augmentation"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Comparisons are meaningless if the only difference you can identify is the change you made. Seeds control initialisation and sampling order; pinned splits and versions control the data and code. Note that full bitwise determinism on GPU additionally requires deterministic kernels, which cost speed.",
+      "tags": [
+        "reproducibility",
+        "seeds",
+        "versioning",
+        "experiment-comparison"
+      ],
+      "ref": "https://pytorch.org/docs/stable/notes/randomness.html"
+    },
+    {
+      "id": "TV-017",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is it wrong to select a model checkpoint using the test set?",
+      "choices": [
+        "The test set is too small",
+        "Every selection decision made against a set leaks information into the model, so the test score becomes optimistic; selection belongs to validation, with the test set touched once",
+        "Test sets cannot be loaded during training",
+        "It slows training"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Choosing among checkpoints by test score is a form of fitting to the test set, however indirect. The reported number then overstates true performance. Validation exists to absorb those decisions, leaving an untouched estimate at the end.",
+      "tags": [
+        "test-set",
+        "selection-bias",
+        "leakage",
+        "methodology"
+      ],
+      "ref": "https://scikit-learn.org/stable/modules/cross_validation.html"
+    },
+    {
+      "id": "TV-018",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Training is GPU-starved: utilisation oscillates between 100% and near zero. What is the usual cause?",
+      "choices": [
+        "The learning rate is too high",
+        "The data pipeline cannot keep up — decoding and augmentation on too few workers — so the GPU waits between batches",
+        "The model is too small",
+        "Mixed precision is disabled"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Sawtooth utilisation means the accelerator is idle waiting for input. More DataLoader workers, prefetching, pinned memory, cheaper decoding or pre-resized data all help. Chasing model-side optimisations while the bottleneck is CPU-side decoding wastes effort.",
+      "tags": [
+        "data-pipeline",
+        "gpu-utilisation",
+        "dataloader",
+        "bottleneck"
+      ],
+      "ref": "https://pytorch.org/docs/stable/data.html"
+    },
+    {
+      "id": "TV-019",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the practical effect of increasing batch size without changing the learning rate?",
+      "choices": [
+        "Training always improves",
+        "Gradient estimates become less noisy but each epoch takes fewer, larger steps, so the effective learning rate is lower and the model may underfit within the same epoch count",
+        "Memory use falls",
+        "The loss function changes"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A larger batch averages more samples, reducing gradient noise and the number of updates per epoch. The common heuristic is to scale the learning rate with batch size, often with warmup, to keep the effective step size comparable. Some of that gradient noise is also mildly regularising.",
+      "tags": [
+        "batch-size",
+        "learning-rate-scaling",
+        "gradient-noise",
+        "optimisation"
+      ],
+      "ref": "https://arxiv.org/abs/1706.02677"
+    },
+    {
+      "id": "TV-020",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "When is training from scratch preferable to fine-tuning an ImageNet backbone?",
+      "choices": [
+        "Always, since pretrained weights are biased",
+        "When the domain is far from natural images — medical volumes, radar, spectrograms — and you have enough data that pretrained low-level features offer little",
+        "When the dataset is small",
+        "When you need faster convergence"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Transfer works because low-level natural-image statistics generalise. For inputs with genuinely different statistics, the benefit shrinks, and with sufficient in-domain data scratch training can match or beat it. With small data, transfer almost always wins regardless of domain distance.",
+      "tags": [
+        "scratch-vs-transfer",
+        "domain-distance",
+        "pretrained-weights",
+        "decision-criteria"
+      ],
+      "ref": "https://arxiv.org/abs/1902.07208"
+    },
+    {
+      "id": "TV-021",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You add Mixup to a detection training pipeline and results get worse. Why might that be?",
+      "choices": [
+        "Mixup requires grayscale images",
+        "Blending two images and their labels suits classification, where labels are a distribution over classes, but produces incoherent geometry and ambiguous boxes for localisation",
+        "Mixup is only for transformers",
+        "Mixup needs a larger batch"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Mixup interpolates images and their one-hot targets, which is meaningful when the target is a class distribution. Detection targets are boxes tied to positions, and a blended image contains two overlapping scenes with no coherent geometry. Detection uses mosaic-style augmentations instead, which compose images spatially rather than blending them.",
+      "tags": [
+        "mixup",
+        "augmentation-transfer",
+        "detection",
+        "label-semantics"
+      ],
+      "ref": "https://arxiv.org/abs/1710.09412"
+    },
+    {
+      "id": "TV-022",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is gradient clipping for?",
+      "choices": [
+        "Removing small gradients to save computation",
+        "Capping the gradient norm so a rare huge gradient cannot take a destructive optimiser step",
+        "Clipping the input images",
+        "Limiting the number of parameters updated"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Occasional pathological batches or numerical spikes produce gradients orders of magnitude above typical, and a single such step can undo hours of training. Rescaling the gradient when its norm exceeds a threshold preserves direction while bounding step size.",
+      "tags": [
+        "gradient-clipping",
+        "stability",
+        "exploding-gradients",
+        "optimisation"
+      ],
+      "ref": "https://pytorch.org/docs/stable/generated/torch.nn.utils.clip_grad_norm_.html"
+    },
+    {
+      "id": "TV-023",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "GPU utilisation averages 35% during training. Which TWO changes are most likely to raise it?",
+      "choices": [
+        "Increase DataLoader worker count and enable prefetching so batches are ready before the GPU asks",
+        "Pre-resize and cache the dataset, or decode on the GPU, so per-sample CPU work stops dominating",
+        "Add more layers to the model",
+        "Reduce the learning rate"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Low utilisation means the accelerator is waiting. More workers overlap decoding and augmentation with compute, and removing expensive per-sample CPU work attacks the cause directly. Enlarging the model raises utilisation only by making the GPU slower, which is not the same as training faster.",
+      "tags": [
+        "gpu-utilisation",
+        "dataloader",
+        "data-pipeline",
+        "bottleneck"
+      ],
+      "ref": "https://pytorch.org/docs/stable/data.html"
+    }
+  ]
+}

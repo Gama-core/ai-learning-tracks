@@ -1000,7 +1000,7 @@ function homeHTML() {
     <button class="mode primary" data-start="exam">
       <span class="mode-meta">${EXAM_N} q · ${e.duration_minutes} min · timed</span>
       <span class="mode-nm">Mock exam</span>
-      <span class="mode-sub">Blueprint-weighted, no feedback until you submit. Flag and revisit like the real thing.</span>
+      <span class="mode-sub">${esc(UI.exam_mode_sub || "Blueprint-weighted, no feedback until you submit. Flag and revisit like the real thing.")}</span>
     </button>
     <button class="mode" data-start="practice">
       <span class="mode-meta">15 q · untimed</span>
