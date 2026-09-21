@@ -15,6 +15,8 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import certlib
+
 ROOT = Path(__file__).resolve().parent
 UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/120 Safari/537.36")
@@ -36,14 +38,20 @@ def is_placeholder(url: str) -> bool:
 def sources() -> dict:
     """Map every URL to the files that reference it."""
     found: dict = {}
-    for path in [ROOT / "RESOURCES.md", ROOT / "README.md", ROOT / "CHEATSHEET.md"]:
+    docs = [ROOT / "README.md"]
+    for cert in certlib.available():
+        docs += [cert.dir / "RESOURCES.md", cert.dir / "CHEATSHEET.md"]
+    for path in docs:
         if path.exists():
             for url in re.findall(r"https?://[^\s)>\]|\"]+", path.read_text()):
                 found.setdefault(url.rstrip(".,"), set()).add(path.name)
-    for path in list((ROOT / "bank").glob("*.json")) + list((ROOT / "cases").glob("*.json")):
-        data = json.loads(path.read_text())
-        for q in data["questions"]:
-            found.setdefault(q["ref"], set()).add(path.name)
+    for cert in certlib.available():
+        paths = list(cert.bank_dir.glob("*.json"))
+        if cert.case_dir.is_dir():
+            paths += list(cert.case_dir.glob("*.json"))
+        for path in paths:
+            for q in json.loads(path.read_text())["questions"]:
+                found.setdefault(q["ref"], set()).add(f"{cert.id}/{path.name}")
     return found
 
 

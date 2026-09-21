@@ -23,13 +23,22 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+import certlib
+
 ROOT = Path(__file__).resolve().parent
-BANK_DIR = ROOT / "bank"
-BLUEPRINT = ROOT / "blueprint.json"
-CHEATS = ROOT / "cheatsheet.json"
-CASE_DIR = ROOT / "cases"
-CONCEPTS = ROOT / "concepts.json"
-HISTORY = ROOT / ".history.json"
+
+# Bound in main() once the certification is resolved. Every content path in this
+# file goes through these, so the simulator has no idea which exam it is running.
+CERT = None
+BANK_DIR = BLUEPRINT = CHEATS = CASE_DIR = CONCEPTS = HISTORY = None
+
+
+def bind(cert) -> None:
+    global CERT, BANK_DIR, BLUEPRINT, CHEATS, CASE_DIR, CONCEPTS, HISTORY
+    CERT = cert
+    BANK_DIR, BLUEPRINT = cert.bank_dir, cert.blueprint_path
+    CHEATS, CASE_DIR, CONCEPTS = cert.cheats_path, cert.case_dir, cert.concepts_path
+    HISTORY = cert.progress_path
 
 LABELS = "ABCD"
 PASS_MARK = 0.75
@@ -236,6 +245,7 @@ def load_history() -> dict:
 
 
 def save_history(hist: dict) -> None:
+    HISTORY.parent.mkdir(exist_ok=True)
     HISTORY.write_text(json.dumps(hist, indent=2))
 
 
@@ -944,6 +954,21 @@ def mode_case(args, questions, bp, hist) -> None:
              title=f"Case {chosen['id']}", shuffle=False)
 
 
+def mode_certs(args, questions, bp, hist) -> None:
+    """List the certifications this checkout carries."""
+    print(f"\n{C.BOLD}Certifications{C.RESET}")
+    print(rule("="))
+    for c in certlib.available():
+        n = c.counts()
+        mark = f"{C.GREEN}*{C.RESET}" if c.id == CERT.id else " "
+        e = c.blueprint["exam"]
+        print(f"\n {mark} {C.BOLD}{c.id}{C.RESET}  {C.DIM}{e.get('code', '')}{C.RESET}")
+        print(f"     {e['name']}")
+        print(f"     {C.DIM}{n['total']} questions · {len(c.blueprint['domains'])} "
+              f"topic areas{C.RESET}")
+    print(f"\n{C.DIM}Switch with  ./sim.py -k <id>  (remembered for next time){C.RESET}\n")
+
+
 def mode_concepts(args, questions, bp, hist) -> None:
     """List the concept taxonomy with your measured accuracy on each."""
     concepts, index = load_concepts()
@@ -1034,6 +1059,8 @@ def mode_menu(args, questions, bp, hist) -> None:
         print(f"  {C.BOLD}8{C.RESET}  Case studies     {C.DIM}one scenario, several linked questions{C.RESET}")
         print(f"  {C.BOLD}9{C.RESET}  Flashcards       {C.DIM}recall drill over the cheat sheets{C.RESET}")
         print(f"  {C.BOLD}0{C.RESET}  Concepts         {C.DIM}taxonomy + per-concept accuracy{C.RESET}")
+        if len(certlib.available()) > 1:
+            print(f"  {C.BOLD}c{C.RESET}  Switch certification")
         print(f"  {C.BOLD}q{C.RESET}  Quit\n")
         choice = input("> ").strip().lower()
         ns = argparse.Namespace(count=None, domain=None, concept=None)
@@ -1071,6 +1098,16 @@ def mode_menu(args, questions, bp, hist) -> None:
             mode_flash(ns, questions, bp, hist)
         elif choice == "0":
             mode_concepts(ns, questions, bp, hist)
+        elif choice == "c" and len(certlib.available()) > 1:
+            certs = certlib.available()
+            print()
+            for i, c in enumerate(certs, 1):
+                print(f"  {C.BOLD}{i}{C.RESET}  {c.code:<12} {c.name}")
+            sel = input("\nCertification > ").strip()
+            if sel.isdigit() and 1 <= int(sel) <= len(certs):
+                bind(certs[int(sel) - 1])
+                certlib.remember(CERT.id)
+                return mode_menu(args, load_questions(), load_blueprint(), load_history())
         elif choice in {"q", "quit", "exit"}:
             print()
             return
@@ -1103,8 +1140,9 @@ def main() -> None:
                "  ./sim.py concepts                 concept taxonomy + your accuracy\n"
                "  ./sim.py practice -c kv-cache\n")
     p.add_argument("mode", nargs="?", default="menu",
-                   choices=["menu", "exam", "practice", "drill", "stats", "cram", "cheat", "case", "review", "flash", "concepts"])
+                   choices=["menu", "exam", "practice", "drill", "stats", "cram", "cheat", "case", "review", "flash", "concepts", "certs"])
     p.add_argument("-n", "--count", type=int, help="number of questions")
+    p.add_argument("-k", "--cert", help="certification id (see `./sim.py certs`)")
     p.add_argument("-c", "--concept", help="concept id (see `./sim.py concepts`)")
     p.add_argument("-d", "--domain",
                    help="blueprint domain id, or cheat-sheet section id for `cheat`")
@@ -1113,12 +1151,15 @@ def main() -> None:
     args = p.parse_args()
 
     if args.reset:
+        bind(certlib.resolve(args.cert))
         HISTORY.unlink(missing_ok=True)
-        print("History cleared.")
+        print(f"Progress cleared for {CERT.code}.")
         return
     if args.seed is not None:
         random.seed(args.seed)
 
+    bind(certlib.resolve(args.cert))
+    certlib.remember(CERT.id)
     bp, questions, hist = load_blueprint(), load_questions(), load_history()
     migrate(hist)
     try:

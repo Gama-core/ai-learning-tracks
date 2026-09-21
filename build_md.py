@@ -3,8 +3,12 @@
 import json
 from pathlib import Path
 
+import sys
+import certlib
+
 ROOT = Path(__file__).resolve().parent
-cs = json.loads((ROOT / "cheatsheet.json").read_text())
+CERT = certlib.resolve(sys.argv[1] if len(sys.argv) > 1 else None)
+cs = json.loads(CERT.cheats_path.read_text())
 
 out = [f"# {cs['title']}",
        "",
@@ -35,6 +39,6 @@ for sec in cs["sections"]:
         else:
             out += [f"> {b['text']}", ""]
 
-dest = ROOT / "CHEATSHEET.md"
+dest = CERT.dir / "CHEATSHEET.md"
 dest.write_text("\n".join(out).rstrip() + "\n")
-print(f"{dest.name}  {len(cs['sections'])} sections  {dest.stat().st_size // 1024} KB")
+print(f"{dest.relative_to(ROOT)}  {len(cs['sections'])} sections  {dest.stat().st_size // 1024} KB")
