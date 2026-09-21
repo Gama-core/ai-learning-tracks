@@ -1,22 +1,38 @@
-# NCP-AAI prep kit
+# cert-helper
 
-A study kit and exam simulator for the **NVIDIA-Certified Professional: Agentic AI LLMs
-(NCP-AAI)** exam. 317 original questions weighted to the published blueprint, spaced
-repetition, case studies, cheat sheets, and a concept-level diagnostic layer.
+A study kit and exam simulator for AI certifications. Two front ends over one content
+model: a terminal client with no dependencies, and a self-contained web page you can drop
+on any static host.
 
-Two front ends, one content source: a terminal client with no dependencies, and a
-self-contained web page you can drop on any static host.
+Each certification lives under `certs/<id>/` with its own blueprint, question bank, cheat
+sheets and concept taxonomy. The tooling knows nothing about any particular exam beyond
+what it reads from there.
 
 <sub>A [Gama Core](https://www.gamacore.com) project.</sub>
 
----
+## Certifications included
+
+| | Questions | Topic areas | Shape |
+|---|---|---|---|
+| **`ncp-aai`** — NVIDIA-Certified Professional: Agentic AI LLMs | 317 | 10 | One proctored exam, published blueprint with weighted domains |
+| **`ibm-genai`** — IBM Generative AI Engineering (Coursera) | 197 | 10 | 16 self-paced courses, per-course quizzes plus a capstone |
+
+The two are structurally different and the tool reflects that. NCP-AAI has an official
+blueprint, so mock exams are apportioned to NVIDIA's published weights. The IBM certificate
+has no cumulative exam at all, so its weights are each course's share of the covered hours.
+
+The IBM track covers the **10 generative-AI courses** (1–3 and 10–16), 91 of the
+certificate's 168 hours. Courses 4–9 — Python, Flask, Pandas, scikit-learn, Keras — are
+excluded on purpose: they teach library work that multiple choice tests poorly.
 
 ## Quick start
 
 ```bash
 git clone https://github.com/Gama-core/cert-helper.git
 cd cert-helper
-./sim.py                 # menu-driven; nothing to install
+./sim.py                       # menu-driven; nothing to install
+./sim.py certs                 # list the certifications
+./sim.py -k ibm-genai          # switch (remembered for next time)
 ```
 
 Python 3.8+ and nothing else — the terminal client is stdlib only. For the web version,
@@ -24,7 +40,7 @@ open `web/index.html` in a browser, or upload that single file to a web server.
 
 ---
 
-## The exam
+## NCP-AAI: the exam
 
 | | |
 |---|---|
@@ -46,7 +62,7 @@ the only diagnostic you will ever get. Run `./sim.py cheat -d logistics` before 
 it covers the Certiverse rules that fail people before they answer a question (exact name
 matching against your ID, the room scan, the system check).
 
-### Blueprint
+### NCP-AAI blueprint
 
 Every practice set is apportioned to these weights, so effort lands where the exam puts it.
 
@@ -66,44 +82,64 @@ Every practice set is apportioned to these weights, so effort lands where the ex
 NVIDIA's published figures sum to 98%; the simulator normalizes them. With 317 questions,
 four consecutive 65-question mocks draw almost no repeats.
 
+### IBM Gen AI Engineering: the courses
+
+No blueprint is published, so weights are each course's share of the 91 covered hours.
+
+| # | Course | Hours | Weight |
+|---|---|---|---|
+| 1 | Introduction to Artificial Intelligence | 13 | 14% |
+| 2 | Generative AI: Introduction and Applications | 8 | 9% |
+| 3 | Generative AI: Prompt Engineering Basics | 10 | 11% |
+| 10 | LLM Architecture and Data Preparation | 6 | 7% |
+| 11 | Foundational Models for NLP and Language Understanding | 10 | 11% |
+| 12 | Language Modeling with Transformers | 9 | 10% |
+| 13 | Engineering and Fine-Tuning Transformers | 8 | 9% |
+| 14 | Advanced Fine-Tuning for LLMs | 9 | 10% |
+| 15 | AI Agents with RAG and LangChain | 9 | 10% |
+| 16 | Project: Applications with RAG and LangChain | 9 | 9% |
+
+Coursera quizzes are retakeable and typically pass at 70–80%, so this track targets **80%**
+— a retakeable quiz measures less than an unseen question. Course 16 is a build project
+that cannot be simulated; its questions cover the decisions it forces.
+
 ---
 
 ## What's in the box
 
 ```
-blueprint.json       The 10 official topic areas with their published weights.
-concepts.json        69-concept taxonomy mapping question tags to diagnosable concepts.
-cheatsheet.json      13 sections of condensed reference — source for the other two formats.
-
-bank/*.json          277 standalone questions, one file per topic area.
-cases/*.json         10 case studies — one scenario, 3-4 linked questions each (40 total).
-
+certlib.py           Resolves a certification from an id, the last used, or the only one.
 sim.py               Terminal simulator. Stdlib only.
-tests.py             Validates bank, cases, cheat sheets and the concept taxonomy.
-check_links.py       Verifies every reference URL still resolves.
-build_md.py          cheatsheet.json  ->  CHEATSHEET.md
-build_web.py         everything       ->  web/simulator.html + web/index.html
-
-CHEATSHEET.md        Generated. Printable/greppable cheat sheets.
-RESOURCES.md         Curated free study material by domain. Every link verified.
-STUDY_PLAN.md        A six-week plan mapped to the blueprint weights.
-
+tests.py             Validates a certification's bank, cases, cheat sheets and concepts.
+check_links.py       Verifies every reference URL across all certifications.
+build_md.py          cheatsheet.json  ->  certs/<id>/CHEATSHEET.md
+build_web.py         everything       ->  web/<id>/{simulator,index}.html
 web/template.html    Web simulator source. Edit this, not the generated files.
-web/simulator.html   Generated. For the claude.ai artifact.
-web/index.html       Generated. Standalone document for your own web server.
 
-.history.json        Your progress. Created on first run, gitignored.
+certs/<id>/
+  blueprint.json     Topic areas with weights, plus the exam facts and page copy.
+  concepts.json      Concept taxonomy mapping question tags to diagnosable concepts.
+  cheatsheet.json    Condensed reference; every table row also becomes a flashcard.
+  bank/*.json        Standalone questions, one file per topic area.
+  cases/*.json       Case studies: one scenario, several linked questions.
+  RESOURCES.md       Curated free study material. Every link verified in CI.
+  STUDY_PLAN.md      A study plan mapped to the weights. (ncp-aai)
+  CHEATSHEET.md      Generated. Printable and greppable.
+
+.progress/<id>.json  Your progress, per certification. Gitignored.
 ```
 
-**Content at a glance:** 317 questions (265 single-answer, 52 select-two) · 91 distinct
-primary sources · 206 flashcards across 13 decks · 69 concepts.
+**Content at a glance:** 514 questions across both certifications · 212 verified source
+links · 330 flashcards · 115 concepts.
 
 ---
 
 ## The terminal simulator
 
 ```bash
-./sim.py                              # menu
+./sim.py                              # menu (last certification used)
+./sim.py certs                        # list certifications
+./sim.py -k ibm-genai                 # switch; remembered for next time
 ./sim.py exam                         # timed mock: 60-70 q, 120 min, blueprint-weighted
 ./sim.py exam -n 20                   # short timed mock
 ./sim.py practice                     # 15 q, untimed, explanation after each
@@ -120,7 +156,7 @@ primary sources · 206 flashcards across 13 decks · 69 concepts.
 ./sim.py concepts                     # taxonomy + your accuracy on each
 ./sim.py cram -d safety-ethics-compliance   # every answer + explanation, no quiz
 ./sim.py stats                        # readiness by domain and concept
-./sim.py --reset                      # wipe progress
+./sim.py --reset                      # wipe progress for the current certification
 ```
 
 During a question: `A`–`D` to answer (two letters for select-two, e.g. `AC`), `f` flag,
@@ -242,8 +278,11 @@ WebSocket — and inlines every question, cheat sheet and concept.
 One file:
 
 ```
-web/index.html
+web/<cert-id>/index.html
 ```
+
+One file per certification — `web/ncp-aai/index.html`, `web/ibm-genai/index.html`. They are
+independent pages; host one, the other, or both.
 
 Nothing else. No assets folder, no separate CSS or JS, no images. Every `href`/`src` that
 is not already an absolute URL is a JavaScript template literal that resolves at runtime to
@@ -251,7 +290,7 @@ an https link baked into the data; nothing resolves against disk.
 
 | You want | Upload to | Visitors get |
 |---|---|---|
-| A dedicated page | `/ncp-aai/index.html` | `example.com/ncp-aai/` |
+| A page per certification | `/ncp-aai/index.html` | `example.com/ncp-aai/` |
 | Under an existing section | `/learn/ncp-aai/index.html` | `example.com/learn/ncp-aai/` |
 | A specific filename | `/simulator.html` | `example.com/simulator.html` |
 
@@ -270,8 +309,9 @@ repeat visitors, short enough that an update lands the same day.
 ### Redeploying
 
 ```bash
-python3 build_web.py     # regenerates both web targets
-# re-upload web/index.html
+python3 build_web.py              # all certifications
+python3 build_web.py ibm-genai    # just one
+# re-upload web/<cert-id>/index.html
 ```
 
 Visitor progress lives in their own `localStorage`, keyed by question id, so it survives
@@ -281,8 +321,8 @@ the replacement — adding questions does not reset anyone.
 
 | File | For | Document |
 |---|---|---|
-| `web/simulator.html` | the claude.ai artifact | starts at `<title>` — the platform injects the skeleton |
-| `web/index.html` | your own server | full `<!doctype html>` with charset, viewport, favicon, OG tags |
+| `web/<id>/simulator.html` | the claude.ai artifact | starts at `<title>` — the platform injects the skeleton |
+| `web/<id>/index.html` | your own server | full `<!doctype html>` with charset, viewport, favicon, OG tags |
 
 Serving `simulator.html` directly would render it in **quirks mode** with a guessed
 character encoding and no mobile viewport. Use `index.html` off-platform.
@@ -318,7 +358,7 @@ then the relevant build script.
 
 ### Questions
 
-Append to the relevant `bank/*.json`:
+Append to the relevant `certs/<id>/bank/*.json`:
 
 ```json
 {
@@ -340,7 +380,7 @@ rather than the letter.
 
 ### Case studies
 
-Drop a file in `cases/`, named for its id:
+Drop a file in `certs/<id>/cases/`, named for its id:
 
 ```json
 {
@@ -360,13 +400,14 @@ enforces the id format, the four-choice rule, and a minimum of three linked ques
 
 ### Cheat sheets
 
-`cheatsheet.json` holds sections of typed blocks — `table`, `bullets` or `note`. Every
+`certs/<id>/cheatsheet.json` holds sections of typed blocks — `table`, `bullets` or `note`. Every
 table row automatically becomes a flashcard (first cell asks, the rest answers), so adding
 a row adds a card. Rebuild with `build_md.py` and `build_web.py`.
 
 ### Concepts
 
-`concepts.json` maps free-form question tags onto a fixed set of diagnosable concepts:
+`certs/<id>/concepts.json` maps free-form question tags onto a fixed set of diagnosable
+concepts:
 
 ```json
 { "id": "kv-cache", "name": "KV cache and prefill", "domain": "deployment-scaling",
@@ -386,11 +427,14 @@ has fewer than four questions, since accuracy on such a concept cannot be report
 ## Build and validation
 
 ```bash
-python3 tests.py          # validate bank, cases, cheat sheets, concept taxonomy
-python3 check_links.py    # verify every reference URL resolves
-python3 build_md.py       # regenerate CHEATSHEET.md
-python3 build_web.py      # regenerate web/simulator.html and web/index.html
+python3 tests.py [cert]        # validate bank, cases, cheat sheets, concept taxonomy
+python3 check_links.py         # verify every reference URL, across all certifications
+python3 build_md.py [cert]     # regenerate certs/<id>/CHEATSHEET.md
+python3 build_web.py [cert]    # regenerate web/<id>/{simulator,index}.html
 ```
+
+Omit the certification id and `tests.py` and `build_md.py` act on the current one, while
+`build_web.py` builds them all.
 
 `tests.py` is strict where a mistake would be invisible: duplicate ids, wrong choice
 counts, a `type` that disagrees with its answer count, a `ref` that is not a URL, a
@@ -416,9 +460,13 @@ refuse automated requests while serving browsers normally.
 
 ## Where the questions come from
 
-Every question is original, written against the published blueprint and primary
-documentation. Every explanation links to its source, and all 91 distinct sources are
+Every question is original, written against the published blueprint or course syllabus and
+against primary documentation. Every explanation links to its source, and all 212 links are
 verified in CI.
+
+For the IBM track that means IBM's own topic pages, Hugging Face and PyTorch documentation,
+LangChain concepts and the original papers — never Coursera's own quiz content, which is
+the course's assessment and not ours to reproduce.
 
 Published third-party guides were used as *coverage intelligence* only — to find which
 topics, product names and techniques they report as tested, then to write original items
@@ -454,3 +502,32 @@ thirty minutes of rereading.
 
 Ship it when `./sim.py stats` shows blueprint-weighted accuracy above 80% with every domain
 attempted and no concept below target in a 13–15% topic area.
+
+## Adding a certification
+
+Create `certs/<id>/` with a `blueprint.json` and the tooling picks it up — `certlib.resolve`
+discovers any directory there that has one.
+
+`blueprint.json` carries two things: the topic areas with their weights, and an `exam` block
+holding the facts and the page copy. The web client reads its eyebrow, headline, body text,
+fact tiles and footer note from `exam.ui` and `exam.facts`, so nothing about a certification
+is hard-coded in the template:
+
+```json
+{
+  "exam": {
+    "name": "...", "code": "...", "target_pct": 80,
+    "question_count_min": 50, "question_count_max": 60, "duration_minutes": 90,
+    "facts": [{"label": "Courses", "value": "10 of 16"}],
+    "ui": {"eyebrow": "...", "hero_title": "...", "hero_body": "... {N} questions ...",
+           "footer_note": "..."}
+  },
+  "domains": [{"id": "...", "name": "...", "weight": 14, "prefix": "IA", "scope": "..."}]
+}
+```
+
+`{N}` in `hero_body` is replaced with the question count. Weights should sum to 100; if the
+official figures do not, say so in `weights_note` and the simulator normalizes them.
+
+Then add `bank/`, `cheatsheet.json` and `concepts.json`, run `tests.py <id>`, and build. The
+case-studies tab hides itself automatically when a certification has no `cases/`.

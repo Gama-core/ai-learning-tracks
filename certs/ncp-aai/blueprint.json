@@ -12,7 +12,36 @@
     "delivery": "Online, remotely proctored (Certiverse)",
     "passing_score_note": "NVIDIA does not publish the cut score. Community reports cluster around 70-75%. This simulator defaults to 75% so you train with margin.",
     "source": "https://www.nvidia.com/en-us/learn/certification/agentic-ai-professional/",
-    "weights_note": "NVIDIA's published percentages sum to 98%. The simulator normalizes them to 100% when building an exam."
+    "weights_note": "NVIDIA's published percentages sum to 98%. The simulator normalizes them to 100% when building an exam.",
+    "facts": [
+      {
+        "label": "Questions",
+        "value": "60–70"
+      },
+      {
+        "label": "Minutes",
+        "value": "120"
+      },
+      {
+        "label": "Target",
+        "value": "75%"
+      },
+      {
+        "label": "Fee",
+        "value": "$200"
+      },
+      {
+        "label": "Valid",
+        "value": "2 yr"
+      }
+    ],
+    "ui": {
+      "eyebrow": "NVIDIA-Certified Professional",
+      "hero_title": "Train against the published blueprint, not a guess at it.",
+      "hero_body": "Every mock exam here is apportioned across the ten official topic areas in their real proportions, so a weak 15% domain costs you what it would cost you on exam day. {N} questions, each with the reasoning and a primary source.",
+      "footer_note": "Topic weights are NVIDIA's published figures, which sum to 98%; sets are apportioned on the normalized shares. Target of 75% is this tool's own margin — NVIDIA does not publish a cut score."
+    },
+    "target_pct": 75
   },
   "domains": [
     {

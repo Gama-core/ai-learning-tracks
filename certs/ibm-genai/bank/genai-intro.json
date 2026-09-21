@@ -1,0 +1,389 @@
+{
+  "domain": "genai-intro",
+  "questions": [
+    {
+      "id": "GA-001",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "What distinguishes a generative model from a discriminative one?",
+      "choices": [
+        "A generative model learns to produce new samples resembling its training distribution; a discriminative model learns a boundary between classes",
+        "A generative model is always larger",
+        "A discriminative model cannot be trained on text",
+        "A generative model requires no training data"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Discriminative models answer 'which class is this?' by learning the boundary between categories. Generative models learn the distribution itself well enough to draw new samples from it, which is why they can write text or synthesise images rather than only labelling them.",
+      "tags": [
+        "generative-vs-discriminative",
+        "definitions"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "GA-002",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In a generative adversarial network, what is the discriminator's role during training?",
+      "choices": [
+        "It generates candidate samples for the generator to refine",
+        "It judges whether a sample is real or produced by the generator, providing the signal the generator learns from",
+        "It compresses inputs into a latent representation",
+        "It adds noise to the training data"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A GAN trains two networks against each other: the generator produces candidates and the discriminator tries to tell them from real data. The discriminator's judgement is the generator's training signal, and the two improve together. Compression into a latent space describes an autoencoder, not a GAN.",
+      "tags": [
+        "gan",
+        "discriminator",
+        "generator",
+        "architectures"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "GA-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What characterises a variational autoencoder (VAE) compared with a plain autoencoder?",
+      "choices": [
+        "It has no decoder",
+        "It encodes inputs to a probability distribution over the latent space rather than a single point, so the space can be sampled to generate new data",
+        "It uses convolution instead of dense layers",
+        "It trains without a loss function"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A plain autoencoder maps each input to one latent point, leaving the space between points undefined. A VAE encodes to a distribution and regularises it toward a known prior, so sampling anywhere in the latent space decodes to something plausible. That is what makes a VAE generative.",
+      "tags": [
+        "vae",
+        "autoencoder",
+        "latent-space",
+        "architectures"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "GA-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "How does a diffusion model generate an image?",
+      "choices": [
+        "By assembling the image from a library of stored patches",
+        "By learning to reverse a gradual noising process, starting from pure noise and denoising step by step toward an image",
+        "By competing against a discriminator network",
+        "By directly predicting all pixels in a single forward pass"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Diffusion models are trained on a forward process that progressively corrupts data into noise, and learn to invert it. Generation runs that reverse process from random noise, denoising iteratively. The iterative nature explains both their sample quality and their comparatively slow inference.",
+      "tags": [
+        "diffusion",
+        "image-generation",
+        "architectures"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "GA-005",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO are realistic current capabilities of generative AI as presented in the course?",
+      "choices": [
+        "Producing draft code from a natural-language description",
+        "Generating synthetic data to supplement a small training set",
+        "Guaranteeing factual accuracy without external grounding",
+        "Independently setting and pursuing its own business objectives"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Code drafting and synthetic data generation are established, practical uses. Factual guarantees are precisely what generative models cannot give without retrieval or verification, and autonomous goal-setting describes a capability no current system has.",
+      "tags": [
+        "capabilities",
+        "code-generation",
+        "synthetic-data",
+        "limitations"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "GA-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is a hallucination in the context of a large language model?",
+      "choices": [
+        "The model refuses to answer",
+        "The model produces fluent, confident output that is factually wrong or unsupported",
+        "The model outputs the same text repeatedly",
+        "The model returns an error"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A hallucination is plausible-sounding content with no basis in fact or in any provided source. It arises because the model is optimised to produce likely continuations, not true ones — fluency and truth are different objectives. This is why grounding with retrieval matters.",
+      "tags": [
+        "hallucination",
+        "limitations",
+        "factuality"
+      ],
+      "ref": "https://www.ibm.com/topics/ai-hallucinations"
+    },
+    {
+      "id": "GA-007",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A company wants a model to draft product descriptions in its own house style. Which is the most proportionate first approach?",
+      "choices": [
+        "Pre-train a new foundation model from scratch",
+        "Prompt an existing model with clear instructions and a few examples of the house style",
+        "Fine-tune on a million examples",
+        "Build a GAN"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Prompting with a handful of style examples is fast, free of training cost and reversible, and it very often suffices for a stylistic requirement. Only if it proves inadequate at volume does fine-tuning become worth its cost; pre-training from scratch is never proportionate for this.",
+      "tags": [
+        "prompting-first",
+        "proportionality",
+        "intervention-choice"
+      ],
+      "ref": "https://www.ibm.com/topics/prompt-engineering"
+    },
+    {
+      "id": "GA-008",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "What is a foundation model?",
+      "choices": [
+        "A model trained on broad data at scale that can be adapted to many downstream tasks",
+        "A model that runs only on a local machine",
+        "The first model a team trains on a project",
+        "A model with fewer than one billion parameters"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The defining property is breadth plus adaptability: trained once on large, general data, then adapted to many specific tasks by prompting or fine-tuning. This is what shifted the field from building a bespoke model per task to adapting a shared base.",
+      "tags": [
+        "foundation-models",
+        "definitions",
+        "adaptation"
+      ],
+      "ref": "https://www.ibm.com/topics/foundation-models"
+    },
+    {
+      "id": "GA-009",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO risks does the course associate specifically with generative AI rather than machine learning generally?",
+      "choices": [
+        "Convincing misinformation produced at scale and low cost",
+        "Uncertainty about the provenance and copyright status of generated content",
+        "Overfitting to the training set",
+        "Class imbalance in the labels"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Both risks follow from the ability to produce novel, plausible content: misinformation becomes cheap to manufacture, and outputs derived from training data raise unresolved provenance and rights questions. Overfitting and class imbalance are longstanding concerns across all supervised learning.",
+      "tags": [
+        "risks",
+        "misinformation",
+        "copyright",
+        "provenance"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "GA-010",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which application is a poor fit for a generative model used on its own?",
+      "choices": [
+        "Summarising a long document into key points",
+        "Drafting marketing copy variations",
+        "Returning the current balance of a customer's account",
+        "Rewriting text into a different tone"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "A precise, current, verifiable fact must come from a system of record, not from a model that produces likely text. Summarising, drafting and rewriting are transformations of provided or learned language, which is what generative models do well. Answering the balance question requires a tool call.",
+      "tags": [
+        "use-case-fit",
+        "limitations",
+        "system-of-record"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "GA-011",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why does the same prompt sent twice to the same model sometimes return different answers?",
+      "choices": [
+        "The model weights change between calls",
+        "Generation samples from a probability distribution over next tokens, so settings such as temperature introduce randomness",
+        "The prompt is tokenised differently each time",
+        "The model retrains on each request"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Decoding chooses each token from a distribution, and any sampling temperature above zero makes that choice stochastic. Weights are fixed at inference and tokenisation is deterministic. This variability is why reproducibility in generative systems needs fixed seeds or greedy decoding, and even then is not guaranteed across versions.",
+      "tags": [
+        "sampling",
+        "temperature",
+        "determinism",
+        "decoding"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "GA-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does 'multimodal' mean for a generative model?",
+      "choices": [
+        "It can be deployed in multiple cloud regions",
+        "It accepts or produces more than one type of data, such as text together with images or audio",
+        "It has multiple layers",
+        "It supports multiple languages"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Modality refers to the type of data — text, image, audio, video. A multimodal model handles more than one, for example describing a photograph or generating an image from a caption. Multiple languages is still a single modality, and layer count and deployment topology are unrelated.",
+      "tags": [
+        "multimodal",
+        "definitions",
+        "modalities"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "GA-013",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement about generative AI in software development is accurate?",
+      "choices": [
+        "It removes the need for testing because generated code is correct by construction",
+        "It accelerates drafting and boilerplate, but generated code still requires review and testing because it can be subtly wrong",
+        "It can only generate comments, not code",
+        "It works only for Python"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Generated code compiles and reads plausibly while containing logic errors, insecure patterns or calls to APIs that do not exist. The productivity gain is real but is realised in drafting; review and testing remain necessary, arguably more so because plausible-looking code invites less scrutiny.",
+      "tags": [
+        "code-generation",
+        "review",
+        "limitations"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "GA-014",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "An organisation is deciding whether to send prompts containing customer data to a hosted generative API. What is the central question?",
+      "choices": [
+        "Whether the API is fast enough",
+        "What the provider does with submitted data — retention, use for training, and where it is processed — measured against the organisation's obligations",
+        "Whether the model has enough parameters",
+        "Whether the API returns JSON"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Sending data to a third party is a data-governance decision before it is a technical one: retention periods, whether submissions train future models, and processing location determine whether the use is lawful. Performance and response format matter, but they do not determine whether you are permitted to make the call.",
+      "tags": [
+        "data-governance",
+        "privacy",
+        "hosted-api",
+        "compliance"
+      ],
+      "ref": "https://www.ibm.com/topics/ai-governance"
+    },
+    {
+      "id": "GA-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the relationship between a large language model and a transformer?",
+      "choices": [
+        "They are unrelated",
+        "A transformer is the neural network architecture most large language models are built on",
+        "A large language model is a kind of transformer hardware",
+        "Transformers replaced large language models"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The transformer is an architecture introduced for sequence modelling; large language models are models of language built using it at scale. Nearly every prominent LLM — GPT, BERT, T5, LLaMA — is a transformer variant, which is why understanding attention is foundational.",
+      "tags": [
+        "transformers",
+        "llm",
+        "architectures",
+        "definitions"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "GA-016",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which best describes prompt engineering's role relative to model training?",
+      "choices": [
+        "It replaces training entirely for all tasks",
+        "It steers an already-trained model's behaviour at inference time without changing its weights",
+        "It is a stage of training that adjusts weights",
+        "It is only useful for image models"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Prompt engineering operates entirely at inference: the weights are fixed and the prompt shapes which of the model's learned behaviours are elicited. That is why it is cheap and instantly reversible, and also why it cannot install a capability the model does not already have.",
+      "tags": [
+        "prompt-engineering",
+        "inference-time",
+        "definitions"
+      ],
+      "ref": "https://www.ibm.com/topics/prompt-engineering"
+    },
+    {
+      "id": "GA-017",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Before sending prompts containing personal data to a third-party model API, which TWO questions must be answered?",
+      "choices": [
+        "Whether submitted data is retained, and for how long",
+        "Whether submissions are used to train the provider's future models",
+        "Whether the API supports streaming",
+        "Whether the model is open weight"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Retention and training use determine whether the transfer is lawful and whether the data could resurface elsewhere. Both are contractual facts to establish before the first call, not technical features. Streaming and licensing matter for engineering, not for permission.",
+      "tags": [
+        "data-governance",
+        "privacy",
+        "hosted-api",
+        "compliance"
+      ],
+      "ref": "https://www.ibm.com/topics/ai-governance"
+    }
+  ]
+}

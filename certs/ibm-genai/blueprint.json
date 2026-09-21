@@ -1,0 +1,144 @@
+{
+  "exam": {
+    "name": "IBM Generative AI Engineering Professional Certificate",
+    "code": "IBM-GENAI",
+    "level": "Professional Certificate (Coursera, self-paced)",
+    "duration_minutes": 90,
+    "question_count_min": 50,
+    "question_count_max": 60,
+    "price_usd": 49,
+    "language": "English",
+    "validity_years": 0,
+    "delivery": "Coursera, self-paced · graded quizzes per module plus a capstone project",
+    "passing_score_note": "Coursera graded quizzes generally require 70-80% to pass and can be retaken. This simulator targets 80%, above the usual bar, because a retakeable quiz measures less than an unseen one.",
+    "source": "https://www.coursera.org/professional-certificates/ibm-generative-ai-engineering",
+    "weights_note": "This certificate publishes no exam blueprint — it is 16 courses, not one exam. Topic weights here are each course's share of the covered hours.",
+    "scope_note": "Covers the 10 generative-AI courses (1-3 and 10-16), 91 of the certificate's 168 hours. The Python, Flask, Pandas, scikit-learn and Keras block (courses 4-9) is excluded: it teaches library work that multiple choice tests poorly.",
+    "facts": [
+      {
+        "label": "Courses",
+        "value": "10 of 16"
+      },
+      {
+        "label": "Hours",
+        "value": "91"
+      },
+      {
+        "label": "Practice set",
+        "value": "50–60"
+      },
+      {
+        "label": "Target",
+        "value": "80%"
+      },
+      {
+        "label": "Cost",
+        "value": "$49/mo"
+      },
+      {
+        "label": "Expires",
+        "value": "Never"
+      }
+    ],
+    "ui": {
+      "eyebrow": "IBM · Coursera Professional Certificate",
+      "hero_title": "Ten courses, ninety-one hours, one question bank.",
+      "hero_body": "The certificate has no cumulative exam, so practice sets here are weighted by each course's share of the hours. {N} questions across prompt engineering, transformer internals, fine-tuning and RAG — each with the reasoning and a primary source.",
+      "footer_note": "No published exam blueprint exists: this is 16 courses, not one exam. Weights are each course's share of the 91 covered hours. The 80% target is this tool's own bar — Coursera quizzes are retakeable and typically pass at 70-80%."
+    },
+    "target_pct": 80
+  },
+  "domains": [
+    {
+      "id": "intro-ai",
+      "name": "Introduction to Artificial Intelligence",
+      "course": 1,
+      "hours": 13,
+      "weight": 14,
+      "prefix": "IA",
+      "scope": "What AI is and is not, machine learning vs deep learning vs generative AI, supervised and unsupervised learning, use cases across industries, AI ethics and bias, the AI project lifecycle, and IBM watsonx positioning."
+    },
+    {
+      "id": "genai-intro",
+      "name": "Generative AI: Introduction and Applications",
+      "course": 2,
+      "hours": 8,
+      "weight": 9,
+      "prefix": "GA",
+      "scope": "Generative vs discriminative models, capabilities across text, image, audio, code and data, common generative architectures, real-world applications by sector, and the tool landscape."
+    },
+    {
+      "id": "prompt-engineering",
+      "name": "Prompt Engineering Basics",
+      "course": 3,
+      "hours": 10,
+      "weight": 11,
+      "prefix": "PE",
+      "scope": "Prompt anatomy and best practices, zero-shot and few-shot prompting, chain-of-thought, self-consistency, interview-pattern and persona prompting, and prompt engineering tools."
+    },
+    {
+      "id": "llm-architecture",
+      "name": "LLM Architecture and Data Preparation",
+      "course": 10,
+      "hours": 6,
+      "weight": 7,
+      "prefix": "LA",
+      "scope": "Generative architectures (GANs, VAEs, diffusion, transformers), GPT vs BERT, tokenization with NLTK, spaCy, BertTokenizer and XLNetTokenizer, PyTorch Dataset and DataLoader, custom collate functions, and data quality for training."
+    },
+    {
+      "id": "nlp-foundations",
+      "name": "Foundational Models for NLP and Language Understanding",
+      "course": 11,
+      "hours": 10,
+      "weight": 11,
+      "prefix": "NF",
+      "scope": "One-hot encoding, bag of words, embeddings and embedding bags, word2vec, N-gram and sequence-to-sequence language models, RNNs and their limits, encoder-decoder models with PyTorch, and evaluation metrics for generated text."
+    },
+    {
+      "id": "transformers",
+      "name": "Language Modeling with Transformers",
+      "course": 12,
+      "hours": 9,
+      "weight": 10,
+      "prefix": "TR",
+      "scope": "Positional encoding, attention and scaled dot-product self-attention, multi-head attention, encoder stacks for classification, decoder stacks and causal language modeling, BERT pretraining via masked language modeling and next sentence prediction, and translation."
+    },
+    {
+      "id": "finetuning",
+      "name": "Engineering and Fine-Tuning Transformers",
+      "course": 13,
+      "hours": 8,
+      "weight": 9,
+      "prefix": "FT",
+      "scope": "Hugging Face pipelines, tokenizers, models and Trainer, full fine-tuning versus feature extraction, adapting pretrained models to downstream tasks in PyTorch, parameter-efficient methods including LoRA, and when each is appropriate."
+    },
+    {
+      "id": "advanced-finetuning",
+      "name": "Advanced Fine-Tuning for LLMs",
+      "course": 14,
+      "hours": 9,
+      "weight": 10,
+      "prefix": "AF",
+      "scope": "Instruction tuning, reward modelling and reward trainers, LLMs as probabilistic policies, RLHF, proximal policy optimization and its configuration, and direct preference optimization with its partition-function reasoning."
+    },
+    {
+      "id": "rag-langchain",
+      "name": "AI Agents with RAG and LangChain",
+      "course": 15,
+      "hours": 9,
+      "weight": 10,
+      "prefix": "RL",
+      "scope": "What distinguishes an agent, tool calling, the RAG process end to end, dense passage retrieval with context and question encoders, FAISS similarity search, and LangChain components: chat models, prompt templates, example selectors, output parsers, document loaders, retrievers, chains and agents."
+    },
+    {
+      "id": "capstone",
+      "name": "Project: Applications with RAG and LangChain",
+      "course": 16,
+      "hours": 9,
+      "weight": 9,
+      "prefix": "PJ",
+      "scope": "Loading and splitting documents, configuring a vector store, embedding documents, building a retriever, wiring a QA chain, and putting a Gradio interface in front of it. Integration decisions rather than new theory.",
+      "note": "A build project. These questions cover the decisions it forces; they are not a substitute for building it."
+    }
+  ]
+}

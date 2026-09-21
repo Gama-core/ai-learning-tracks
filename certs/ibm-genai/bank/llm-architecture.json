@@ -1,0 +1,372 @@
+{
+  "domain": "llm-architecture",
+  "questions": [
+    {
+      "id": "LA-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which generative architecture is best suited to high-fidelity image synthesis through iterative refinement?",
+      "choices": [
+        "Recurrent neural network",
+        "Diffusion model",
+        "Bag-of-words model",
+        "Support vector machine"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Diffusion models generate by reversing a learned noising process step by step, which produces high-quality images at the cost of many forward passes. RNNs model sequences, and bag-of-words and SVMs are not generative architectures for images at all.",
+      "tags": [
+        "diffusion",
+        "architectures",
+        "image-generation"
+      ],
+      "ref": "https://www.ibm.com/topics/generative-ai"
+    },
+    {
+      "id": "LA-002",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the architectural difference between GPT-style and BERT-style models?",
+      "choices": [
+        "GPT is a decoder stack trained to predict the next token; BERT is an encoder stack trained with masked language modelling to build bidirectional representations",
+        "GPT uses attention and BERT does not",
+        "BERT is larger than GPT by definition",
+        "GPT cannot be fine-tuned"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The split is causal versus bidirectional. GPT attends only to previous tokens, which suits generation. BERT sees the whole sequence and is trained by predicting masked tokens, which suits understanding tasks like classification and extraction but makes it unsuitable for free generation.",
+      "tags": [
+        "gpt",
+        "bert",
+        "encoder-decoder",
+        "architectures"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "LA-003",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "What does tokenisation do?",
+      "choices": [
+        "Encrypts the text before training",
+        "Splits raw text into the discrete units the model actually consumes, then maps them to integer ids",
+        "Removes stop words",
+        "Translates text into English"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A model cannot consume characters directly: tokenisation segments text into units — words, subwords or characters — and maps each to an id in the vocabulary. Every downstream length, cost and context-window calculation is measured in these units, not in words.",
+      "tags": [
+        "tokenisation",
+        "preprocessing",
+        "fundamentals"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/tokenizer_summary"
+    },
+    {
+      "id": "LA-004",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO statements about subword tokenisation are correct?",
+      "choices": [
+        "It lets the model represent a word it has never seen by composing known pieces",
+        "It keeps the vocabulary far smaller than one entry per word would require",
+        "It guarantees one token per word",
+        "It removes the need for an unknown-token symbol in every design"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Subword schemes such as WordPiece and byte-pair encoding split rare words into familiar fragments, which handles unseen vocabulary and keeps the embedding table manageable. A common word may be one token while a rare one becomes several, so the one-token-per-word assumption is exactly what subword tokenisation abandons.",
+      "tags": [
+        "subword",
+        "bpe",
+        "wordpiece",
+        "vocabulary"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/tokenizer_summary"
+    },
+    {
+      "id": "LA-005",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "You tokenise the same sentence with BertTokenizer and with XLNetTokenizer and get different token counts. Why?",
+      "choices": [
+        "One of them is faulty",
+        "Each tokenizer implements a different algorithm and carries its own vocabulary, so the segmentation differs",
+        "The sentence contains an error",
+        "Token counts depend on the GPU"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A tokenizer is part of the model it was trained with: BERT uses WordPiece, XLNet uses SentencePiece with a different vocabulary and special tokens. That is why you must always pair a model with its own tokenizer — using another model's tokenizer produces ids that mean something else entirely.",
+      "tags": [
+        "tokenizers",
+        "bert",
+        "xlnet",
+        "model-pairing"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/tokenizer_summary"
+    },
+    {
+      "id": "LA-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In PyTorch, what is the role of a Dataset compared with a DataLoader?",
+      "choices": [
+        "Dataset defines how to access one example; DataLoader handles batching, shuffling and parallel loading over it",
+        "Dataset trains the model; DataLoader evaluates it",
+        "They are interchangeable",
+        "DataLoader stores the data and Dataset iterates it"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "A Dataset implements __len__ and __getitem__, answering 'how many items are there and how do I fetch item i'. A DataLoader wraps it to produce batches, optionally shuffled and loaded by worker processes. Separating the two keeps data access independent of how it is fed to training.",
+      "tags": [
+        "pytorch",
+        "dataset",
+        "dataloader",
+        "data-pipeline"
+      ],
+      "ref": "https://pytorch.org/docs/stable/data.html"
+    },
+    {
+      "id": "LA-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your NLP batches contain sequences of different lengths and stacking them fails. What is the standard fix?",
+      "choices": [
+        "Truncate every sequence to the shortest in the dataset",
+        "Supply a custom collate function to the DataLoader that pads sequences in each batch to a common length",
+        "Set batch size to one",
+        "Sort the dataset alphabetically"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A collate function decides how a list of individual samples becomes one batched tensor, and for variable-length text that means padding to the longest item in that batch. Padding per batch rather than across the dataset wastes far less compute. Truncating to the shortest destroys data and batch size one abandons throughput.",
+      "tags": [
+        "collate-fn",
+        "padding",
+        "dataloader",
+        "variable-length"
+      ],
+      "ref": "https://pytorch.org/docs/stable/data.html"
+    },
+    {
+      "id": "LA-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is an attention mask passed alongside padded input ids?",
+      "choices": [
+        "To tell the model which positions are real tokens and which are padding, so padding does not influence the result",
+        "To hide the labels during training",
+        "To mask out the most frequent words",
+        "To reduce the vocabulary size"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Padding tokens exist only to square off the tensor and carry no meaning. The attention mask marks them so attention skips them; without it the model attends to padding and the output depends on batch composition, which is a subtle and hard-to-trace bug.",
+      "tags": [
+        "attention-mask",
+        "padding",
+        "batching"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/glossary"
+    },
+    {
+      "id": "LA-009",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO properties make a training corpus suitable for a language model?",
+      "choices": [
+        "Diversity across domains, registers and sources rather than one narrow slice",
+        "Cleanliness: deduplicated, with boilerplate and corrupted text removed",
+        "Being as large as possible regardless of quality",
+        "Containing only text from a single author for consistency"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Diversity determines what the model can generalise to, and cleanliness determines how much of its capacity is spent modelling noise; duplicates in particular cause memorisation. Scale matters but does not redeem bad data, and a single-source corpus produces a model that reproduces one voice and little else.",
+      "tags": [
+        "data-quality",
+        "diversity",
+        "deduplication",
+        "corpus"
+      ],
+      "ref": "https://www.ibm.com/topics/large-language-models"
+    },
+    {
+      "id": "LA-010",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does NLTK provide that a model-specific tokenizer such as BertTokenizer does not?",
+      "choices": [
+        "Faster GPU tokenisation",
+        "General linguistic tooling — word and sentence segmentation, stemming, stop-word lists — independent of any particular model",
+        "A larger vocabulary",
+        "Support for subword units"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "NLTK and spaCy are general NLP toolkits offering linguistically motivated processing useful for analysis and classical pipelines. A model tokenizer exists to produce exactly the ids its model was trained on. They serve different purposes, and only the latter is correct for feeding a transformer.",
+      "tags": [
+        "nltk",
+        "spacy",
+        "tokenisation",
+        "tooling"
+      ],
+      "ref": "https://www.nltk.org/"
+    },
+    {
+      "id": "LA-011",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A dataset of 100,000 documents is loaded into memory as one list of strings before training, and the job runs out of memory. What is the idiomatic PyTorch remedy?",
+      "choices": [
+        "Reduce the batch size",
+        "Implement a Dataset that reads each document from disk in __getitem__, so only the batches in flight are resident",
+        "Use a larger machine",
+        "Convert the strings to bytes"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The Dataset abstraction exists precisely so data can be fetched lazily per item; combined with DataLoader workers this streams from disk and keeps memory proportional to batch size rather than corpus size. Reducing batch size does not help when the whole corpus is already resident before training begins.",
+      "tags": [
+        "dataset",
+        "lazy-loading",
+        "memory",
+        "pytorch"
+      ],
+      "ref": "https://pytorch.org/docs/stable/data.html"
+    },
+    {
+      "id": "LA-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is a context window?",
+      "choices": [
+        "The time limit for a request",
+        "The maximum number of tokens the model can attend to in one forward pass, covering prompt and generated output together",
+        "The number of documents retrieved",
+        "The size of the training corpus"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The context window bounds the total token count the model can process at once, shared between input and output. Exceeding it forces truncation, which is why long-document work needs chunking, summarisation or retrieval rather than simply sending more text.",
+      "tags": [
+        "context-window",
+        "tokens",
+        "limits"
+      ],
+      "ref": "https://www.ibm.com/topics/large-language-models"
+    },
+    {
+      "id": "LA-013",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why might you choose a smaller model over a larger one for a production task?",
+      "choices": [
+        "Smaller models are always more accurate",
+        "Latency, memory and cost scale with size, and a smaller model that meets the quality bar for a narrow task is cheaper to serve",
+        "Smaller models cannot be fine-tuned",
+        "Larger models cannot run on GPUs"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Model size is a cost decision as much as a quality one. If a small model, possibly fine-tuned, clears the quality bar for a bounded task, it serves faster and cheaper at scale. The engineering question is not which model is best but which is sufficient.",
+      "tags": [
+        "model-selection",
+        "cost",
+        "latency",
+        "sizing"
+      ],
+      "ref": "https://www.ibm.com/topics/large-language-models"
+    },
+    {
+      "id": "LA-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is deduplication an important step when preparing a pretraining corpus?",
+      "choices": [
+        "It reduces disk cost only",
+        "Repeated passages are memorised rather than generalised from, which wastes capacity and increases the chance the model reproduces training text verbatim",
+        "It improves tokenizer speed",
+        "It balances the class labels"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Duplicated text is effectively upweighted, pushing the model toward memorisation of those exact passages. That wastes capacity and creates a privacy and copyright exposure when the model regurgitates them. Deduplication is one of the highest-value cleaning steps in corpus preparation.",
+      "tags": [
+        "deduplication",
+        "corpus",
+        "data-quality",
+        "memorisation"
+      ],
+      "ref": "https://www.ibm.com/topics/large-language-models"
+    },
+    {
+      "id": "LA-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A corpus is assembled entirely from one technical forum. What is the likely consequence for the resulting model?",
+      "choices": [
+        "It will generalise well to all domains",
+        "It will reproduce that community's register, assumptions and blind spots, and perform poorly outside them",
+        "It will train faster with no downside",
+        "It will have a smaller vocabulary but equal capability"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A model can only generalise across the variation its corpus contains. A single-source corpus teaches one register and one set of assumptions, so the model transfers poorly and inherits whatever biases that community holds. Diversity across domains and registers is what buys breadth.",
+      "tags": [
+        "diversity",
+        "corpus",
+        "data-quality",
+        "bias"
+      ],
+      "ref": "https://www.ibm.com/topics/large-language-models"
+    },
+    {
+      "id": "LA-016",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO checks would you run over a scraped corpus before training on it?",
+      "choices": [
+        "Remove boilerplate such as navigation, cookie banners and repeated headers",
+        "Filter for language and quality so the corpus is not dominated by machine-generated or corrupted text",
+        "Sort documents alphabetically",
+        "Truncate every document to the same length"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Scraped text arrives wrapped in template furniture and mixed with low-quality or generated content, both of which the model would otherwise learn to imitate. Sorting changes nothing about content, and truncating to a uniform length destroys documents rather than cleaning them.",
+      "tags": [
+        "corpus",
+        "data-quality",
+        "cleaning",
+        "diversity"
+      ],
+      "ref": "https://www.ibm.com/topics/large-language-models"
+    }
+  ]
+}

@@ -1,0 +1,512 @@
+{
+  "domain": "finetuning",
+  "questions": [
+    {
+      "id": "FT-001",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "What does a Hugging Face pipeline give you?",
+      "choices": [
+        "A training loop for custom models",
+        "A high-level wrapper that bundles tokenizer, model and post-processing for a task so a few lines produce predictions",
+        "A dataset hosting service",
+        "A GPU scheduler"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "pipeline() hides the tokenise, forward-pass and decode steps behind a single callable for common tasks such as classification, generation and question answering. It is the fastest route to a working prediction and the wrong tool once you need control over any of those steps.",
+      "tags": [
+        "huggingface",
+        "pipeline",
+        "inference",
+        "abstraction"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/main_classes/pipelines"
+    },
+    {
+      "id": "FT-002",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why must AutoTokenizer be loaded from the same checkpoint as AutoModel?",
+      "choices": [
+        "To keep the download size small",
+        "Because the tokenizer's vocabulary and special tokens define the id space the model's embeddings were trained on; a mismatch produces ids that mean something different",
+        "Because the API requires identical strings",
+        "Because otherwise training cannot start"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Token ids are meaningful only relative to the vocabulary that produced them. Pairing a model with another model's tokenizer silently feeds it the wrong embeddings — the code runs and the output is nonsense, which makes it a particularly costly mistake to debug.",
+      "tags": [
+        "autotokenizer",
+        "automodel",
+        "checkpoint-pairing",
+        "vocabulary"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/autoclass_tutorial"
+    },
+    {
+      "id": "FT-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the difference between feature extraction and full fine-tuning when adapting a pretrained model?",
+      "choices": [
+        "Feature extraction freezes the pretrained weights and trains only a new head; full fine-tuning updates all weights",
+        "Feature extraction requires more data",
+        "Full fine-tuning cannot use a GPU",
+        "They produce identical results"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Feature extraction treats the backbone as a fixed representation generator and learns only the task head, which is fast and resistant to overfitting on small data. Full fine-tuning lets the representation itself adapt, which is more powerful and needs more data and compute to avoid degrading what was pretrained.",
+      "tags": [
+        "feature-extraction",
+        "full-finetuning",
+        "freezing",
+        "transfer-learning"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/training"
+    },
+    {
+      "id": "FT-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "You have 800 labelled examples for a domain classification task. Which adaptation strategy is most appropriate?",
+      "choices": [
+        "Pretrain a new model from scratch",
+        "Fine-tune a pretrained encoder, or freeze it and train a classification head, given the small dataset",
+        "Train a bag-of-words model only",
+        "Use an untrained transformer"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Eight hundred examples is far too few to learn language from scratch but ample to adapt a model that already has it. With data this limited, freezing the backbone or fine-tuning gently with a low learning rate guards against destroying pretrained knowledge.",
+      "tags": [
+        "transfer-learning",
+        "small-data",
+        "strategy",
+        "fine-tuning"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/training"
+    },
+    {
+      "id": "FT-005",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does the Hugging Face Trainer class handle for you?",
+      "choices": [
+        "Only the forward pass",
+        "The training loop: batching, optimiser and scheduler steps, gradient accumulation, evaluation, checkpointing and logging",
+        "Tokenisation only",
+        "Model architecture design"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Trainer encapsulates the boilerplate around a training run, configured through TrainingArguments. It saves writing a loop by hand while still allowing customisation through callbacks and subclassing, which is the usual reason to reach past it.",
+      "tags": [
+        "trainer",
+        "training-loop",
+        "huggingface",
+        "trainingarguments"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/main_classes/trainer"
+    },
+    {
+      "id": "FT-006",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO TrainingArguments settings most directly address a GPU out-of-memory error during fine-tuning?",
+      "choices": [
+        "Reduce per_device_train_batch_size",
+        "Raise gradient_accumulation_steps to keep the effective batch size while holding fewer examples in memory at once",
+        "Increase num_train_epochs",
+        "Increase learning_rate"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Memory scales with the batch actually resident on the device, so shrinking it is the direct fix; gradient accumulation then restores the effective batch size by summing gradients over several small steps before updating. Epoch count and learning rate affect how long and how aggressively you train, not peak memory.",
+      "tags": [
+        "out-of-memory",
+        "batch-size",
+        "gradient-accumulation",
+        "training-arguments"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/perf_train_gpu_one"
+    },
+    {
+      "id": "FT-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "After fine-tuning on a narrow domain, the model's general language ability noticeably degrades. What is this and how is it usually mitigated?",
+      "choices": [
+        "Overfitting to the validation set; use early stopping only",
+        "Catastrophic forgetting; mix general data back into the fine-tuning set and use a lower learning rate or fewer epochs",
+        "Data leakage; deduplicate the training set",
+        "Vanishing gradients; add residual connections"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Training exclusively on a narrow distribution shifts the weights away from behaviours receiving no gradient signal. Replaying general instruction data keeps those capabilities reinforced, and a smaller learning rate limits how far the model can drift. Measuring general capability before and after is what makes the loss visible at all.",
+      "tags": [
+        "catastrophic-forgetting",
+        "replay-data",
+        "learning-rate",
+        "regression"
+      ],
+      "ref": "https://www.ibm.com/topics/fine-tuning"
+    },
+    {
+      "id": "FT-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the core idea of low-rank adaptation (LoRA)?",
+      "choices": [
+        "Quantising the base weights to four bits",
+        "Freezing the pretrained weights and learning a small pair of low-rank matrices whose product is added to selected weight matrices",
+        "Removing layers from the model",
+        "Training only the final layer"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "LoRA assumes the update needed for adaptation has low intrinsic rank, so it learns two thin matrices instead of a full-rank update. The base model stays frozen, the trainable parameter count drops by orders of magnitude, and the adapter can be swapped or merged. Four-bit quantisation of the base is QLoRA, a complementary idea.",
+      "tags": [
+        "lora",
+        "low-rank",
+        "peft",
+        "adapters"
+      ],
+      "ref": "https://huggingface.co/docs/peft/conceptual_guides/lora"
+    },
+    {
+      "id": "FT-009",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO are genuine advantages of LoRA over full fine-tuning?",
+      "choices": [
+        "Far less memory is needed because optimiser state is kept only for the small adapter parameters",
+        "Many task-specific adapters can share one frozen base model at serving time",
+        "It always achieves higher accuracy than full fine-tuning",
+        "It removes the need for a validation set"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Optimiser state dominates fine-tuning memory and scales with trainable parameters, so LoRA's reduction is large. Because the base is untouched, one loaded copy can serve many adapters. Accuracy is usually close to full fine-tuning but not reliably better, and evaluation discipline is unchanged.",
+      "tags": [
+        "lora",
+        "memory",
+        "multi-adapter",
+        "serving"
+      ],
+      "ref": "https://huggingface.co/docs/peft/conceptual_guides/lora"
+    },
+    {
+      "id": "FT-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What does the rank hyperparameter r control in LoRA, and what is the trade-off?",
+      "choices": [
+        "The number of layers adapted; higher r adapts more layers",
+        "The dimension of the low-rank update; higher r gives more adaptation capacity at the cost of more trainable parameters and a greater risk of overfitting small datasets",
+        "The learning rate schedule",
+        "The quantisation precision"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "r sets the inner dimension of the two learned matrices and so the expressiveness of the update. Small r is cheap and regularising but may underfit a substantial behavioural change; large r approaches full fine-tuning in both capacity and its failure modes. Which layers are adapted is a separate configuration choice.",
+      "tags": [
+        "lora-rank",
+        "hyperparameters",
+        "capacity",
+        "overfitting"
+      ],
+      "ref": "https://huggingface.co/docs/peft/conceptual_guides/lora"
+    },
+    {
+      "id": "FT-011",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "When fine-tuning a classification model, why is the pretrained head usually replaced?",
+      "choices": [
+        "Because the pretrained head predicts the pretraining objective's output space, which does not match your label set",
+        "Because the head is always corrupted",
+        "Because heads cannot be saved to disk",
+        "To reduce the vocabulary"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The pretrained output layer maps to whatever the pretraining task required — vocabulary logits for MLM, for instance — which has no relation to your classes. A fresh head with the right output dimension is initialised randomly and learned, while the body supplies the representation.",
+      "tags": [
+        "classification-head",
+        "output-space",
+        "transfer-learning"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/training"
+    },
+    {
+      "id": "FT-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is a much smaller learning rate typically used when fine-tuning than when training from scratch?",
+      "choices": [
+        "Because fine-tuning datasets are always larger",
+        "Because the weights already encode useful structure, and large updates would destroy it before the task is learned",
+        "Because the optimiser is different",
+        "Because GPUs are slower during fine-tuning"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Fine-tuning starts near a good solution, so the goal is a gentle adjustment rather than a search. Learning rates in the 1e-5 to 5e-5 range are typical for transformers; rates suited to random initialisation would wash out the pretrained representation in the first few steps.",
+      "tags": [
+        "learning-rate",
+        "fine-tuning",
+        "pretrained-weights"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/training"
+    },
+    {
+      "id": "FT-013",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Fine-tuning loss falls steadily but validation loss rises after epoch two. What should you do?",
+      "choices": [
+        "Train for more epochs so validation loss recovers",
+        "Stop at the point of lowest validation loss — the divergence marks the onset of overfitting — and consider more data or stronger regularisation",
+        "Increase the learning rate",
+        "Remove the validation set"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Diverging curves are the textbook overfitting signature: the model has begun memorising the training set. Early stopping at the validation minimum retains the best generalising checkpoint; more data or regularisation raises the point at which divergence occurs.",
+      "tags": [
+        "early-stopping",
+        "overfitting",
+        "validation-curve",
+        "diagnosis"
+      ],
+      "ref": "https://www.ibm.com/topics/overfitting"
+    },
+    {
+      "id": "FT-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the practical effect of calling model.eval() before inference in PyTorch?",
+      "choices": [
+        "It frees GPU memory",
+        "It switches layers whose behaviour differs between training and inference — dropout off, batch-norm using running statistics — into inference mode",
+        "It compiles the model",
+        "It disables gradient computation"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "eval() sets the module's training flag so dropout stops dropping and normalisation layers use accumulated statistics. Forgetting it makes inference non-deterministic and slightly wrong. Disabling gradients is a separate step, done with torch.no_grad().",
+      "tags": [
+        "pytorch",
+        "eval-mode",
+        "dropout",
+        "inference"
+      ],
+      "ref": "https://pytorch.org/docs/stable/generated/torch.nn.Module.html"
+    },
+    {
+      "id": "FT-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A fine-tuned model performs well offline but poorly on live traffic. Which explanation should be checked first?",
+      "choices": [
+        "The GPU driver version",
+        "Distribution shift: the fine-tuning set does not represent the inputs the model actually receives",
+        "The tokenizer is too fast",
+        "The model has too few parameters"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A model learns the distribution it was shown. If the curated training and evaluation data differ from live inputs in phrasing, length, topic or noise, offline scores overstate real performance. The remedy is to build evaluation sets from production traffic, especially its failures.",
+      "tags": [
+        "distribution-shift",
+        "offline-online-gap",
+        "evaluation",
+        "diagnosis"
+      ],
+      "ref": "https://www.ibm.com/topics/machine-learning"
+    },
+    {
+      "id": "FT-016",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You want one base model to serve five customers, each needing slightly different behaviour. Which approach is most efficient?",
+      "choices": [
+        "Five separate fully fine-tuned model deployments",
+        "Train five LoRA adapters and serve them against a single loaded base model, selecting per request",
+        "Merge all five behaviours into one fine-tuned model",
+        "Prompt-engineer all five from the base with no tuning"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Adapters are a tiny fraction of the parameters, so one resident base plus five small adapters avoids multiplying GPU cost fivefold. Merging the behaviours collapses the distinctions the tuning created. Prompting alone is worth trying first, but once tuning is warranted, multi-adapter serving is the efficient shape.",
+      "tags": [
+        "multi-adapter",
+        "lora",
+        "serving-efficiency",
+        "multi-tenancy"
+      ],
+      "ref": "https://huggingface.co/docs/peft/conceptual_guides/lora"
+    },
+    {
+      "id": "FT-017",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does gradient accumulation actually do?",
+      "choices": [
+        "It increases the learning rate over time",
+        "It sums gradients over several small forward/backward passes before stepping the optimiser, giving the effect of a larger batch without its memory cost",
+        "It accumulates model checkpoints",
+        "It delays weight initialisation"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Rather than updating after every mini-batch, gradients are summed across N of them and the optimiser steps once. The effective batch size is N times the per-device batch while peak memory stays at one mini-batch. The trade is more time per update.",
+      "tags": [
+        "gradient-accumulation",
+        "batch-size",
+        "memory",
+        "training-arguments"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/perf_train_gpu_one"
+    },
+    {
+      "id": "FT-018",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Beyond batch size, which TWO techniques reduce memory during fine-tuning?",
+      "choices": [
+        "Mixed-precision training, which stores activations and gradients in lower precision",
+        "Gradient checkpointing, which recomputes activations during the backward pass instead of storing them all",
+        "Increasing the number of epochs",
+        "Raising the learning rate"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Mixed precision roughly halves the memory held by activations and gradients, and gradient checkpointing trades compute for memory by recomputing intermediate activations rather than keeping them. Epoch count and learning rate affect training duration and stability, not peak memory.",
+      "tags": [
+        "out-of-memory",
+        "memory",
+        "mixed-precision",
+        "gradient-checkpointing"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/perf_train_gpu_one"
+    },
+    {
+      "id": "FT-019",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You fine-tune on 500 domain examples for ten epochs and the model now answers everything in that domain's style, even unrelated questions. What happened?",
+      "choices": [
+        "The learning rate was too low",
+        "Over-specialisation from many epochs on a narrow set: the model has drifted toward the fine-tuning distribution and lost general behaviour",
+        "The tokenizer changed",
+        "The dataset was too large"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Ten passes over 500 examples is a great deal of gradient signal from one narrow distribution, and nothing reinforces the behaviours absent from it. Fewer epochs, a lower learning rate, adapter-based tuning or mixing in general data all limit the drift.",
+      "tags": [
+        "catastrophic-forgetting",
+        "over-specialisation",
+        "epochs",
+        "replay-data"
+      ],
+      "ref": "https://www.ibm.com/topics/fine-tuning"
+    },
+    {
+      "id": "FT-020",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why does mixing general instruction data into a domain fine-tuning set help?",
+      "choices": [
+        "It increases the dataset size for its own sake",
+        "It keeps supplying gradient signal for the general behaviours, so they are reinforced rather than drifting away while the domain behaviour is learned",
+        "It speeds up convergence",
+        "It removes the need for a validation set"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Capabilities that receive no gradient signal during fine-tuning are free to degrade as the weights move. Replaying general data keeps them anchored while the new behaviour is acquired. Size alone is not the mechanism — it is what the extra data represents.",
+      "tags": [
+        "replay-data",
+        "catastrophic-forgetting",
+        "fine-tuning",
+        "mixture"
+      ],
+      "ref": "https://www.ibm.com/topics/fine-tuning"
+    },
+    {
+      "id": "FT-021",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Training crashes with an out-of-memory error only on some batches, not all. What is the most likely cause?",
+      "choices": [
+        "The GPU is faulty",
+        "Sequences vary in length, so batches containing the longest examples need more memory than average ones",
+        "The learning rate spikes",
+        "The optimiser state grows during training"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "With variable-length text, memory scales with the longest sequence in each batch, so an unlucky batch of long examples exceeds what average batches needed. Sorting by length into buckets, capping maximum length, or lowering batch size all make the peak predictable.",
+      "tags": [
+        "out-of-memory",
+        "memory",
+        "variable-length",
+        "batch-size"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/perf_train_gpu_one"
+    },
+    {
+      "id": "FT-022",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why does adapter-based tuning such as LoRA reduce catastrophic forgetting compared with full fine-tuning?",
+      "choices": [
+        "It trains for fewer epochs by default",
+        "The pretrained weights are frozen, so the original capability is preserved intact and the learned update is a small addition on top",
+        "It uses a different loss function",
+        "It trains on more general data"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Full fine-tuning moves the pretrained weights themselves, so behaviours receiving no gradient signal can drift. LoRA leaves those weights untouched and learns a bounded low-rank addition, which limits how far behaviour can move and makes the adaptation removable by simply not applying the adapter.",
+      "tags": [
+        "catastrophic-forgetting",
+        "lora",
+        "peft",
+        "freezing"
+      ],
+      "ref": "https://huggingface.co/docs/peft/conceptual_guides/lora"
+    }
+  ]
+}

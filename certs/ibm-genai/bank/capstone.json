@@ -1,0 +1,420 @@
+{
+  "domain": "capstone",
+  "questions": [
+    {
+      "id": "PJ-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Your capstone must answer questions over a set of PDFs. What is the correct order of pipeline construction?",
+      "choices": [
+        "Build the QA chain, then load documents, then embed",
+        "Load the documents, split them into chunks, embed the chunks into a vector store, build a retriever over it, then wire the QA chain",
+        "Embed the query first, then load documents",
+        "Create the Gradio interface, then the retriever, then the loader"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Each stage consumes the previous one's output: loaders produce Documents, splitters produce chunks, embeddings populate the store, the retriever queries it, and the chain composes retriever with model. Building the chain first leaves nothing for it to retrieve from.",
+      "tags": [
+        "pipeline-order",
+        "capstone",
+        "architecture"
+      ],
+      "ref": "https://python.langchain.com/docs/tutorials/rag/"
+    },
+    {
+      "id": "PJ-002",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which text splitter setting most often needs tuning when answers come back truncated mid-explanation?",
+      "choices": [
+        "The embedding dimension",
+        "Chunk size and chunk overlap",
+        "The number of retrieved documents only",
+        "The model temperature"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Truncated answers usually mean the chunk boundary fell inside the passage that held the answer. Larger chunks keep explanations intact and overlap ensures material spanning a boundary appears whole in at least one chunk. Top-k affects how many chunks you get, not whether any one is complete.",
+      "tags": [
+        "text-splitter",
+        "chunk-size",
+        "overlap",
+        "capstone"
+      ],
+      "ref": "https://python.langchain.com/docs/concepts/text_splitters/"
+    },
+    {
+      "id": "PJ-003",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You switch the embedding model to improve retrieval quality but keep the existing vector store. Results become nonsense. Why?",
+      "choices": [
+        "The new model is faulty",
+        "Existing vectors were produced by the old model and live in a different space, so query vectors from the new model are not comparable to them — the corpus must be re-embedded",
+        "The vector store needs more memory",
+        "The chunk size is now wrong"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "An index is expressed entirely in its embedding model's geometry. Mixing models compares coordinates from two unrelated spaces, so similarity is meaningless. Changing the embedding model always means rebuilding the index, which is why that choice is expensive to revisit later.",
+      "tags": [
+        "embedding-consistency",
+        "re-embedding",
+        "vector-store",
+        "capstone"
+      ],
+      "ref": "https://www.ibm.com/topics/retrieval-augmented-generation"
+    },
+    {
+      "id": "PJ-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why does a retriever typically expose a top-k parameter?",
+      "choices": [
+        "To limit the number of documents loaded from disk",
+        "To control how many passages are returned and therefore how much context enters the prompt, trading recall against noise and token cost",
+        "To set the embedding dimension",
+        "To limit the number of users"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "top-k balances two failure modes: too few and the answer may not be present, too many and the relevant passage is diluted among noise while prompt cost rises. Tuning it is one of the cheapest levers on RAG quality.",
+      "tags": [
+        "top-k",
+        "recall-precision",
+        "context-budget",
+        "retriever"
+      ],
+      "ref": "https://python.langchain.com/docs/concepts/retrievers/"
+    },
+    {
+      "id": "PJ-005",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO pieces of metadata are worth attaching to chunks during ingestion?",
+      "choices": [
+        "The source document and page or section, so answers can cite where they came from",
+        "A stable identifier, so a chunk can be updated or removed when the source changes",
+        "The current system time of ingestion only",
+        "The user who will eventually query it"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Provenance makes citation and verification possible, and a stable id makes the index maintainable — you can delete or replace exactly what changed instead of rebuilding. Ingestion time alone supports neither, and the querying user is unknown at ingestion.",
+      "tags": [
+        "metadata",
+        "provenance",
+        "citations",
+        "maintenance"
+      ],
+      "ref": "https://python.langchain.com/docs/concepts/document_loaders/"
+    },
+    {
+      "id": "PJ-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does Gradio provide in the capstone project?",
+      "choices": [
+        "The vector database",
+        "A quick web interface layer so the QA chain can be exercised through a browser rather than a notebook cell",
+        "The embedding model",
+        "The document loader"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Gradio builds a simple UI from a Python function, turning the chain into something a non-developer can use and demonstrate. It is presentation only — every retrieval and generation decision sits behind it and is unaffected by the interface.",
+      "tags": [
+        "gradio",
+        "interface",
+        "capstone",
+        "deployment"
+      ],
+      "ref": "https://www.gradio.app/"
+    },
+    {
+      "id": "PJ-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your QA bot answers confidently even when the retrieved passages do not contain the answer. Which change helps most?",
+      "choices": [
+        "Increase the temperature",
+        "Instruct the model to answer only from the supplied context and to say explicitly when the context does not contain the answer",
+        "Retrieve fewer documents",
+        "Use a longer prompt template"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Without a sanctioned way to say 'not stated', the model fills the gap with plausible invention. Restricting it to the provided context and licensing an explicit non-answer removes that pressure. It is a mitigation rather than a guarantee, so verification of citations still matters.",
+      "tags": [
+        "grounding",
+        "hallucination",
+        "prompt-instructions",
+        "capstone"
+      ],
+      "ref": "https://www.ibm.com/topics/ai-hallucinations"
+    },
+    {
+      "id": "PJ-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "How should the QA chain handle a question entirely unrelated to the indexed documents?",
+      "choices": [
+        "Answer from the model's general knowledge without comment",
+        "Detect that retrieval returned nothing relevant and tell the user the question is outside the document set",
+        "Return the closest chunks regardless and answer from them",
+        "Raise an exception"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Similarity search always returns its nearest neighbours, however far away they are, so low relevance must be handled explicitly by a score threshold or a grading step. Answering from parametric knowledge inside a system the user believes is document-grounded is the more damaging failure, because it is invisible.",
+      "tags": [
+        "out-of-scope",
+        "relevance-threshold",
+        "scope-handling",
+        "capstone"
+      ],
+      "ref": "https://www.ibm.com/topics/retrieval-augmented-generation"
+    },
+    {
+      "id": "PJ-009",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why split documents before embedding rather than embedding whole files?",
+      "choices": [
+        "Embedding models have input length limits, and a single vector for a long document averages away the specific passages that answer a question",
+        "Whole documents cannot be stored in a vector database",
+        "Splitting improves the embedding model's accuracy on short text",
+        "It reduces the number of vectors"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Two reasons converge: encoders truncate beyond their maximum length, and a document-level vector is a blur of every topic it covers, so nothing matches precisely. Chunking gives retrievable units whose vectors represent one idea. It increases vector count, not reduces it.",
+      "tags": [
+        "chunking",
+        "rationale",
+        "embedding-limits",
+        "granularity"
+      ],
+      "ref": "https://python.langchain.com/docs/concepts/text_splitters/"
+    },
+    {
+      "id": "PJ-010",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Retrieval quality is good but the final answers are poor. Where should you look?",
+      "choices": [
+        "The embedding model",
+        "The generation step: the prompt that assembles retrieved context, the instructions given, and the model chosen to answer",
+        "The document loader",
+        "The chunk overlap"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Isolating the two halves is the core RAG debugging skill. If the passages shown to the model contain the answer, retrieval has done its job and the fault lies in how they are presented or in the model's use of them — context assembly, instructions, ordering, or generator capability.",
+      "tags": [
+        "debugging",
+        "retrieval-vs-generation",
+        "attribution",
+        "capstone"
+      ],
+      "ref": "https://www.ibm.com/topics/retrieval-augmented-generation"
+    },
+    {
+      "id": "PJ-011",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO would you check first if the application is slow to answer?",
+      "choices": [
+        "Whether the number of retrieved documents is larger than needed, inflating prompt size",
+        "Whether embeddings are being recomputed for documents on every request instead of being precomputed and stored",
+        "The colour of the interface",
+        "The file names of the source documents"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Latency in a RAG application concentrates in prompt size, which is driven by top-k, and in work repeated that should have been done once. Re-embedding the corpus per request is the classic beginner error: indexing belongs offline, and only the query is embedded at request time.",
+      "tags": [
+        "latency",
+        "top-k",
+        "precomputation",
+        "performance"
+      ],
+      "ref": "https://www.ibm.com/topics/retrieval-augmented-generation"
+    },
+    {
+      "id": "PJ-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the practical purpose of chunk overlap?",
+      "choices": [
+        "To increase the number of vectors for better recall statistics",
+        "So that content sitting across a boundary appears complete within at least one chunk",
+        "To reduce embedding cost",
+        "To make chunks uniform in length"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Boundaries fall arbitrarily, and a sentence or short passage split across two chunks may be fully represented in neither. A modest overlap ensures it appears intact somewhere. Too much overlap inflates index size and returns near-duplicate results.",
+      "tags": [
+        "overlap",
+        "boundaries",
+        "chunking",
+        "recall"
+      ],
+      "ref": "https://python.langchain.com/docs/concepts/text_splitters/"
+    },
+    {
+      "id": "PJ-013",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "You must demonstrate the project works. What is the most convincing evidence?",
+      "choices": [
+        "A screenshot of the interface",
+        "A set of questions with known answers run through the system, showing the retrieved sources alongside each response so correctness and grounding can both be checked",
+        "The line count of the code",
+        "The size of the vector store"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A worked evaluation set shows the system answers correctly and that its answers rest on the right sources — the two properties a RAG system must have. Screenshots demonstrate that it runs, which is a much weaker claim, and code size and index size measure nothing about quality.",
+      "tags": [
+        "evaluation",
+        "evidence",
+        "demonstration",
+        "capstone"
+      ],
+      "ref": "https://www.ibm.com/topics/retrieval-augmented-generation"
+    },
+    {
+      "id": "PJ-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A colleague suggests fine-tuning the model on the documents instead of using retrieval. What is the strongest counter-argument for this project?",
+      "choices": [
+        "Fine-tuning always produces worse text",
+        "The documents change, and answers must cite sources; retrieval supports both by updating an index, while fine-tuning bakes knowledge into weights that cannot cite and need retraining to update",
+        "Fine-tuning cannot run on a GPU",
+        "Retrieval is faster to compute than a forward pass"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Updatability and citability are the decisive properties for a document QA system. Knowledge in weights has no provenance and no update path short of retraining, whereas an index is edited in seconds and every answer can point at its source.",
+      "tags": [
+        "rag-vs-finetuning",
+        "citations",
+        "updatability",
+        "argument"
+      ],
+      "ref": "https://www.ibm.com/topics/retrieval-augmented-generation"
+    },
+    {
+      "id": "PJ-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What should happen when a source document is deleted from the corpus?",
+      "choices": [
+        "Nothing; the index will refresh itself",
+        "Its chunks must be removed from the vector store, or the system will keep answering from content that no longer exists",
+        "The whole index must be rebuilt from scratch",
+        "Only the document loader needs updating"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A vector store does not observe the filesystem. Without explicit deletion propagation, retired content keeps being retrieved and cited — a quiet correctness and sometimes compliance failure. Stable chunk ids make targeted removal possible without a full rebuild.",
+      "tags": [
+        "deletion-propagation",
+        "index-maintenance",
+        "freshness",
+        "capstone"
+      ],
+      "ref": "https://python.langchain.com/docs/concepts/vectorstores/"
+    },
+    {
+      "id": "PJ-016",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Two chunks from different documents contradict each other and both are retrieved. What is the appropriate system behaviour?",
+      "choices": [
+        "Silently pick the higher-scoring chunk",
+        "Surface the conflict with both sources cited, or apply a documented precedence rule such as the most recent effective date",
+        "Refuse to answer",
+        "Average the two answers"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Similarity ranking is not authority: the higher-scoring chunk is simply the closer match, not the more correct one. Either expose the disagreement with provenance so the user can judge, or resolve it by an explicit rule such as recency. Hiding the conflict presents a contested claim as settled.",
+      "tags": [
+        "conflicting-sources",
+        "precedence",
+        "citations",
+        "design"
+      ],
+      "ref": "https://www.ibm.com/topics/retrieval-augmented-generation"
+    },
+    {
+      "id": "PJ-017",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A source document is revised. What must happen in the index for answers to stay correct?",
+      "choices": [
+        "Nothing; embeddings update automatically",
+        "Its old chunks must be removed or replaced and the new content re-embedded, otherwise both versions remain retrievable",
+        "Only the document loader needs re-running",
+        "The whole vector store must be recreated"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A vector store holds whatever was written into it until something changes it. Without removing the superseded chunks, the old and new text both remain retrievable and can be cited against each other. Stable chunk ids make targeted replacement possible without rebuilding everything.",
+      "tags": [
+        "index-maintenance",
+        "freshness",
+        "deletion-propagation",
+        "maintenance"
+      ],
+      "ref": "https://python.langchain.com/docs/concepts/vectorstores/"
+    },
+    {
+      "id": "PJ-018",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Your index is rebuilt nightly from scratch over a large corpus, and the job is becoming too slow. What is the better pattern?",
+      "choices": [
+        "Rebuild weekly instead",
+        "Track a content hash per chunk and update only what changed, adding, replacing or deleting incrementally",
+        "Reduce the chunk overlap",
+        "Use a smaller embedding model"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Full rebuilds re-embed unchanged content every night, which is almost all of it. Hashing each chunk identifies exactly what moved so only those embeddings are recomputed. Rebuilding less often merely widens the staleness window, and shrinking the model trades quality for a problem that is structural.",
+      "tags": [
+        "index-maintenance",
+        "incremental-update",
+        "freshness",
+        "performance"
+      ],
+      "ref": "https://python.langchain.com/docs/concepts/vectorstores/"
+    }
+  ]
+}

@@ -1,0 +1,616 @@
+{
+  "domain": "intro-ai",
+  "questions": [
+    {
+      "id": "IA-001",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "Which statement correctly orders artificial intelligence, machine learning, deep learning and generative AI?",
+      "choices": [
+        "They are four independent fields that overlap only occasionally",
+        "Generative AI contains deep learning, which contains machine learning, which contains AI",
+        "AI is the broadest field; machine learning is a subset of it, deep learning a subset of machine learning, and generative AI a subset of deep learning",
+        "Machine learning is the broadest field and AI is a specific application of it"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "The nesting runs from general to specific: AI is any technique that makes machines appear intelligent, machine learning is the subset that learns patterns from data rather than following hand-written rules, deep learning is the subset of machine learning using multi-layer neural networks, and generative AI is the subset of deep learning that produces new content. Getting this hierarchy backwards is the single most common conceptual error in the introductory material.",
+      "tags": [
+        "ai-hierarchy",
+        "definitions",
+        "machine-learning",
+        "deep-learning"
+      ],
+      "ref": "https://www.ibm.com/topics/artificial-intelligence"
+    },
+    {
+      "id": "IA-002",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "A model is trained on thousands of emails, each labelled 'spam' or 'not spam'. What kind of learning is this?",
+      "choices": [
+        "Unsupervised learning",
+        "Supervised learning",
+        "Reinforcement learning",
+        "Self-supervised learning"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Supervised learning trains on examples that carry the correct answer, so the model learns a mapping from input to label. The defining feature is the presence of labels, not the algorithm used. Unsupervised learning finds structure in unlabelled data, and reinforcement learning learns from reward signals rather than labelled examples.",
+      "tags": [
+        "supervised-learning",
+        "labels",
+        "definitions"
+      ],
+      "ref": "https://www.ibm.com/topics/supervised-learning"
+    },
+    {
+      "id": "IA-003",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A retailer wants to discover natural groupings among its customers without deciding the groups in advance. Which approach fits?",
+      "choices": [
+        "Classification with a labelled training set",
+        "Clustering, an unsupervised technique",
+        "Regression against past revenue",
+        "Reinforcement learning with a reward function"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "When the categories are not known beforehand and no labels exist, the task is to find structure in the data itself — clustering. Classification requires the groups to be defined in advance and labelled, regression predicts a continuous value rather than a grouping, and reinforcement learning needs an environment and reward signal that this problem does not have.",
+      "tags": [
+        "unsupervised-learning",
+        "clustering",
+        "use-case-selection"
+      ],
+      "ref": "https://www.ibm.com/topics/unsupervised-learning"
+    },
+    {
+      "id": "IA-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which task is best described as narrow (weak) AI rather than general (strong) AI?",
+      "choices": [
+        "A system that transfers its chess skill to diagnosing disease without retraining",
+        "A model that transcribes speech to text with high accuracy",
+        "A machine that understands and reasons across any domain a human can",
+        "A system that sets its own goals across unrelated fields"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Narrow AI performs one well-defined task, however well it performs it; speech transcription is a clear example. General AI — a system matching human breadth of understanding and transferring capability across arbitrary domains — does not currently exist. Every AI system in commercial use today is narrow.",
+      "tags": [
+        "narrow-ai",
+        "general-ai",
+        "definitions"
+      ],
+      "ref": "https://www.ibm.com/topics/artificial-intelligence"
+    },
+    {
+      "id": "IA-005",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO are genuine reasons an AI project fails at the data stage rather than the modelling stage?",
+      "choices": [
+        "The training data does not represent the population the model will serve in production",
+        "The labels are inconsistent because different annotators applied different criteria",
+        "The learning rate was set too high",
+        "The model has too few layers for the task"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Representativeness and label quality are data problems that no amount of modelling can repair: a model can only learn the relationship present in its training set, and inconsistent labels teach it contradictions. Learning rate and network depth are modelling choices, tuned after the data is sound.",
+      "tags": [
+        "data-quality",
+        "representativeness",
+        "labelling",
+        "project-lifecycle"
+      ],
+      "ref": "https://www.ibm.com/topics/machine-learning"
+    },
+    {
+      "id": "IA-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A hiring model trained on ten years of a company's past hiring decisions recommends mostly candidates resembling previous hires. What is happening?",
+      "choices": [
+        "Overfitting to the validation set",
+        "The model has learned historical bias present in the training data and is reproducing it",
+        "The model needs more layers",
+        "Data drift between training and inference"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A model trained on historical decisions learns whatever pattern those decisions contained, including discriminatory ones. This is bias inherited from data, not a technical defect in fitting — the model is working exactly as trained. Detecting it requires evaluating outcomes by group rather than looking at aggregate accuracy.",
+      "tags": [
+        "bias",
+        "historical-bias",
+        "fairness",
+        "ethics"
+      ],
+      "ref": "https://www.ibm.com/topics/ai-ethics"
+    },
+    {
+      "id": "IA-007",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which principle does 'explainability' refer to in responsible AI?",
+      "choices": [
+        "The model source code is published openly",
+        "Affected people can understand the basis on which a decision was reached",
+        "The model has high accuracy on a benchmark",
+        "The training data is stored indefinitely for audit"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Explainability concerns whether the reasoning behind an output can be understood and scrutinised by the people it affects. Open source, accuracy and data retention are separate concerns — a fully open, highly accurate model can still be unexplainable, which is precisely the problem with large neural networks.",
+      "tags": [
+        "explainability",
+        "responsible-ai",
+        "ethics",
+        "transparency"
+      ],
+      "ref": "https://www.ibm.com/topics/explainable-ai"
+    },
+    {
+      "id": "IA-008",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "What distinguishes a chatbot built on rules from one built on a large language model?",
+      "choices": [
+        "The rule-based bot matches inputs against predefined patterns and returns scripted replies; the LLM generates responses from learned language patterns",
+        "The rule-based bot is always more accurate",
+        "Only the LLM version can be deployed on the web",
+        "The rule-based bot requires more training data"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "A rule-based system maps recognised inputs to authored responses and cannot answer anything outside its script. An LLM generates responses token by token from patterns learned during training, giving it far wider coverage at the cost of predictability. Rule-based systems need no training data at all, which is sometimes exactly why they are chosen.",
+      "tags": [
+        "chatbots",
+        "rule-based",
+        "llm",
+        "definitions"
+      ],
+      "ref": "https://www.ibm.com/topics/chatbots"
+    },
+    {
+      "id": "IA-009",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In computer vision, what does a convolutional layer primarily do?",
+      "choices": [
+        "Flattens the image into a single vector before classification",
+        "Applies learned filters across the image to detect local patterns such as edges and textures",
+        "Normalises pixel values to a fixed range",
+        "Randomly drops pixels to prevent overfitting"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A convolutional layer slides learned filters over the input, producing feature maps that respond to local patterns. Because the same filter is applied everywhere, the layer detects a pattern wherever it appears and uses far fewer parameters than a fully connected layer. Flattening, normalisation and dropout are separate operations.",
+      "tags": [
+        "computer-vision",
+        "cnn",
+        "convolution",
+        "neural-networks"
+      ],
+      "ref": "https://www.ibm.com/topics/convolutional-neural-networks"
+    },
+    {
+      "id": "IA-010",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which scenario best describes reinforcement learning?",
+      "choices": [
+        "A model predicts house prices from square footage and location",
+        "An agent learns to play a game by receiving rewards and penalties from the outcomes of its moves",
+        "A model groups news articles into topics without labels",
+        "A model translates sentences using paired examples"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Reinforcement learning is defined by an agent acting in an environment and learning from a reward signal that follows its actions, rather than from labelled examples. Price prediction is supervised regression, topic grouping is unsupervised clustering, and translation from paired examples is supervised sequence learning.",
+      "tags": [
+        "reinforcement-learning",
+        "definitions",
+        "rewards"
+      ],
+      "ref": "https://www.ibm.com/topics/reinforcement-learning"
+    },
+    {
+      "id": "IA-011",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A model scores 99% on training data and 62% on unseen data. What is the diagnosis and the usual first response?",
+      "choices": [
+        "Underfitting; increase model capacity",
+        "Overfitting; add regularisation, gather more data, or reduce model complexity",
+        "Data drift; retrain on recent data",
+        "Label noise; relabel the training set"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "A large gap between training and held-out performance is the signature of overfitting: the model has memorised the training set, including its noise, rather than learning generalisable structure. The standard responses reduce the model's ability to memorise or give it more varied data. Underfitting would show poor performance on both sets.",
+      "tags": [
+        "overfitting",
+        "generalisation",
+        "diagnosis",
+        "model-evaluation"
+      ],
+      "ref": "https://www.ibm.com/topics/overfitting"
+    },
+    {
+      "id": "IA-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why is a held-out test set kept separate from the validation set?",
+      "choices": [
+        "To speed up training",
+        "Because the validation set influences model and hyperparameter choices, so performance on it is optimistically biased; the test set gives an untouched estimate",
+        "Because the test set must be larger",
+        "Because the test set is used to compute the loss during training"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Every decision made by looking at validation performance leaks information about that set into the model, so validation scores drift upward relative to true generalisation. A test set touched only once at the end provides an honest estimate. The training loss is computed on the training set, never on either held-out split.",
+      "tags": [
+        "train-validation-test",
+        "data-splitting",
+        "evaluation",
+        "leakage"
+      ],
+      "ref": "https://www.ibm.com/topics/machine-learning"
+    },
+    {
+      "id": "IA-013",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO belong to the problem-definition stage of an AI project rather than a later stage?",
+      "choices": [
+        "Deciding what outcome would count as success and how it will be measured",
+        "Establishing whether the problem needs machine learning at all, or whether rules would serve",
+        "Selecting an optimiser and learning rate",
+        "Converting the trained model to a deployment format"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Both are framing decisions that determine whether the rest of the work is worth doing: a success criterion makes the project evaluable, and asking whether ML is needed prevents building a model where a lookup table would do. Optimiser choice is modelling and format conversion is deployment.",
+      "tags": [
+        "project-lifecycle",
+        "problem-framing",
+        "success-criteria"
+      ],
+      "ref": "https://www.ibm.com/topics/machine-learning"
+    },
+    {
+      "id": "IA-014",
+      "type": "single",
+      "difficulty": "easy",
+      "stem": "What is natural language processing (NLP)?",
+      "choices": [
+        "The field concerned with enabling computers to process, interpret and generate human language",
+        "A technique for compressing text files",
+        "A database query language",
+        "A method for translating programming languages into one another"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "NLP covers the whole range of computational work on human language: understanding, interpretation and generation. It spans tasks from tokenisation and named-entity recognition through translation and question answering, and it is the branch of AI that large language models belong to.",
+      "tags": [
+        "nlp",
+        "definitions"
+      ],
+      "ref": "https://www.ibm.com/topics/natural-language-processing"
+    },
+    {
+      "id": "IA-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An organisation must decide between building a model and buying a pre-built AI service. Which consideration most favours buying?",
+      "choices": [
+        "The task is generic — speech transcription, language detection, standard OCR — and no proprietary data confers an advantage",
+        "The task depends on proprietary data that no vendor has",
+        "Regulatory rules forbid data leaving the organisation",
+        "The organisation has a large, experienced ML team"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Buying wins when the capability is a commodity and your data would not make the model meaningfully better — you get quality immediately without carrying the training and maintenance cost. Proprietary data advantage, data-residency constraints and in-house capability all push the other way.",
+      "tags": [
+        "build-vs-buy",
+        "decision-criteria",
+        "strategy"
+      ],
+      "ref": "https://www.ibm.com/topics/artificial-intelligence"
+    },
+    {
+      "id": "IA-016",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does IBM watsonx.ai provide within the watsonx platform?",
+      "choices": [
+        "A data lakehouse for storing and querying enterprise data",
+        "A studio for training, validating, tuning and deploying AI models, including foundation models",
+        "A governance toolkit for tracking model risk and compliance",
+        "A managed Kubernetes service"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "watsonx is organised into three components with distinct jobs: watsonx.ai is the studio for building and deploying models, watsonx.data is the lakehouse for the data those models use, and watsonx.governance handles risk, compliance and lifecycle documentation. Keeping the three apart is a common exam distinction.",
+      "tags": [
+        "watsonx",
+        "ibm",
+        "product-mapping"
+      ],
+      "ref": "https://www.ibm.com/products/watsonx-ai"
+    },
+    {
+      "id": "IA-017",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which watsonx component is concerned with documenting model risk, monitoring for drift and supporting regulatory compliance?",
+      "choices": [
+        "watsonx.ai",
+        "watsonx.data",
+        "watsonx.governance",
+        "watsonx Orchestrate"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "watsonx.governance is the component built for the accountability side of AI: model inventories, risk documentation, drift monitoring and audit support. watsonx.ai builds and deploys, watsonx.data stores and queries, and watsonx Orchestrate automates business workflows.",
+      "tags": [
+        "watsonx",
+        "governance",
+        "ibm",
+        "product-mapping"
+      ],
+      "ref": "https://www.ibm.com/products/watsonx-governance"
+    },
+    {
+      "id": "IA-018",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A model's accuracy is 97% on a dataset where 97% of cases are the negative class. What does this tell you?",
+      "choices": [
+        "The model is performing very well",
+        "Accuracy is uninformative here — a model that always predicts the majority class scores the same, so precision, recall or a confusion matrix is needed",
+        "The dataset is too small",
+        "The model is overfitting"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "On heavily imbalanced data, accuracy is dominated by the majority class and a trivial constant predictor matches a genuinely good model. Precision and recall on the minority class, or the confusion matrix itself, reveal whether the model detects the cases that matter. This is the classic trap in fraud, disease and defect detection.",
+      "tags": [
+        "class-imbalance",
+        "accuracy",
+        "precision-recall",
+        "evaluation"
+      ],
+      "ref": "https://www.ibm.com/topics/machine-learning"
+    },
+    {
+      "id": "IA-019",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which is the clearest example of AI augmenting rather than replacing human work?",
+      "choices": [
+        "A system that fully automates invoice approval with no review",
+        "A radiology tool that highlights suspicious regions for a radiologist to assess",
+        "A chatbot that answers every customer query without escalation",
+        "A scheduling system that assigns shifts automatically"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Augmentation keeps the human as the decision-maker while the system does the work humans are worse at — here, exhaustively scanning for candidate regions. The other options describe automation, where the system makes the decision. The distinction matters because augmentation and automation carry very different risk and governance profiles.",
+      "tags": [
+        "augmentation",
+        "automation",
+        "human-ai",
+        "ethics"
+      ],
+      "ref": "https://www.ibm.com/topics/ai-ethics"
+    },
+    {
+      "id": "IA-020",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is a neural network's activation function for?",
+      "choices": [
+        "To normalise the input data before training",
+        "To introduce non-linearity so the network can represent relationships a stack of linear layers could not",
+        "To reduce the number of parameters",
+        "To select which training examples to use"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Without a non-linear activation, any stack of linear layers collapses mathematically into a single linear transformation, so depth would buy nothing. Activations such as ReLU, sigmoid and tanh are what make deep networks able to approximate complex functions.",
+      "tags": [
+        "activation-function",
+        "neural-networks",
+        "non-linearity"
+      ],
+      "ref": "https://www.ibm.com/topics/neural-networks"
+    },
+    {
+      "id": "IA-021",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO are legitimate concerns about deploying AI that the introductory material raises as ethical rather than technical?",
+      "choices": [
+        "Decisions may be made about people who have no way to contest or understand them",
+        "Training and inference consume significant energy with an environmental cost",
+        "The model's inference latency exceeds the service level objective",
+        "The framework version is out of date"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Contestability and environmental impact are questions about what the system does to people and the world, and cannot be resolved by better engineering alone. Latency and dependency versions are operational matters with clear technical fixes.",
+      "tags": [
+        "ethics",
+        "contestability",
+        "environmental-impact",
+        "responsible-ai"
+      ],
+      "ref": "https://www.ibm.com/topics/ai-ethics"
+    },
+    {
+      "id": "IA-022",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which best describes 'training data' versus 'model parameters'?",
+      "choices": [
+        "They are two names for the same thing",
+        "Training data are the examples the model learns from; parameters are the values inside the model adjusted during learning",
+        "Parameters are supplied by the user at inference; training data is generated by the model",
+        "Training data is stored inside the model after training"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The data is the input to the learning process and the parameters — weights and biases — are its output, adjusted to reduce the loss. A trained model does not contain its training data, though it can memorise portions of it, which is itself a privacy concern.",
+      "tags": [
+        "parameters",
+        "training-data",
+        "fundamentals"
+      ],
+      "ref": "https://www.ibm.com/topics/machine-learning"
+    },
+    {
+      "id": "IA-023",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A team reports that their model 'has 95% confidence' in a prediction. What should you check before relying on that number?",
+      "choices": [
+        "Whether the confidence is calibrated — that among predictions made at 95%, roughly 95% are actually correct",
+        "Whether the model has enough layers",
+        "Whether the training set was shuffled",
+        "Whether the confidence is stored as a float"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "A model's output score is not a probability unless it has been calibrated. Neural networks are frequently overconfident, so a reported 95% may correspond to a far lower true accuracy. Calibration is checked empirically by bucketing predictions by confidence and measuring accuracy within each bucket.",
+      "tags": [
+        "calibration",
+        "confidence",
+        "evaluation",
+        "overconfidence"
+      ],
+      "ref": "https://www.ibm.com/topics/machine-learning"
+    },
+    {
+      "id": "IA-024",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which statement about AI and jobs reflects the position taken in the introductory material?",
+      "choices": [
+        "AI will replace most professional roles within a few years",
+        "AI tends to change the composition of tasks within roles, automating some while creating demand for new skills, rather than eliminating roles wholesale",
+        "AI has no measurable effect on employment",
+        "Only manual roles are affected"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The consistent framing is task-level rather than role-level: jobs are bundles of tasks, and AI absorbs some of those tasks while raising the value of others, including working with the systems themselves. Both the wholesale-replacement and no-effect positions overstate the evidence.",
+      "tags": [
+        "ai-and-work",
+        "task-automation",
+        "ethics"
+      ],
+      "ref": "https://www.ibm.com/topics/artificial-intelligence"
+    },
+    {
+      "id": "IA-025",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "A team wants to query enterprise data stored across several formats and locations to feed an AI application. Which watsonx component is designed for that?",
+      "choices": [
+        "watsonx.ai",
+        "watsonx.data",
+        "watsonx.governance",
+        "watsonx Assistant"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "watsonx.data is the lakehouse layer: it stores and queries enterprise data across formats and sources so models can use it. watsonx.ai is the studio for building and deploying models, and watsonx.governance handles risk and compliance. Keeping the three straight is a recurring exam distinction.",
+      "tags": [
+        "watsonx",
+        "ibm",
+        "product-mapping"
+      ],
+      "ref": "https://www.ibm.com/products/watsonx-data"
+    },
+    {
+      "id": "IA-026",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "An auditor asks which model version made a particular decision, what data trained it, and how its risk was assessed. Which capability is being exercised?",
+      "choices": [
+        "Model serving throughput",
+        "AI governance: model inventory, lineage and risk documentation",
+        "Hyperparameter tuning",
+        "Data augmentation"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Answering after the fact requires records kept deliberately: which model version was live, what it was trained on, and what risk assessment was performed. That is the governance function, and it has to be designed in — it cannot be reconstructed later from a serving log.",
+      "tags": [
+        "governance",
+        "ibm",
+        "watsonx",
+        "responsible-ai"
+      ],
+      "ref": "https://www.ibm.com/products/watsonx-governance"
+    },
+    {
+      "id": "IA-027",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why does a deep network need many layers rather than one very wide layer?",
+      "choices": [
+        "Wide layers cannot be trained",
+        "Depth lets the network compose progressively more abstract features, where a single layer must represent everything at one level",
+        "Wide layers use more memory than deep ones always",
+        "Depth removes the need for activation functions"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Each layer transforms the representation produced below it, so depth builds a hierarchy — edges to shapes to objects, or tokens to phrases to meaning. A single layer, however wide, has no opportunity to compose. Non-linear activations remain essential regardless of depth.",
+      "tags": [
+        "neural-networks",
+        "deep-learning",
+        "representation",
+        "non-linearity"
+      ],
+      "ref": "https://www.ibm.com/topics/neural-networks"
+    }
+  ]
+}

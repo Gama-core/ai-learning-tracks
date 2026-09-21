@@ -1,0 +1,893 @@
+{
+  "concepts": [
+    {
+      "id": "ai-taxonomy",
+      "name": "AI, ML, deep learning, gen AI",
+      "domain": "intro-ai",
+      "cheat": "foundations",
+      "summary": "The nesting from AI down to generative AI, and narrow versus general.",
+      "tags": [
+        "ai-hierarchy",
+        "deep-learning",
+        "definitions",
+        "fundamentals",
+        "general-ai",
+        "llm",
+        "machine-learning",
+        "narrow-ai",
+        "nlp",
+        "transformers"
+      ]
+    },
+    {
+      "id": "learning-paradigms",
+      "name": "Learning paradigms",
+      "domain": "intro-ai",
+      "cheat": "foundations",
+      "summary": "Supervised, unsupervised and reinforcement learning, and which problem shape each fits.",
+      "tags": [
+        "chatbots",
+        "clustering",
+        "labels",
+        "reinforcement-learning",
+        "rewards",
+        "rule-based",
+        "supervised-learning",
+        "unsupervised-learning",
+        "use-case-selection"
+      ]
+    },
+    {
+      "id": "model-evaluation",
+      "name": "Model evaluation and its traps",
+      "domain": "intro-ai",
+      "cheat": "foundations",
+      "summary": "Accuracy on imbalanced data, precision and recall, calibration, train/validation/test discipline.",
+      "tags": [
+        "accuracy",
+        "calibration",
+        "class-imbalance",
+        "confidence",
+        "data-splitting",
+        "early-stopping",
+        "evaluation",
+        "generalisation",
+        "leakage",
+        "model-evaluation",
+        "overconfidence",
+        "precision-recall",
+        "train-validation-test",
+        "validation",
+        "validation-curve"
+      ]
+    },
+    {
+      "id": "overfitting",
+      "name": "Overfitting and generalisation",
+      "domain": "intro-ai",
+      "cheat": "foundations",
+      "summary": "Diagnosing the training/validation gap and the standard remedies.",
+      "tags": [
+        "diagnosis",
+        "distribution-shift",
+        "offline-online-gap",
+        "overfitting",
+        "regression"
+      ]
+    },
+    {
+      "id": "neural-basics",
+      "name": "Neural network fundamentals",
+      "domain": "intro-ai",
+      "cheat": "foundations",
+      "summary": "Parameters, activation functions and non-linearity, convolution for vision.",
+      "tags": [
+        "activation-function",
+        "cnn",
+        "computer-vision",
+        "convolution",
+        "neural-networks",
+        "non-linearity",
+        "parameters",
+        "representation",
+        "training-data"
+      ]
+    },
+    {
+      "id": "responsible-ai",
+      "name": "Ethics and responsible AI",
+      "domain": "intro-ai",
+      "cheat": "foundations",
+      "summary": "Bias inherited from data, explainability, contestability, transparency, AI and work.",
+      "tags": [
+        "ai-and-work",
+        "augmentation",
+        "automation",
+        "bias",
+        "contestability",
+        "environmental-impact",
+        "ethics",
+        "explainability",
+        "fairness",
+        "governance",
+        "historical-bias",
+        "human-ai",
+        "responsible-ai",
+        "task-automation",
+        "transparency"
+      ]
+    },
+    {
+      "id": "project-practice",
+      "name": "Project framing and strategy",
+      "domain": "intro-ai",
+      "cheat": "foundations",
+      "summary": "Defining success, deciding whether ML is needed, build versus buy, data quality.",
+      "tags": [
+        "build-vs-buy",
+        "data-quality",
+        "decision-criteria",
+        "intervention-choice",
+        "labelling",
+        "problem-framing",
+        "project-lifecycle",
+        "prompting-first",
+        "proportionality",
+        "representativeness",
+        "strategy",
+        "success-criteria"
+      ]
+    },
+    {
+      "id": "ibm-platform",
+      "name": "IBM watsonx",
+      "domain": "intro-ai",
+      "cheat": "foundations",
+      "summary": "Which watsonx component does what: ai, data, governance.",
+      "tags": [
+        "ibm",
+        "product-mapping",
+        "watsonx"
+      ]
+    },
+    {
+      "id": "generative-architectures",
+      "name": "Generative architectures",
+      "domain": "genai-intro",
+      "cheat": "foundations",
+      "summary": "GANs, VAEs, diffusion and transformers, and how each actually generates.",
+      "tags": [
+        "adaptation",
+        "architectures",
+        "autoencoder",
+        "diffusion",
+        "discriminator",
+        "foundation-models",
+        "gan",
+        "generative-vs-discriminative",
+        "generator",
+        "image-generation",
+        "latent-space",
+        "modalities",
+        "multimodal",
+        "vae"
+      ]
+    },
+    {
+      "id": "genai-capabilities",
+      "name": "Capabilities and limits",
+      "domain": "genai-intro",
+      "cheat": "foundations",
+      "summary": "What generative AI does well, where it fails, and use-case fit.",
+      "tags": [
+        "capabilities",
+        "code-generation",
+        "copyright",
+        "factuality",
+        "limitations",
+        "misinformation",
+        "review",
+        "risks",
+        "synthetic-data",
+        "system-of-record",
+        "use-case-fit"
+      ]
+    },
+    {
+      "id": "hallucination",
+      "name": "Hallucination and grounding",
+      "domain": "genai-intro",
+      "cheat": "rag",
+      "summary": "Why fluent output is not true output, and what actually reduces invention.",
+      "tags": [
+        "grounding",
+        "hallucination",
+        "out-of-scope",
+        "prompt-instructions",
+        "relevance-threshold",
+        "scope-handling"
+      ]
+    },
+    {
+      "id": "sampling",
+      "name": "Sampling and decoding",
+      "domain": "genai-intro",
+      "cheat": "prompting",
+      "summary": "Temperature, determinism, autoregressive generation and beam search.",
+      "tags": [
+        "autoregressive",
+        "beam-search",
+        "decoding",
+        "decoding-parameters",
+        "determinism",
+        "generation",
+        "objective-mismatch",
+        "output-layer",
+        "probability",
+        "sampling",
+        "softmax",
+        "temperature"
+      ]
+    },
+    {
+      "id": "data-governance",
+      "name": "Data governance and privacy",
+      "domain": "genai-intro",
+      "cheat": "foundations",
+      "summary": "What a hosted provider does with submitted data, and the obligations that follow.",
+      "tags": [
+        "compliance",
+        "data-governance",
+        "hosted-api",
+        "privacy",
+        "provenance"
+      ]
+    },
+    {
+      "id": "prompt-anatomy",
+      "name": "Prompt anatomy",
+      "domain": "prompt-engineering",
+      "cheat": "prompting",
+      "summary": "Task, context, audience, format and tone; specificity over length.",
+      "tags": [
+        "audience",
+        "best-practices",
+        "clarity",
+        "constraints",
+        "context",
+        "phrasing",
+        "positive-instructions",
+        "prompt-anatomy",
+        "prompt-basics",
+        "prompt-structure",
+        "roles",
+        "specificity",
+        "system-prompt",
+        "tone"
+      ]
+    },
+    {
+      "id": "prompt-patterns",
+      "name": "Prompting techniques",
+      "domain": "prompt-engineering",
+      "cheat": "prompting",
+      "summary": "Zero-shot, few-shot, chain-of-thought, self-consistency, interview and persona patterns.",
+      "tags": [
+        "chain-of-thought",
+        "demonstrations",
+        "elicitation",
+        "example-selection",
+        "few-shot",
+        "formatting",
+        "in-context-learning",
+        "inference-time",
+        "interview-pattern",
+        "majority-vote",
+        "multi-step",
+        "persona",
+        "prompt-engineering",
+        "prompt-patterns",
+        "reasoning",
+        "self-consistency",
+        "unintended-patterns",
+        "zero-shot"
+      ]
+    },
+    {
+      "id": "prompt-ops",
+      "name": "Prompts in production",
+      "domain": "prompt-engineering",
+      "cheat": "prompting",
+      "summary": "Templates, versioning, evaluation on a fixed set, delimiters and injection.",
+      "tags": [
+        "attention",
+        "cost",
+        "delimiters",
+        "finetune-vs-prompt",
+        "injection",
+        "instruction-placement",
+        "long-context",
+        "maintainability",
+        "methodology",
+        "production",
+        "prompt-evaluation",
+        "prompt-templates",
+        "summarisation",
+        "test-set",
+        "versioning"
+      ]
+    },
+    {
+      "id": "tokenisation",
+      "name": "Tokenisation",
+      "domain": "llm-architecture",
+      "cheat": "tokenisation",
+      "summary": "Subword schemes, tokenizer/model pairing, vocabulary and context windows.",
+      "tags": [
+        "bpe",
+        "context-window",
+        "limits",
+        "model-pairing",
+        "nltk",
+        "preprocessing",
+        "spacy",
+        "subword",
+        "tokenisation",
+        "tokenizers",
+        "tokens",
+        "tooling",
+        "vocabulary",
+        "wordpiece",
+        "xlnet"
+      ]
+    },
+    {
+      "id": "data-pipeline",
+      "name": "PyTorch data pipelines",
+      "domain": "llm-architecture",
+      "cheat": "tokenisation",
+      "summary": "Dataset versus DataLoader, collate functions, padding and attention masks.",
+      "tags": [
+        "attention-mask",
+        "batching",
+        "collate-fn",
+        "data-pipeline",
+        "dataloader",
+        "dataset",
+        "lazy-loading",
+        "memory",
+        "padding",
+        "pytorch",
+        "variable-length"
+      ]
+    },
+    {
+      "id": "corpus-quality",
+      "name": "Training corpus quality",
+      "domain": "llm-architecture",
+      "cheat": "tokenisation",
+      "summary": "Diversity, deduplication and why scale does not redeem bad data.",
+      "tags": [
+        "bias",
+        "cleaning",
+        "corpus",
+        "deduplication",
+        "diversity",
+        "memorisation"
+      ]
+    },
+    {
+      "id": "model-sizing",
+      "name": "Model selection and sizing",
+      "domain": "llm-architecture",
+      "cheat": "finetune",
+      "summary": "Choosing a model against latency, memory and cost rather than capability alone.",
+      "tags": [
+        "cost",
+        "latency",
+        "model-selection",
+        "sizing"
+      ]
+    },
+    {
+      "id": "word-representation",
+      "name": "Word representation",
+      "domain": "nlp-foundations",
+      "cheat": "representations",
+      "summary": "One-hot, bag of words, static versus contextual embeddings, word2vec.",
+      "tags": [
+        "bag-of-words",
+        "cbow",
+        "contextual-embeddings",
+        "efficiency",
+        "embedding-quality",
+        "embeddingbag",
+        "embeddings",
+        "one-hot",
+        "polysemy",
+        "rare-words",
+        "representation",
+        "semantic-similarity",
+        "skip-gram",
+        "sparsity",
+        "static-embeddings",
+        "training-objective",
+        "word-order",
+        "word-representation",
+        "word2vec"
+      ]
+    },
+    {
+      "id": "sequence-models",
+      "name": "Sequence models before transformers",
+      "domain": "nlp-foundations",
+      "cheat": "representations",
+      "summary": "N-grams, RNNs and their limits, LSTM/GRU gating, seq2seq and teacher forcing.",
+      "tags": [
+        "architecture",
+        "decoder",
+        "encoder",
+        "exposure-bias",
+        "gating",
+        "gru",
+        "language-model",
+        "limitations",
+        "lstm",
+        "markov-assumption",
+        "n-gram",
+        "rnn",
+        "seq2seq",
+        "sequential-computation",
+        "teacher-forcing",
+        "vanishing-gradient"
+      ]
+    },
+    {
+      "id": "text-metrics",
+      "name": "Evaluating generated text",
+      "domain": "nlp-foundations",
+      "cheat": "representations",
+      "summary": "Perplexity, BLEU and ROUGE, and why surface overlap misleads.",
+      "tags": [
+        "bleu",
+        "metric-limitations",
+        "n-gram-overlap",
+        "perplexity",
+        "rouge",
+        "summarisation",
+        "translation"
+      ]
+    },
+    {
+      "id": "training-mechanics",
+      "name": "Training mechanics",
+      "domain": "nlp-foundations",
+      "cheat": "finetune",
+      "summary": "Loss functions, learning-rate schedules, warmup, underfitting and capacity.",
+      "tags": [
+        "capacity",
+        "cross-entropy",
+        "depth",
+        "gradients",
+        "learning-rate-schedule",
+        "loss-function",
+        "training",
+        "training-stability",
+        "underfitting",
+        "warmup"
+      ]
+    },
+    {
+      "id": "attention",
+      "name": "Attention mechanics",
+      "domain": "transformers",
+      "cheat": "transformer",
+      "summary": "Query/key/value, scaling, multi-head attention, self versus cross attention.",
+      "tags": [
+        "attention",
+        "cross-attention",
+        "long-context",
+        "multi-head-attention",
+        "quadratic-complexity",
+        "query-key-value",
+        "scaled-dot-product",
+        "scaling",
+        "self-attention",
+        "softmax-saturation",
+        "subspaces"
+      ]
+    },
+    {
+      "id": "transformer-block",
+      "name": "Transformer block structure",
+      "domain": "transformers",
+      "cheat": "transformer",
+      "summary": "Positional encoding, residuals, layer norm, the position-wise feed-forward network.",
+      "tags": [
+        "batch-norm",
+        "feed-forward",
+        "implementation",
+        "layer-norm",
+        "layer-normalisation",
+        "permutation-invariance",
+        "positional-encoding",
+        "pytorch",
+        "residual-connection",
+        "transformer-block",
+        "transformer-encoder"
+      ]
+    },
+    {
+      "id": "encoder-vs-decoder",
+      "name": "Encoder versus decoder",
+      "domain": "transformers",
+      "cheat": "transformer",
+      "summary": "Which stack suits which task, the causal mask, and decoder-only classification.",
+      "tags": [
+        "adaptation",
+        "architecture-choice",
+        "bert",
+        "bidirectional",
+        "causal-mask",
+        "classification",
+        "decoder",
+        "decoder-only",
+        "encoder",
+        "encoder-decoder",
+        "gpt",
+        "next-token-prediction",
+        "task-framing"
+      ]
+    },
+    {
+      "id": "bert-pretraining",
+      "name": "BERT pretraining",
+      "domain": "transformers",
+      "cheat": "transformer",
+      "summary": "Masked language modelling, next sentence prediction and BERT's special tokens.",
+      "tags": [
+        "cls",
+        "masking-rate",
+        "mlm",
+        "nsp",
+        "pretraining",
+        "sentence-pairs",
+        "sep",
+        "special-tokens"
+      ]
+    },
+    {
+      "id": "huggingface",
+      "name": "Hugging Face tooling",
+      "domain": "finetuning",
+      "cheat": "finetune",
+      "summary": "Pipelines, AutoTokenizer and AutoModel pairing, Trainer and TrainingArguments.",
+      "tags": [
+        "abstraction",
+        "automodel",
+        "autotokenizer",
+        "checkpoint-pairing",
+        "dropout",
+        "eval-mode",
+        "huggingface",
+        "inference",
+        "pipeline",
+        "tooling",
+        "trainer",
+        "training-arguments",
+        "training-loop",
+        "trainingarguments"
+      ]
+    },
+    {
+      "id": "adaptation-strategy",
+      "name": "Adaptation strategy",
+      "domain": "finetuning",
+      "cheat": "finetune",
+      "summary": "Feature extraction, full fine-tuning, and matching the method to the data you have.",
+      "tags": [
+        "classification-head",
+        "feature-extraction",
+        "fine-tuning",
+        "freezing",
+        "full-finetuning",
+        "hyperparameters",
+        "learning-rate",
+        "output-space",
+        "pretrained-weights",
+        "small-data",
+        "strategy",
+        "transfer-learning"
+      ]
+    },
+    {
+      "id": "peft",
+      "name": "LoRA and parameter-efficient tuning",
+      "domain": "finetuning",
+      "cheat": "finetune",
+      "summary": "Low-rank updates, the rank hyperparameter, multi-adapter serving.",
+      "tags": [
+        "adapters",
+        "lora",
+        "lora-rank",
+        "low-rank",
+        "multi-adapter",
+        "multi-tenancy",
+        "peft",
+        "serving",
+        "serving-efficiency"
+      ]
+    },
+    {
+      "id": "training-resources",
+      "name": "Training memory and throughput",
+      "domain": "finetuning",
+      "cheat": "finetune",
+      "summary": "Out-of-memory remedies, batch size and gradient accumulation.",
+      "tags": [
+        "batch-size",
+        "gradient-accumulation",
+        "gradient-checkpointing",
+        "mixed-precision",
+        "out-of-memory"
+      ]
+    },
+    {
+      "id": "forgetting",
+      "name": "Catastrophic forgetting",
+      "domain": "finetuning",
+      "cheat": "finetune",
+      "summary": "Why narrow tuning erodes general capability, and how replay data limits it.",
+      "tags": [
+        "catastrophic-forgetting",
+        "epochs",
+        "mixture",
+        "over-specialisation",
+        "replay-data"
+      ]
+    },
+    {
+      "id": "instruction-tuning",
+      "name": "Instruction tuning",
+      "domain": "advanced-finetuning",
+      "cheat": "alignment",
+      "summary": "Training across many instruction-response pairs to teach instruction following itself.",
+      "tags": [
+        "generalisation",
+        "instruction-tuning",
+        "sft"
+      ]
+    },
+    {
+      "id": "reward-modelling",
+      "name": "Reward modelling",
+      "domain": "advanced-finetuning",
+      "cheat": "alignment",
+      "summary": "Pairwise preferences, why comparisons beat absolute scores, reward trainers.",
+      "tags": [
+        "annotation",
+        "held-out-set",
+        "label-noise",
+        "pairwise-preference",
+        "preferences",
+        "reward-function",
+        "reward-model",
+        "scoring",
+        "sentiment",
+        "worked-example"
+      ]
+    },
+    {
+      "id": "rlhf",
+      "name": "RLHF and PPO",
+      "domain": "advanced-finetuning",
+      "cheat": "alignment",
+      "summary": "The three-stage pipeline, policies, the KL leash, clipping and reward hacking.",
+      "tags": [
+        "clipping",
+        "drift",
+        "framing",
+        "kl-penalty",
+        "memory",
+        "ordering",
+        "pipeline",
+        "policy",
+        "policy-gradient",
+        "ppo",
+        "proxy-objective",
+        "reference-model",
+        "reinforcement-learning",
+        "reward-hacking",
+        "rlhf",
+        "stability"
+      ]
+    },
+    {
+      "id": "dpo",
+      "name": "Direct preference optimization",
+      "domain": "advanced-finetuning",
+      "cheat": "alignment",
+      "summary": "Reparameterising the objective, the cancelling partition function, and what it buys.",
+      "tags": [
+        "alignment",
+        "comparison",
+        "derivation",
+        "dpo",
+        "intervention-ordering",
+        "normalisation",
+        "partition-function",
+        "preference-methods",
+        "reparameterisation",
+        "simplification",
+        "trl"
+      ]
+    },
+    {
+      "id": "agents",
+      "name": "Agents and tool calling",
+      "domain": "rag-langchain",
+      "cheat": "rag",
+      "summary": "What makes a system an agent, tool calling as a protocol, and when not to use one.",
+      "tags": [
+        "agents",
+        "architecture-choice",
+        "foundations",
+        "function-calling",
+        "loop",
+        "protocol",
+        "tool-calling",
+        "tool-use",
+        "when-not-to-use",
+        "workflow"
+      ]
+    },
+    {
+      "id": "rag-pipeline",
+      "name": "The RAG pipeline",
+      "domain": "rag-langchain",
+      "cheat": "rag",
+      "summary": "Index, embed, retrieve, generate — what happens offline and what happens per request.",
+      "tags": [
+        "currency",
+        "indexing",
+        "ingestion",
+        "performance",
+        "pipeline-order",
+        "precomputation",
+        "rag",
+        "rag-pipeline",
+        "rag-vs-finetuning",
+        "retrieval",
+        "updatability"
+      ]
+    },
+    {
+      "id": "retrieval-mechanics",
+      "name": "Retrieval mechanics",
+      "domain": "rag-langchain",
+      "cheat": "rag",
+      "summary": "Dense passage retrieval, FAISS, top-k, and diagnosing retrieval failures.",
+      "tags": [
+        "ann",
+        "contrastive",
+        "debugging",
+        "diagnosis",
+        "dpr",
+        "dual-encoder",
+        "embedding-consistency",
+        "embedding-model",
+        "faiss",
+        "re-embedding",
+        "recall",
+        "recall-precision",
+        "retrieval-failure",
+        "retrieval-quality",
+        "retrieval-vs-generation",
+        "retriever",
+        "top-k",
+        "vector-search",
+        "vector-store"
+      ]
+    },
+    {
+      "id": "chunking",
+      "name": "Chunking and splitting",
+      "domain": "rag-langchain",
+      "cheat": "rag",
+      "summary": "Chunk size, overlap, boundaries, and why whole documents embed badly.",
+      "tags": [
+        "boundaries",
+        "chunk-size",
+        "chunking",
+        "context-budget",
+        "embedding-limits",
+        "granularity",
+        "overlap",
+        "rationale",
+        "text-splitter",
+        "token-budget"
+      ]
+    },
+    {
+      "id": "langchain",
+      "name": "LangChain components",
+      "domain": "rag-langchain",
+      "cheat": "rag",
+      "summary": "Loaders, templates, example selectors, output parsers, retrievers, chains.",
+      "tags": [
+        "chains",
+        "composition",
+        "document-loader",
+        "example-selector",
+        "interface",
+        "langchain",
+        "metadata",
+        "output-parser",
+        "parameterisation",
+        "prompt-template",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "rag-security",
+      "name": "Untrusted content in RAG",
+      "domain": "rag-langchain",
+      "cheat": "rag",
+      "summary": "Prompt injection through retrieved or pasted text, and structural defences.",
+      "tags": [
+        "delimiters",
+        "prompt-injection",
+        "provenance",
+        "security",
+        "untrusted-content"
+      ]
+    },
+    {
+      "id": "citations",
+      "name": "Citations and provenance",
+      "domain": "capstone",
+      "cheat": "rag",
+      "summary": "Carrying source metadata so answers can be verified, and handling conflicts.",
+      "tags": [
+        "attribution",
+        "citations",
+        "conflicting-sources",
+        "demonstration",
+        "evidence",
+        "precedence",
+        "provenance"
+      ]
+    },
+    {
+      "id": "index-maintenance",
+      "name": "Index maintenance",
+      "domain": "capstone",
+      "cheat": "rag",
+      "summary": "Deletion propagation, freshness and keeping the store consistent with the corpus.",
+      "tags": [
+        "deletion-propagation",
+        "freshness",
+        "incremental-update",
+        "index-maintenance",
+        "maintenance",
+        "performance"
+      ]
+    },
+    {
+      "id": "capstone-build",
+      "name": "Capstone integration",
+      "domain": "capstone",
+      "cheat": "rag",
+      "summary": "Assembling loader, splitter, store, retriever, chain and interface in the right order.",
+      "tags": [
+        "architecture",
+        "argument",
+        "capstone",
+        "deployment",
+        "design",
+        "gradio",
+        "interface"
+      ]
+    }
+  ]
+}

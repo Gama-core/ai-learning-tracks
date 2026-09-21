@@ -1,0 +1,437 @@
+{
+  "domain": "transformers",
+  "questions": [
+    {
+      "id": "TR-001",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Why does a transformer need positional encoding at all?",
+      "choices": [
+        "To reduce the number of parameters",
+        "Because self-attention is permutation-invariant: without positional information the model would treat a sentence as an unordered set of tokens",
+        "To normalise the embeddings",
+        "To mask padding tokens"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Attention computes a weighted sum over all positions with no inherent notion of order, so shuffling the input would leave the representation unchanged. Positional encoding injects order into the embeddings before the first attention layer. Recurrent and convolutional models get order for free from their structure; transformers must add it.",
+      "tags": [
+        "positional-encoding",
+        "permutation-invariance",
+        "attention"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-002",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In scaled dot-product attention, what roles do the query, key and value play?",
+      "choices": [
+        "Query and key produce the relevance weights; those weights are applied to the values to form the output",
+        "Query produces the output directly and key and value are discarded",
+        "All three are identical by definition",
+        "Key holds the output and query holds the gradient"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The query is compared against every key by dot product to score relevance; those scores are softmaxed into weights and used to average the values. Splitting 'what am I looking for' (query), 'what do I offer for matching' (key) and 'what do I contribute' (value) is the core of the mechanism.",
+      "tags": [
+        "attention",
+        "query-key-value",
+        "scaled-dot-product"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-003",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why are the dot products divided by the square root of the key dimension?",
+      "choices": [
+        "To keep the result under one",
+        "Because dot-product magnitude grows with dimension, pushing softmax into saturated regions where gradients vanish",
+        "To make the computation faster",
+        "To normalise the output to unit length"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "For large key dimensions the dot products have large variance, so softmax produces near one-hot distributions with vanishingly small gradients. Dividing by the square root of the dimension keeps the variance roughly constant, which is exactly why the mechanism is called *scaled* dot-product attention.",
+      "tags": [
+        "scaling",
+        "softmax-saturation",
+        "gradients",
+        "attention"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-004",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does self-attention mean, as distinct from attention in general?",
+      "choices": [
+        "The model attends to its own parameters",
+        "Queries, keys and values all come from the same sequence, so each position attends to the other positions of that same input",
+        "Attention is computed without a softmax",
+        "Only the first token is attended to"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "In self-attention a sequence relates to itself, letting each token gather context from every other token in the same input. Cross-attention, by contrast, draws queries from one sequence and keys and values from another — which is how a decoder consults the encoder in a translation model.",
+      "tags": [
+        "self-attention",
+        "cross-attention",
+        "definitions"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-005",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does multi-head attention add over a single attention head?",
+      "choices": [
+        "It runs attention several times in parallel in different learned subspaces, letting the model capture several kinds of relationship at once",
+        "It makes the model deeper",
+        "It removes the need for positional encoding",
+        "It reduces the parameter count to one head's worth"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Each head projects into its own subspace and learns its own notion of relevance — one may track syntactic dependency, another coreference. Their outputs are concatenated and projected back. A single head must compress all relationship types into one attention pattern.",
+      "tags": [
+        "multi-head-attention",
+        "subspaces",
+        "representation"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-006",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "Which task suits a transformer encoder stack rather than a decoder stack?",
+      "choices": [
+        "Free-form text generation",
+        "Sentence classification, where the whole input is available and a bidirectional representation helps",
+        "Autoregressive completion",
+        "Streaming token-by-token output"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "An encoder sees the entire sequence in both directions, which is ideal for building a representation to classify or extract from. Generation requires that a position not see the future, which is what the decoder's causal mask enforces.",
+      "tags": [
+        "encoder",
+        "classification",
+        "bidirectional",
+        "architecture-choice"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-007",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "What does the causal (look-ahead) mask do in a decoder, and why is it necessary during training?",
+      "choices": [
+        "It hides padding tokens from attention",
+        "It prevents each position from attending to later positions, so the model cannot see the answer it is being asked to predict",
+        "It masks a random 15% of tokens",
+        "It limits the context window"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Because the whole target sequence is fed in at once for efficiency, without a causal mask position i could simply read position i+1 and the next-token objective would be trivial. The mask enforces the left-to-right condition that also holds at inference. Padding masks and the 15% masking of BERT are different mechanisms.",
+      "tags": [
+        "causal-mask",
+        "decoder",
+        "training",
+        "next-token-prediction"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-008",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is BERT's masked language modelling objective?",
+      "choices": [
+        "Predicting the next sentence",
+        "Randomly masking a proportion of input tokens and training the model to recover them from bidirectional context",
+        "Predicting the next token left to right",
+        "Masking the output layer during fine-tuning"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "MLM corrupts the input by masking roughly 15% of tokens and asks the model to restore them using context from both sides. That bidirectional objective is what makes BERT's representations strong for understanding tasks, and also what makes it unsuitable for free generation.",
+      "tags": [
+        "mlm",
+        "bert",
+        "pretraining",
+        "bidirectional"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-009",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is next sentence prediction (NSP) in BERT's pretraining?",
+      "choices": [
+        "Generating the following sentence",
+        "A binary classification of whether sentence B actually follows sentence A in the source corpus",
+        "Predicting the masked tokens of the next sentence",
+        "Ranking candidate next sentences"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "NSP pairs sentences, half genuinely consecutive and half randomly sampled, and trains a binary classifier on the pooled representation. The aim was to teach inter-sentence relationships for tasks like question answering, though later work found its contribution smaller than MLM's.",
+      "tags": [
+        "nsp",
+        "bert",
+        "pretraining",
+        "sentence-pairs"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-010",
+      "type": "multi",
+      "difficulty": "medium",
+      "stem": "Which TWO special tokens does BERT use and what for?",
+      "choices": [
+        "[CLS] at the start, whose final representation is used for sequence-level classification",
+        "[SEP] to separate segments and mark the end of a sequence",
+        "[MASK] to mark the end of the vocabulary",
+        "[PAD] to indicate the beginning of a sentence"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "[CLS] gives a fixed position whose output can serve as a whole-sequence summary, and [SEP] delimits segments for sentence-pair tasks. [MASK] exists but marks tokens to be predicted, not vocabulary boundaries, and [PAD] fills to a common batch length rather than marking sentence starts.",
+      "tags": [
+        "special-tokens",
+        "bert",
+        "cls",
+        "sep"
+      ],
+      "ref": "https://huggingface.co/docs/transformers/glossary"
+    },
+    {
+      "id": "TR-011",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What does a residual (skip) connection around a sublayer accomplish?",
+      "choices": [
+        "It reduces the model's parameter count",
+        "It adds the sublayer's input to its output, giving gradients a direct path and making deep stacks trainable",
+        "It masks padding",
+        "It normalises the attention weights"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Residual connections let the gradient flow around each sublayer rather than only through it, which is what makes stacking dozens of layers feasible. Combined with layer normalisation they are the reason transformer depth trains stably.",
+      "tags": [
+        "residual-connection",
+        "depth",
+        "gradients",
+        "layer-norm"
+      ],
+      "ref": "https://www.ibm.com/topics/neural-networks"
+    },
+    {
+      "id": "TR-012",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is the position-wise feed-forward network inside a transformer block?",
+      "choices": [
+        "A recurrent layer applied across positions",
+        "A small MLP applied independently and identically to each position after attention",
+        "An attention layer with a single head",
+        "A pooling operation over the sequence"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "After attention mixes information across positions, the feed-forward network transforms each position on its own with shared weights. The division of labour is deliberate: attention moves information between positions, the MLP processes it within a position.",
+      "tags": [
+        "feed-forward",
+        "transformer-block",
+        "architecture"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-013",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why does self-attention cost grow quadratically with sequence length?",
+      "choices": [
+        "Because the feed-forward layers scale quadratically",
+        "Because every position computes a score against every other position, producing an N by N attention matrix",
+        "Because positional encodings are quadratic",
+        "Because the vocabulary grows with length"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The attention matrix has one entry per pair of positions, so both compute and memory scale with the square of the length. This is the central obstacle to long contexts and the reason for sparse, linear and state-space alternatives.",
+      "tags": [
+        "quadratic-complexity",
+        "scaling",
+        "long-context",
+        "attention"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-014",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In an encoder-decoder transformer used for translation, what does cross-attention do?",
+      "choices": [
+        "Lets decoder positions attend to the encoder's output representations of the source sentence",
+        "Lets encoder positions attend to each other",
+        "Attends across batch elements",
+        "Attends across attention heads"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "Cross-attention is how the decoder consults the source: queries come from the decoder state while keys and values come from the encoder output. Encoder self-attention relates source positions to each other, and decoder self-attention relates generated positions to each other.",
+      "tags": [
+        "cross-attention",
+        "encoder-decoder",
+        "translation"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-015",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "In PyTorch, why is nn.TransformerEncoderLayer typically stacked with nn.TransformerEncoder rather than used alone?",
+      "choices": [
+        "A single layer cannot compute attention",
+        "Depth is what gives the model capacity to build progressively more abstract representations; one layer captures only shallow relationships",
+        "It is required for the optimiser to work",
+        "A single layer cannot be moved to a GPU"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Each layer refines the representation produced by the one below, so stacking builds hierarchy: lower layers tend to capture surface and syntactic structure, higher layers more semantic relationships. TransformerEncoder is simply the container that repeats the layer N times.",
+      "tags": [
+        "pytorch",
+        "transformer-encoder",
+        "depth",
+        "implementation"
+      ],
+      "ref": "https://pytorch.org/docs/stable/generated/torch.nn.TransformerEncoder.html"
+    },
+    {
+      "id": "TR-016",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "A decoder-only model trained for causal language modelling is asked to classify sentiment. What is the standard adaptation?",
+      "choices": [
+        "It cannot be used for classification at all",
+        "Frame the task as generation — prompt it to emit a label — or attach a classification head to the final token's representation",
+        "Remove the causal mask and retrain from scratch",
+        "Convert it to an encoder by reversing the layers"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Decoder-only models handle classification either by generating the label as text, which is how prompting works, or by adding a head on the last position's hidden state and fine-tuning. Neither requires abandoning the architecture; removing the causal mask would invalidate everything the model learned.",
+      "tags": [
+        "decoder-only",
+        "classification",
+        "adaptation",
+        "task-framing"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    },
+    {
+      "id": "TR-017",
+      "type": "single",
+      "difficulty": "medium",
+      "stem": "What is layer normalisation doing in a transformer block?",
+      "choices": [
+        "Normalising across the batch dimension",
+        "Normalising each position's feature vector to zero mean and unit variance, stabilising training independently of batch size",
+        "Normalising the attention weights to sum to one",
+        "Normalising the learning rate"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "Layer norm operates within a single example across its features, which is why it suits variable-length sequences and small batches where batch normalisation behaves poorly. Softmax already normalises attention weights; that is a separate operation.",
+      "tags": [
+        "layer-normalisation",
+        "batch-norm",
+        "training-stability"
+      ],
+      "ref": "https://pytorch.org/docs/stable/generated/torch.nn.LayerNorm.html"
+    },
+    {
+      "id": "TR-018",
+      "type": "multi",
+      "difficulty": "hard",
+      "stem": "Which TWO changes would you expect to help a transformer that underfits a translation task?",
+      "choices": [
+        "Increase model depth or width to add capacity",
+        "Train for longer with a suitable learning-rate schedule and warmup",
+        "Add stronger dropout",
+        "Reduce the training set size"
+      ],
+      "answer": [
+        0,
+        1
+      ],
+      "explanation": "Underfitting means the model has not captured the structure present in the data, so the remedies add capacity or give optimisation more opportunity to converge; transformers in particular are sensitive to warmup. Stronger dropout and less data both reduce effective capacity, which is the opposite of what underfitting needs.",
+      "tags": [
+        "underfitting",
+        "capacity",
+        "learning-rate-schedule",
+        "warmup"
+      ],
+      "ref": "https://www.ibm.com/topics/overfitting"
+    },
+    {
+      "id": "TR-019",
+      "type": "single",
+      "difficulty": "hard",
+      "stem": "Why does BERT mask roughly 15% of tokens rather than a much higher proportion?",
+      "choices": [
+        "Because the tokenizer cannot handle more",
+        "Because too much masking leaves too little context to reconstruct from, while too little makes the task trivial and training inefficient",
+        "Because 15% is the vocabulary ratio",
+        "Because higher rates break the attention mask"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The masking rate trades signal against context. Mask too much and the remaining text cannot support reconstruction; mask too little and most positions contribute no learning signal per pass. The 15% figure is an empirical balance, not a structural constraint.",
+      "tags": [
+        "mlm",
+        "pretraining",
+        "bert",
+        "masking-rate"
+      ],
+      "ref": "https://www.ibm.com/topics/transformer-model"
+    }
+  ]
+}
