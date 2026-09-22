@@ -8,8 +8,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -55,15 +57,28 @@ def sources() -> dict:
     return found
 
 
-def check(url: str, timeout: int = 20) -> tuple:
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return url, resp.status, ""
-    except urllib.error.HTTPError as exc:
-        return url, exc.code, exc.reason
-    except Exception as exc:                       # DNS, TLS, timeout
-        return url, 0, type(exc).__name__
+def check(url: str, timeout: int = 20, attempts: int = 3) -> tuple:
+    """Fetch a URL, retrying transient failures.
+
+    A timeout, reset connection or 5xx is not evidence that a page is gone, and
+    a single-shot check turns one bad moment into a failed build. Only a stable
+    result is reported.
+    """
+    last = (url, 0, "unknown")
+    for attempt in range(attempts):
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return url, resp.status, ""
+        except urllib.error.HTTPError as exc:
+            last = (url, exc.code, exc.reason)
+            if exc.code < 500:                     # 404, 403, 429: a real answer
+                return last
+        except Exception as exc:                   # DNS, TLS, timeout, reset
+            last = (url, 0, type(exc).__name__)
+        if attempt < attempts - 1:
+            time.sleep(1.5 * (attempt + 1) + random.random())
+    return last
 
 
 def main() -> None:
