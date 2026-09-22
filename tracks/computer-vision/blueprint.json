@@ -24,6 +24,7 @@
       }
     ],
     "ui": {
+      "page_title": "Computer Vision Console",
       "eyebrow": "Learning track · Computer Vision",
       "hero_title": "The part of AI that has to survive a real camera.",
       "hero_body": "Image fundamentals and geometry, convolutional and transformer architectures, detection, segmentation, video and tracking, and what breaks between a notebook and a production pipeline. {N} questions, each with the reasoning and a primary source.",

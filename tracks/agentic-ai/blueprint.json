@@ -24,6 +24,7 @@
       }
     ],
     "ui": {
+      "page_title": "Agentic AI Console",
       "eyebrow": "Learning track · Agentic AI",
       "hero_title": "Agents are systems, not prompts.",
       "hero_body": "Architecture, memory, tool orchestration, evaluation and the operational reality of running agents in production. {N} questions across ten topic areas, each with the reasoning and a primary source.",

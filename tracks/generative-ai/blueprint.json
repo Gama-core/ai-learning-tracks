@@ -24,6 +24,7 @@
       }
     ],
     "ui": {
+      "page_title": "Generative AI Console",
       "eyebrow": "Learning track · Generative AI",
       "hero_title": "From a prompt to a fine-tuned, retrieval-grounded system.",
       "hero_body": "Prompt engineering, tokenisation and data pipelines, transformer internals, fine-tuning and alignment, RAG and agents. {N} questions across ten topic areas, each with the reasoning and a primary source.",

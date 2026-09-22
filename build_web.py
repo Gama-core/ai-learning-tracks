@@ -11,6 +11,7 @@ Served from a plain web server, simulator.html would render in quirks mode with
 a guessed character encoding and no mobile viewport; index.html is the one to
 deploy. Pass a track id to build only that one.
 """
+import html
 import json
 import re
 import sys
@@ -111,6 +112,13 @@ def build(track) -> None:
         raise SystemExit(f"{TEMPLATE.name} is missing the {MARKER} marker")
     page = template.replace(
         MARKER, json.dumps(payload, separators=(",", ":"), ensure_ascii=False))
+
+    # The template carries a placeholder title; the track owns the real one.
+    ui = payload["track"].get("ui", {})
+    page = re.sub(r"<title>.*?</title>",
+                  "<title>" + html.escape(
+                      ui.get("page_title") or payload["track"]["name"]) + "</title>",
+                  page, count=1)
 
     outdir = ROOT / "web" / track.id
     outdir.mkdir(parents=True, exist_ok=True)
