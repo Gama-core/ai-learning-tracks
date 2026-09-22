@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the question bank. Run after editing bank/*.json."""
+"""Validate a learning track's content. Run after editing bank/*.json."""
 import json
 import re
 import sys
@@ -8,13 +8,13 @@ from pathlib import Path
 import certlib
 
 ROOT = Path(__file__).resolve().parent
-CERT = certlib.resolve(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else None)
-bp = json.loads(CERT.blueprint_path.read_text())
+TRACK = certlib.resolve(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else None)
+bp = json.loads(TRACK.blueprint_path.read_text())
 domains = {d["id"]: d for d in bp["domains"]}
 
 errors, warnings, seen_ids, counts = [], [], set(), {}
 
-for path in sorted(CERT.bank_dir.glob("*.json")):
+for path in sorted(TRACK.bank_dir.glob("*.json")):
     try:
         bank = json.loads(path.read_text())
     except json.JSONDecodeError as exc:
@@ -70,7 +70,7 @@ for path in sorted(CERT.bank_dir.glob("*.json")):
             warnings.append(f"{where}: no tags")
 
 # ---- case studies --------------------------------------------------------
-case_dir = CERT.case_dir
+case_dir = TRACK.case_dir
 case_q = 0
 if case_dir.exists():
     for path in sorted(case_dir.glob("*.json")):
@@ -107,7 +107,7 @@ if case_dir.exists():
                 warnings.append(f"{where}: explanation is thin")
 
 # ---- cheat sheet ---------------------------------------------------------
-cheat_path = CERT.cheats_path
+cheat_path = TRACK.cheats_path
 cards = 0
 if cheat_path.exists():
     cs = json.loads(cheat_path.read_text())
@@ -128,7 +128,7 @@ if cheat_path.exists():
                 errors.append(f"{where}: unknown block type '{block['type']}'")
 
 # ---- concept taxonomy ----------------------------------------------------
-concepts_path = CERT.concepts_path
+concepts_path = TRACK.concepts_path
 n_concepts = 0
 if concepts_path.exists():
     cons = json.loads(concepts_path.read_text())["concepts"]
@@ -152,8 +152,8 @@ if concepts_path.exists():
     # Every tag a question uses must belong to a concept, or the taxonomy has
     # silently stopped covering the bank.
     used_tags, no_concept, per_concept = set(), [], {c["id"]: 0 for c in cons}
-    for path in (list(CERT.bank_dir.glob("*.json"))
-                 + list(CERT.case_dir.glob("*.json"))):
+    for path in (list(TRACK.bank_dir.glob("*.json"))
+                 + list(TRACK.case_dir.glob("*.json"))):
         for q in json.loads(path.read_text())["questions"]:
             used_tags.update(q["tags"])
             mapped = {cid for t in q["tags"] for cid in tag_index.get(t, [])}
@@ -183,7 +183,7 @@ for d in bp["domains"]:
         errors.append(f"{d['id']}: {have} questions, but a 65-question exam "
                       f"needs {need}")
 
-print(f"[{CERT.code}] {total} bank questions across {len(counts)} domains, "
+print(f"[{TRACK.name}] {total} bank questions across {len(counts)} topic areas, "
       f"{case_q} case questions, {cards} flashcards, {n_concepts} concepts")
 for w in warnings:
     print(f"  warn  {w}")

@@ -1,38 +1,43 @@
 # cert-helper
 
-A study kit and exam simulator for AI certifications. Two front ends over one content
-model: a terminal client with no dependencies, and a self-contained web page you can drop
-on any static host.
+A study tool for learning **AI fields** — generative AI, computer vision and agentic AI —
+built around question banks with worked reasoning, spaced repetition, condensed cheat sheets
+and a concept-level diagnostic layer.
 
-Each certification lives under `certs/<id>/` with its own blueprint, question bank, cheat
-sheets and concept taxonomy. The tooling knows nothing about any particular exam beyond
-what it reads from there.
+Two front ends over one content model: a terminal client with no dependencies, and a
+self-contained web page you can drop on any static host.
 
 <sub>A [Gama Core](https://www.gamacore.com) project.</sub>
 
-## Certifications included
+## The three tracks
 
-| | Questions | Topic areas | Shape |
-|---|---|---|---|
-| **`ncp-aai`** — NVIDIA-Certified Professional: Agentic AI LLMs | 323 | 10 | One proctored exam, published blueprint with weighted domains |
-| **`ibm-genai`** — IBM Generative AI Engineering (Coursera) | 197 | 10 | 16 self-paced courses, per-course quizzes plus a capstone |
-| **`applied-cv`** — Applied Computer Vision | 192 | 10 | **Not a certification.** A Gama Core learning track. |
+| Track | Covers | Questions |
+|---|---|---|
+| **`generative-ai`** — Generative AI Engineering | Prompting, tokenisation and data pipelines, transformer internals, fine-tuning and alignment, RAG | 197 |
+| **`computer-vision`** — Computer Vision | Image fundamentals and geometry, CNNs and ViTs, detection, segmentation, video and tracking, edge deployment | 192 |
+| **`agentic-ai`** — Agentic AI | Architecture, memory, tool orchestration, evaluation, deployment, safety and human oversight | 323 |
 
-The three are structurally different and the tool reflects that rather than flattening them.
-NCP-AAI has an official blueprint, so mock exams are apportioned to NVIDIA's published
-weights. The IBM certificate has no cumulative exam at all, so its weights are each course's
-share of the covered hours.
+Each track lives under `tracks/<id>/` with its own topic blueprint, bank, cheat sheets and
+concept taxonomy. The tooling knows nothing about any particular field beyond what it reads
+from there.
 
-**`applied-cv` is not a certification and does not claim to be.** No vendor certifies applied
-computer vision: every adjacent credential is either multimodal generative AI (NVIDIA
-NCA-GENM), a cloud platform exam where vision is a fifth of the content (Microsoft AI-102),
-or a course-completion badge (OpenCV University). That gap is why the track exists. Its
-weights are Gama Core's editorial judgement of where applied CV work concentrates — a claim,
-not a citation — and the page says so in its own footer.
+**712 questions across three tracks · 340 verified source links · 458 flashcards ·
+164 concepts.**
 
-The IBM track covers the **10 generative-AI courses** (1–3 and 10–16), 91 of the
-certificate's 168 hours. Courses 4–9 — Python, Flask, Pandas, scikit-learn, Keras — are
-excluded on purpose: they teach library work that multiple choice tests poorly.
+## Certification alignment
+
+The tracks are built to teach the field, not to drill an exam. Where a track's topics happen
+to line up with a published certification, it says so and follows that certification's
+weights — so it doubles as preparation without that being the point.
+
+| Track | Aligns with | How closely |
+|---|---|---|
+| `agentic-ai` | [NVIDIA NCP-AAI](https://www.nvidia.com/en-us/learn/certification/agentic-ai-professional/) | Topic areas and weights follow NVIDIA's published blueprint; the bank covers **52 of its 54** numbered exam objectives |
+| `generative-ai` | [IBM Gen AI Engineering](https://www.coursera.org/professional-certificates/ibm-generative-ai-engineering) | Topics map to the ten generative-AI courses (1–3, 10–16), weighted by share of the 91 covered hours |
+| `computer-vision` | **Nothing.** No vendor certifies applied computer vision. | The adjacent credentials are multimodal gen AI (NVIDIA NCA-GENM), a cloud exam where vision is 15–20% (Microsoft AI-102), or course badges (OpenCV University). Weights here are editorial judgement — a claim, not a citation. |
+
+If you *are* sitting one of the two exams, `tracks/<id>/RESOURCES.md` covers the specifics,
+including NVIDIA's official 20-page study guide and its 54 objectives.
 
 ## Quick start
 
@@ -40,87 +45,61 @@ excluded on purpose: they teach library work that multiple choice tests poorly.
 git clone https://github.com/Gama-core/cert-helper.git
 cd cert-helper
 ./sim.py                       # menu-driven; nothing to install
-./sim.py certs                 # list the certifications
-./sim.py -k ibm-genai          # switch (remembered for next time)
+./sim.py tracks                # list the tracks
+./sim.py -k computer-vision    # switch (remembered for next time)
 ```
 
 Python 3.8+ and nothing else — the terminal client is stdlib only. For the web version,
-open `web/index.html` in a browser, or upload that single file to a web server.
+open `web/<track-id>/index.html`, or upload that single file to a web server.
 
----
+## Topic weights
 
-## NCP-AAI: the exam
+Each track's practice sets are apportioned across its topic areas, so effort lands where the
+material concentrates.
 
-| | |
+<details>
+<summary><b>Agentic AI</b> — weights follow NVIDIA's published blueprint</summary>
+
+| Topic area | Weight |
 |---|---|
-| Name | NVIDIA-Certified Professional: Agentic AI LLMs |
-| Code | NCP-AAI |
-| Format | 60–70 questions, 120 minutes |
-| Delivery | Online, remotely proctored via [Certiverse](https://www.certiverse.com) |
-| Fee | $200 · valid 2 years |
-| Scoring | **Pass/fail — NVIDIA returns no score** |
-| Retakes | 14-day wait between attempts, max 5 per 12 months |
-| Prerequisite | 1–2 years AI/ML, hands-on production agentic work (recommended, not enforced) |
-| Official page | <https://www.nvidia.com/en-us/learn/certification/agentic-ai-professional/> |
+| Agent Architecture and Design | 15% |
+| Agent Development | 15% |
+| Evaluation and Tuning | 13% |
+| Deployment and Scaling | 13% |
+| Cognition, Planning, and Memory | 10% |
+| Knowledge Integration and Data Handling | 10% |
+| NVIDIA Platform Implementation | 7% |
+| Run, Monitor, and Maintain | 7% |
+| Safety, Ethics, and Compliance | 5% |
+| Human-AI Interaction and Oversight | 5% |
 
-NVIDIA does not publish a cut score; community reports cluster at 70–75%. This kit targets
-**75%** so you train with margin.
+These reconcile two official NVIDIA sources that disagree. The certification page gives
+Deployment 13% and Run/Monitor 5% (summing to 98%); the study guide PDF gives 5% and 7%
+(summing to 92%). Taking the higher figure from each sums to **exactly 100%**, so each
+document appears to carry one typo. See `tracks/agentic-ai/RESOURCES.md` §0.
 
-Because a real failure tells you nothing about *where* you lost it, your last mock here is
-the only diagnostic you will ever get. Run `./sim.py cheat -d logistics` before booking —
-it covers the Certiverse rules that fail people before they answer a question (exact name
-matching against your ID, the room scan, the system check).
+</details>
 
-### NCP-AAI blueprint
+<details>
+<summary><b>Generative AI Engineering</b> — weights by share of course hours</summary>
 
-Every practice set is apportioned to these weights, so effort lands where the exam puts it.
-
-| # | Topic area | Weight |
+| Topic area | Hours | Weight |
 |---|---|---|
-| 1 | Agent Architecture and Design | 15% |
-| 2 | Agent Development | 15% |
-| 3 | Evaluation and Tuning | 13% |
-| 4 | Deployment and Scaling | 13% |
-| 5 | Cognition, Planning, and Memory | 10% |
-| 6 | Knowledge Integration and Data Handling | 10% |
-| 7 | NVIDIA Platform Implementation | 7% |
-| 8 | Run, Monitor, and Maintain | 5% |
-| 9 | Safety, Ethics, and Compliance | 5% |
-| 10 | Human-AI Interaction and Oversight | 5% |
+| Introduction to Artificial Intelligence | 13 | 14% |
+| Generative AI: Introduction and Applications | 8 | 9% |
+| Prompt Engineering Basics | 10 | 11% |
+| LLM Architecture and Data Preparation | 6 | 7% |
+| Foundational Models for NLP and Language Understanding | 10 | 11% |
+| Language Modeling with Transformers | 9 | 10% |
+| Engineering and Fine-Tuning Transformers | 8 | 9% |
+| Advanced Fine-Tuning for LLMs | 9 | 10% |
+| AI Agents with RAG and LangChain | 9 | 10% |
+| Project: Applications with RAG and LangChain | 9 | 9% |
 
-These weights reconcile two official NVIDIA sources that disagree. The certification page
-gives Deployment 13% and Run/Monitor 5% (summing to 98%); the official study guide PDF gives
-5% and 7% (summing to 92%). Taking the higher figure from each sums to **exactly 100%**, so
-each document appears to carry one typo. See `certs/ncp-aai/RESOURCES.md` §0.
+</details>
 
-With 323 questions, four consecutive 65-question mocks draw almost no repeats.
-
-### How closely does this track the real exam?
-
-For NCP-AAI this is answerable, because NVIDIA publishes a
-[20-page study guide](https://dam-cdn.nvd.orangelogic.com/AssetLink/64tei188l3tt132l265u1ipjoexdl1p5.pdf)
-containing **54 numbered exam objectives**. The bank was checked against all 54:
-
-| | |
-|---|---|
-| Objectives with 4+ covering questions | **52 of 54** |
-| Gaps found and filled | 1.1 agent UI design, 1.7 knowledge graphs |
-| Format match | 60–70 multiple-choice, 120 min, no hands-on component (confirmed on the live page) |
-
-What remains **unverified**: question *phrasing* and difficulty calibration. NVIDIA publishes
-no sample questions, so the scenario style here is inferred from the exam being Professional
-level and from third-party descriptions. The objectives are matched; the house style is a
-best guess.
-
-Two things worth knowing. NVIDIA is rolling out performance-based hands-on lab components
-for *select* professional exams — NCP-AIO is already 30 MCQ plus 3 labs. NCP-AAI has not
-changed, but re-check the certification page before booking. And community sources cite a
-**70%** cut score against this repo's 75% target; the higher bar is deliberate margin.
-
-### Applied Computer Vision: the topic areas
-
-Weights are editorial, reflecting where applied CV work concentrates rather than any
-published blueprint.
+<details>
+<summary><b>Computer Vision</b> — weights are editorial judgement</summary>
 
 | Topic area | Weight |
 |---|---|
@@ -135,67 +114,43 @@ published blueprint.
 | Video and Tracking | 8% |
 | Deployment and Edge | 8% |
 
-Grounded in OpenCV, PyTorch and torchvision documentation, Ultralytics, and the primary
-papers — not any one provider's course material.
+No vendor publishes a computer vision blueprint, so these reflect where applied CV work
+concentrates rather than any published source. Grounded in OpenCV, PyTorch and torchvision
+documentation, Ultralytics, COCO's evaluation definition and the primary papers.
 
-### IBM Gen AI Engineering: the courses
-
-No blueprint is published, so weights are each course's share of the 91 covered hours.
-
-| # | Course | Hours | Weight |
-|---|---|---|---|
-| 1 | Introduction to Artificial Intelligence | 13 | 14% |
-| 2 | Generative AI: Introduction and Applications | 8 | 9% |
-| 3 | Generative AI: Prompt Engineering Basics | 10 | 11% |
-| 10 | LLM Architecture and Data Preparation | 6 | 7% |
-| 11 | Foundational Models for NLP and Language Understanding | 10 | 11% |
-| 12 | Language Modeling with Transformers | 9 | 10% |
-| 13 | Engineering and Fine-Tuning Transformers | 8 | 9% |
-| 14 | Advanced Fine-Tuning for LLMs | 9 | 10% |
-| 15 | AI Agents with RAG and LangChain | 9 | 10% |
-| 16 | Project: Applications with RAG and LangChain | 9 | 9% |
-
-Coursera quizzes are retakeable and typically pass at 70–80%, so this track targets **80%**
-— a retakeable quiz measures less than an unseen question. Course 16 is a build project
-that cannot be simulated; its questions cover the decisions it forces.
-
----
+</details>
 
 ## What's in the box
 
 ```
-certlib.py           Resolves a certification from an id, the last used, or the only one.
+certlib.py           Resolves a track from an id, the last used, or the first.
 sim.py               Terminal simulator. Stdlib only.
-tests.py             Validates a certification's bank, cases, cheat sheets and concepts.
-check_links.py       Verifies every reference URL across all certifications.
-build_md.py          cheatsheet.json  ->  certs/<id>/CHEATSHEET.md
+tests.py             Validates a track's bank, cases, cheat sheets and concepts.
+check_links.py       Verifies every reference URL across all tracks.
+build_md.py          cheatsheet.json  ->  tracks/<id>/CHEATSHEET.md
 build_web.py         everything       ->  web/<id>/{simulator,index}.html
 web/template.html    Web simulator source. Edit this, not the generated files.
 
-certs/<id>/
-  blueprint.json     Topic areas with weights, plus the exam facts and page copy.
+tracks/<id>/
+  blueprint.json     Topic areas with weights, track metadata, page copy, and an
+                     optional `certification` block when one aligns.
   concepts.json      Concept taxonomy mapping question tags to diagnosable concepts.
   cheatsheet.json    Condensed reference; every table row also becomes a flashcard.
   bank/*.json        Standalone questions, one file per topic area.
   cases/*.json       Case studies: one scenario, several linked questions.
   RESOURCES.md       Curated free study material. Every link verified in CI.
-  STUDY_PLAN.md      A study plan mapped to the weights. (ncp-aai)
+  STUDY_PLAN.md      A study plan mapped to the weights. (agentic-ai)
   CHEATSHEET.md      Generated. Printable and greppable.
 
-.progress/<id>.json  Your progress, per certification. Gitignored.
+.progress/<id>.json  Your progress, per track. Gitignored.
 ```
-
-**Content at a glance:** 712 questions across three tracks · 341 verified source links ·
-458 flashcards · 164 concepts.
-
----
 
 ## The terminal simulator
 
 ```bash
-./sim.py                              # menu (last certification used)
-./sim.py certs                        # list certifications
-./sim.py -k ibm-genai                 # switch; remembered for next time
+./sim.py                              # menu (last track used)
+./sim.py tracks                       # list tracks
+./sim.py -k generative-ai             # switch; remembered for next time
 ./sim.py exam                         # timed mock: 60-70 q, 120 min, blueprint-weighted
 ./sim.py exam -n 20                   # short timed mock
 ./sim.py practice                     # 15 q, untimed, explanation after each
@@ -212,20 +167,20 @@ certs/<id>/
 ./sim.py concepts                     # taxonomy + your accuracy on each
 ./sim.py cram -d safety-ethics-compliance   # every answer + explanation, no quiz
 ./sim.py stats                        # readiness by domain and concept
-./sim.py --reset                      # wipe progress for the current certification
+./sim.py --reset                      # wipe progress for the current track
 ```
 
 During a question: `A`–`D` to answer (two letters for select-two, e.g. `AC`), `f` flag,
-`r` reveal the answer and carry on (mock exams), `b` back, `s` skip, `q` quit and score. Ctrl-C scores what you have answered rather than
+`r` reveal the answer and carry on (timed assessments), `b` back, `s` skip, `q` quit and score. Ctrl-C scores what you have answered rather than
 discarding it.
 
 ### Modes
 
-**Mock exam** hides feedback until you submit, then scores per domain, lists what you
+**Timed assessment** hides feedback until you submit, then scores per domain, lists what you
 missed, and orders weak areas by *exam impact* — weight × gap — so a 40% in a 15% domain
 outranks a 40% in a 5% one.
 
-**Show answer** works mid-exam. In a mock exam you can reveal the answer and explanation on
+**Show answer** works mid-exam. In a timed assessment you can reveal the answer and explanation on
 any question — `r` in the terminal, the **Show answer** button or `R` on the web — without
 ending the run or stopping the clock. The question locks at that point, so an answer changed
 after seeing the key cannot flatter the score.
@@ -256,7 +211,7 @@ three weeks. `review` asks what is due, most overdue first, heaviest domains bre
 
 **Case studies** are one scenario with 3–4 linked questions across different domains,
 closer to the exam's scenario-heavy style than standalone items. The scenario stays on
-screen throughout. Case questions also appear individually in mock exams, carrying their
+screen throughout. Case questions also appear individually in timed assessments, carrying their
 scenario with them.
 
 **Flashcards** drill pure recall over the cheat-sheet tables — 206 cards across 13 decks,
@@ -293,7 +248,7 @@ Four tabs:
 
 | Tab | Holds |
 |---|---|
-| **Console** | Readiness gauge, the four start-a-session cards, weakest concepts, mock exam history, coverage |
+| **Console** | Readiness gauge, the four start-a-session cards, weakest concepts, timed assessment history, coverage |
 | **Case studies** | The 10 scenarios, plus links to other people's practice exams |
 | **Cheat sheets** | The 13 condensed reference sections. Prints. |
 | **Cram sheet** | Every question with its answer and explanation, by topic area |
@@ -318,7 +273,7 @@ Two fixes were needed to get there, both worth knowing if you edit the layout:
   `hidden` would create a scroll container and change the containing block for
   `position: sticky` descendants.
 
-Keys: `A`–`D` answer · `←` `→` move · `F` flag · `R` show the answer (mock exams) ·
+Keys: `A`–`D` answer · `←` `→` move · `F` flag · `R` show the answer (timed assessments) ·
 `Enter` check/next. In flashcards, Space to reveal, `Y`/`N` to grade.
 
 ---
@@ -334,10 +289,10 @@ WebSocket — and inlines every question, cheat sheet and concept.
 One file:
 
 ```
-web/<cert-id>/index.html
+web/<track-id>/index.html
 ```
 
-One file per certification — `web/ncp-aai/index.html`, `web/ibm-genai/index.html`. They are
+One file per track — `web/agentic-ai/index.html`, `web/generative-ai/index.html`. They are
 independent pages; host one, the other, or both.
 
 Nothing else. No assets folder, no separate CSS or JS, no images. Every `href`/`src` that
@@ -346,8 +301,8 @@ an https link baked into the data; nothing resolves against disk.
 
 | You want | Upload to | Visitors get |
 |---|---|---|
-| A page per certification | `/ncp-aai/index.html` | `example.com/ncp-aai/` |
-| Under an existing section | `/learn/ncp-aai/index.html` | `example.com/learn/ncp-aai/` |
+| A page per track | `/agentic-ai/index.html` | `example.com/agentic-ai/` |
+| Under an existing section | `/learn/agentic-ai/index.html` | `example.com/learn/agentic-ai/` |
 | A specific filename | `/simulator.html` | `example.com/simulator.html` |
 
 Keeping the name `index.html` inside a folder gives the clean trailing-slash URL with no
@@ -365,9 +320,9 @@ repeat visitors, short enough that an update lands the same day.
 ### Redeploying
 
 ```bash
-python3 build_web.py              # all certifications
-python3 build_web.py ibm-genai    # just one
-# re-upload web/<cert-id>/index.html
+python3 build_web.py              # all tracks
+python3 build_web.py generative-ai    # just one
+# re-upload web/<track-id>/index.html
 ```
 
 Visitor progress lives in their own `localStorage`, keyed by question id, so it survives
@@ -414,7 +369,7 @@ then the relevant build script.
 
 ### Questions
 
-Append to the relevant `certs/<id>/bank/*.json`:
+Append to the relevant `tracks/<id>/bank/*.json`:
 
 ```json
 {
@@ -436,7 +391,7 @@ rather than the letter.
 
 ### Case studies
 
-Drop a file in `certs/<id>/cases/`, named for its id:
+Drop a file in `tracks/<id>/cases/`, named for its id:
 
 ```json
 {
@@ -456,13 +411,13 @@ enforces the id format, the four-choice rule, and a minimum of three linked ques
 
 ### Cheat sheets
 
-`certs/<id>/cheatsheet.json` holds sections of typed blocks — `table`, `bullets` or `note`. Every
+`tracks/<id>/cheatsheet.json` holds sections of typed blocks — `table`, `bullets` or `note`. Every
 table row automatically becomes a flashcard (first cell asks, the rest answers), so adding
 a row adds a card. Rebuild with `build_md.py` and `build_web.py`.
 
 ### Concepts
 
-`certs/<id>/concepts.json` maps free-form question tags onto a fixed set of diagnosable
+`tracks/<id>/concepts.json` maps free-form question tags onto a fixed set of diagnosable
 concepts:
 
 ```json
@@ -484,12 +439,12 @@ has fewer than four questions, since accuracy on such a concept cannot be report
 
 ```bash
 python3 tests.py [cert]        # validate bank, cases, cheat sheets, concept taxonomy
-python3 check_links.py         # verify every reference URL, across all certifications
-python3 build_md.py [cert]     # regenerate certs/<id>/CHEATSHEET.md
+python3 check_links.py         # verify every reference URL, across all tracks
+python3 build_md.py [cert]     # regenerate tracks/<id>/CHEATSHEET.md
 python3 build_web.py [cert]    # regenerate web/<id>/{simulator,index}.html
 ```
 
-Omit the certification id and `tests.py` and `build_md.py` act on the current one, while
+Omit the track id and `tests.py` and `build_md.py` act on the current one, while
 `build_web.py` builds them all.
 
 `tests.py` is strict where a mistake would be invisible: duplicate ids, wrong choice
@@ -516,13 +471,14 @@ refuse automated requests while serving browsers normally.
 
 ## Where the questions come from
 
-Every question is original, written against the published blueprint or course syllabus and
-against primary documentation. Every explanation links to its source, and all 212 links are
-verified in CI.
+Every question is original, written against primary documentation rather than anyone's
+course material. Every explanation links to its source, and all 340 links are verified in CI.
 
-For the IBM track that means IBM's own topic pages, Hugging Face and PyTorch documentation,
-LangChain concepts and the original papers — never Coursera's own quiz content, which is
-the course's assessment and not ours to reproduce.
+| Track | Grounded in |
+|---|---|
+| Generative AI | IBM topic pages, Hugging Face and PyTorch docs, LangChain concepts, the original papers — never Coursera's own quiz content, which is the course's assessment and not ours to reproduce |
+| Computer Vision | OpenCV, PyTorch and torchvision docs, Ultralytics, COCO's evaluation definition, the primary papers |
+| Agentic AI | NVIDIA's published blueprint and 20-page study guide, NVIDIA and framework documentation, the primary papers |
 
 Published third-party guides were used as *coverage intelligence* only — to find which
 topics, product names and techniques they report as tested, then to write original items
@@ -542,8 +498,8 @@ agreement, is grounds for revoking a credential, and is frequently wrong.
 
 ## Study plan
 
-[`STUDY_PLAN.md`](STUDY_PLAN.md) lays out six weeks at roughly 6–8 hours a week: a cold
-baseline mock first, heavy domains early, NVIDIA product specifics in week 4, timed mocks
+[`tracks/agentic-ai/STUDY_PLAN.md`](tracks/agentic-ai/STUDY_PLAN.md) lays out six weeks at roughly 6–8 hours a week: a cold
+baseline mock first, heavy domains early, NVIDIA product specifics in week 4, timed timed assessments
 only in the last two weeks.
 
 The daily habit that matters most:
@@ -559,31 +515,41 @@ thirty minutes of rereading.
 Ship it when `./sim.py stats` shows blueprint-weighted accuracy above 80% with every domain
 attempted and no concept below target in a 13–15% topic area.
 
-## Adding a certification
 
-Create `certs/<id>/` with a `blueprint.json` and the tooling picks it up — `certlib.resolve`
+## Adding a track
+
+Create `tracks/<id>/` with a `blueprint.json` and the tooling picks it up — `certlib.resolve`
 discovers any directory there that has one.
 
-`blueprint.json` carries two things: the topic areas with their weights, and an `exam` block
-holding the facts and the page copy. The web client reads its eyebrow, headline, body text,
-fact tiles and footer note from `exam.ui` and `exam.facts`, so nothing about a certification
-is hard-coded in the template:
+`blueprint.json` carries the topic areas with their weights plus a `track` block holding the
+metadata and page copy. The web client reads its eyebrow, headline, body text, fact tiles and
+footer note from `track.ui` and `track.facts`, so nothing about a field is hard-coded in the
+template:
 
 ```json
 {
-  "exam": {
-    "name": "...", "code": "...", "target_pct": 80,
-    "question_count_min": 50, "question_count_max": 60, "duration_minutes": 90,
-    "facts": [{"label": "Courses", "value": "10 of 16"}],
+  "track": {
+    "id": "computer-vision",
+    "name": "Computer Vision",
+    "tagline": "...",
+    "target_pct": 80,
+    "assessment_min": 50, "assessment_max": 60, "assessment_minutes": 90,
+    "facts": [{"label": "Topic areas", "value": "10"}],
     "ui": {"eyebrow": "...", "hero_title": "...", "hero_body": "... {N} questions ...",
-           "footer_note": "..."}
+           "assessment_name": "Timed assessment", "readiness_label": "Weighted readiness",
+           "footer_note": "..."},
+    "certification": {
+      "name": "...", "code": "...", "source": "https://...",
+      "format": "...", "alignment": "How the topics line up, and how closely."
+    }
   },
-  "domains": [{"id": "...", "name": "...", "weight": 14, "prefix": "IA", "scope": "..."}]
+  "domains": [{"id": "...", "name": "...", "weight": 14, "prefix": "DE", "scope": "..."}]
 }
 ```
 
-`{N}` in `hero_body` is replaced with the question count. Weights should sum to 100; if the
-official figures do not, say so in `weights_note` and the simulator normalizes them.
+`{N}` in `hero_body` is replaced with the question count. Weights should sum to 100. The
+`certification` block is **optional** — omit it and the page simply never mentions an exam,
+which is the right answer when none exists.
 
 Then add `bank/`, `cheatsheet.json` and `concepts.json`, run `tests.py <id>`, and build. The
-case-studies tab hides itself automatically when a certification has no `cases/`.
+case-studies tab hides itself automatically when a track has no `cases/`.

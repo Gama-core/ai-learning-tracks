@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Certification discovery, shared by the simulator and the build scripts.
+"""Learning-track discovery, shared by the simulator and the build scripts.
 
-Each certification is a directory under certs/ holding its own blueprint,
+Each track is a directory under tracks/ holding its own topic blueprint,
 question bank, cases, cheat sheets and concept taxonomy. Nothing in the tooling
-knows which certification it is working on beyond what it reads from there.
+knows which field it is working on beyond what it reads from there.
+
+A track may declare a `certification` block when its topics happen to align with
+a published exam. That is alignment metadata, not the point of the track.
 """
 from __future__ import annotations
 
@@ -12,38 +15,47 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-CERTS_DIR = ROOT / "certs"
+TRACKS_DIR = ROOT / "tracks"
 PROGRESS_DIR = ROOT / ".progress"
-DEFAULT_FILE = PROGRESS_DIR / "last-cert"
+DEFAULT_FILE = PROGRESS_DIR / "last-track"
 
 
-class Cert:
-    """One certification's content, resolved from certs/<id>/."""
+class Track:
+    """One learning track's content, resolved from tracks/<id>/."""
 
-    def __init__(self, cert_id: str):
-        self.id = cert_id
-        self.dir = CERTS_DIR / cert_id
+    def __init__(self, track_id: str):
+        self.id = track_id
+        self.dir = TRACKS_DIR / track_id
         if not self.dir.is_dir():
-            sys.exit(f"No certification '{cert_id}'. Available: "
-                     + ", ".join(c.id for c in available()))
+            sys.exit(f"No track '{track_id}'. Available: "
+                     + ", ".join(t.id for t in available()))
         self.blueprint_path = self.dir / "blueprint.json"
         self.concepts_path = self.dir / "concepts.json"
         self.cheats_path = self.dir / "cheatsheet.json"
         self.bank_dir = self.dir / "bank"
         self.case_dir = self.dir / "cases"
-        self.progress_path = PROGRESS_DIR / f"{cert_id}.json"
+        self.progress_path = PROGRESS_DIR / f"{track_id}.json"
 
     @property
     def blueprint(self) -> dict:
         return json.loads(self.blueprint_path.read_text())
 
     @property
-    def name(self) -> str:
-        return self.blueprint["exam"]["name"]
+    def meta(self) -> dict:
+        return self.blueprint["track"]
 
     @property
-    def code(self) -> str:
-        return self.blueprint["exam"].get("code", self.id)
+    def name(self) -> str:
+        return self.meta["name"]
+
+    @property
+    def tagline(self) -> str:
+        return self.meta.get("tagline", "")
+
+    @property
+    def certification(self) -> dict | None:
+        """The exam this track's topics align with, if any."""
+        return self.meta.get("certification")
 
     def counts(self) -> dict:
         bank = sum(len(json.loads(p.read_text())["questions"])
@@ -55,28 +67,31 @@ class Cert:
 
 
 def available() -> list:
-    """Every certification directory that has a blueprint, in name order."""
-    if not CERTS_DIR.is_dir():
+    """Every track directory that has a blueprint, in directory order."""
+    if not TRACKS_DIR.is_dir():
         return []
-    found = [Cert(p.name) for p in sorted(CERTS_DIR.iterdir())
-             if (p / "blueprint.json").is_file()]
-    return found
+    return [Track(p.name) for p in sorted(TRACKS_DIR.iterdir())
+            if (p / "blueprint.json").is_file()]
 
 
-def remember(cert_id: str) -> None:
+def remember(track_id: str) -> None:
     PROGRESS_DIR.mkdir(exist_ok=True)
-    DEFAULT_FILE.write_text(cert_id)
+    DEFAULT_FILE.write_text(track_id)
 
 
-def resolve(cert_id: str | None = None) -> Cert:
-    """Pick a certification: the one asked for, the last one used, or the only one."""
-    certs = available()
-    if not certs:
-        sys.exit(f"No certifications found under {CERTS_DIR}")
-    if cert_id:
-        return Cert(cert_id)
+def resolve(track_id: str | None = None) -> Track:
+    """Pick a track: the one asked for, the last one used, or the first."""
+    tracks = available()
+    if not tracks:
+        sys.exit(f"No tracks found under {TRACKS_DIR}")
+    if track_id:
+        return Track(track_id)
     if DEFAULT_FILE.is_file():
         last = DEFAULT_FILE.read_text().strip()
-        if any(c.id == last for c in certs):
-            return Cert(last)
-    return certs[0]
+        if any(t.id == last for t in tracks):
+            return Track(last)
+    return tracks[0]
+
+
+# Backwards-compatible aliases for the previous certification-centric naming.
+Cert = Track

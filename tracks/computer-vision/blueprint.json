@@ -1,18 +1,12 @@
 {
-  "exam": {
-    "name": "Applied Computer Vision",
-    "code": "ACV",
-    "level": "Gama Core learning track — not a vendor certification",
+  "track": {
+    "id": "computer-vision",
+    "name": "Computer Vision",
+    "tagline": "Image fundamentals through detection, segmentation, video and edge deployment",
     "target_pct": 80,
-    "duration_minutes": 90,
-    "question_count_min": 50,
-    "question_count_max": 60,
-    "price_usd": 0,
-    "language": "English",
-    "validity_years": 0,
-    "delivery": "Self-assessment · no vendor exam exists for this material",
-    "passing_score_note": "There is no external exam and therefore no cut score. The 80% target is this track's own bar for readiness.",
-    "source": "https://opencv.org/university/",
+    "assessment_minutes": 90,
+    "assessment_min": 50,
+    "assessment_max": 60,
     "weights_note": "No vendor publishes a computer vision blueprint, so these weights are Gama Core's editorial judgement of what an applied CV engineer actually spends time on. They are a claim, not a citation.",
     "scope_note": "Vendor-neutral and framework-agnostic. Grounded in OpenCV, PyTorch/torchvision, Ultralytics and the primary papers rather than any one provider's course.",
     "facts": [
@@ -21,28 +15,22 @@
         "value": "10"
       },
       {
-        "label": "Practice set",
-        "value": "50–60"
-      },
-      {
         "label": "Target",
         "value": "80%"
       },
       {
-        "label": "Credential",
-        "value": "None"
-      },
-      {
-        "label": "Cost",
-        "value": "Free"
+        "label": "Certification",
+        "value": "None exists"
       }
     ],
     "ui": {
-      "eyebrow": "Gama Core · learning track",
-      "hero_title": "No vendor certifies this. That is why the track exists.",
-      "hero_body": "Every computer vision credential is either multimodal generative AI, a cloud platform exam where vision is a fifth of the content, or a course completion badge. This track covers the work itself: {N} questions across image fundamentals, detection, segmentation, video and edge deployment — each with the reasoning and a primary source.",
-      "footer_note": "This is a Gama Core learning track, not a certification. No vendor exam, credential or cut score exists for this material. Topic weights are our editorial judgement of where applied CV work concentrates, not a published blueprint.",
-      "exam_mode_sub": "Weighted across the ten topic areas, no feedback until you submit. No vendor exam exists — this is the self-check instead."
+      "eyebrow": "Learning track · Computer Vision",
+      "hero_title": "The part of AI that has to survive a real camera.",
+      "hero_body": "Image fundamentals and geometry, convolutional and transformer architectures, detection, segmentation, video and tracking, and what breaks between a notebook and a production pipeline. {N} questions, each with the reasoning and a primary source.",
+      "assessment_name": "Timed assessment",
+      "readiness_label": "Weighted readiness",
+      "assessment_sub": "Weighted across the ten topic areas, no feedback until you submit. No vendor exam exists — this is the self-check instead.",
+      "footer_note": "This is a Gama Core learning track, not a certification. No vendor exam, credential or cut score exists for this material. Topic weights are our editorial judgement of where applied CV work concentrates, not a published blueprint."
     }
   },
   "domains": [

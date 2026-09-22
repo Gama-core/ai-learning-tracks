@@ -7,8 +7,8 @@ import sys
 import certlib
 
 ROOT = Path(__file__).resolve().parent
-CERT = certlib.resolve(sys.argv[1] if len(sys.argv) > 1 else None)
-cs = json.loads(CERT.cheats_path.read_text())
+TRACK = certlib.resolve(sys.argv[1] if len(sys.argv) > 1 else None)
+cs = json.loads(TRACK.cheats_path.read_text())
 
 out = [f"# {cs['title']}",
        "",
@@ -39,6 +39,6 @@ for sec in cs["sections"]:
         else:
             out += [f"> {b['text']}", ""]
 
-dest = CERT.dir / "CHEATSHEET.md"
+dest = TRACK.dir / "CHEATSHEET.md"
 dest.write_text("\n".join(out).rstrip() + "\n")
 print(f"{dest.relative_to(ROOT)}  {len(cs['sections'])} sections  {dest.stat().st_size // 1024} KB")

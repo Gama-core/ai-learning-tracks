@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""NCP-AAI certification simulator.
+"""Learning-track simulator for AI fields.
 
 Stdlib only. Run `./sim.py` for the menu, or see `./sim.py --help`.
 
@@ -29,19 +29,24 @@ ROOT = Path(__file__).resolve().parent
 
 # Bound in main() once the certification is resolved. Every content path in this
 # file goes through these, so the simulator has no idea which exam it is running.
-CERT = None
+TRACK = None
 BANK_DIR = BLUEPRINT = CHEATS = CASE_DIR = CONCEPTS = HISTORY = None
 
 
 def bind(cert) -> None:
-    global CERT, BANK_DIR, BLUEPRINT, CHEATS, CASE_DIR, CONCEPTS, HISTORY
-    CERT = cert
+    global TRACK, BANK_DIR, BLUEPRINT, CHEATS, CASE_DIR, CONCEPTS, HISTORY
+    TRACK = cert
     BANK_DIR, BLUEPRINT = cert.bank_dir, cert.blueprint_path
     CHEATS, CASE_DIR, CONCEPTS = cert.cheats_path, cert.case_dir, cert.concepts_path
     HISTORY = cert.progress_path
+    global PASS_MARK, ASSESSMENT_NAME
+    meta = cert.meta
+    PASS_MARK = meta.get("target_pct", 80) / 100
+    ASSESSMENT_NAME = meta.get("ui", {}).get("assessment_name", "Timed assessment")
 
 LABELS = "ABCD"
-PASS_MARK = 0.75
+PASS_MARK = 0.80          # rebound per track in bind()
+ASSESSMENT_NAME = "Timed assessment"   # ditto
 MIN_ATTEMPTS = 4   # Below this, a concept's accuracy is noise, not a signal.
 
 
@@ -544,7 +549,7 @@ def run_quiz(questions: list, bp: dict, hist: dict, timed: bool,
     questions = [shuffle_choices(q) for q in questions]
     if not shuffle:
         pass  # choice order is still shuffled; only question order is fixed
-    deadline = time.time() + bp["exam"]["duration_minutes"] * 60 if timed else None
+    deadline = time.time() + bp["track"]["assessment_minutes"] * 60 if timed else None
     started = time.time()
     flagged: set = set()
     answers: dict = {}
@@ -617,21 +622,21 @@ def run_quiz(questions: list, bp: dict, hist: dict, timed: bool,
 
 
 def mode_exam(args, questions, bp, hist) -> None:
-    n = args.count or random.randint(bp["exam"]["question_count_min"],
-                                     bp["exam"]["question_count_max"])
+    n = args.count or random.randint(bp["track"]["assessment_min"],
+                                     bp["track"]["assessment_max"])
     n = min(n, len(questions))
     clear()
     print(f"\n{C.BRAND}◣{C.BRANDB}◥{C.RESET}  {C.BOLD}{bp['exam']['name']} — Mock Exam"
           f"{C.RESET}")
     print(rule("="))
-    print(f"\n  {n} questions · {bp['exam']['duration_minutes']} minutes · "
+    print(f"\n  {n} questions · {bp['track']['assessment_minutes']} minutes · "
           f"target {PASS_MARK*100:.0f}%")
     print(f"  {C.DIM}Weighted to the published blueprint. No feedback until the end.")
     print(f"  [f]lag to mark, [b]ack to revise, [s]kip leaves it blank (counts wrong)."
           f"{C.RESET}\n")
     input(f"{C.BOLD}Enter to start the clock. {C.RESET}")
     run_quiz(weighted_sample(questions, bp, n, hist), bp, hist,
-             timed=True, feedback=False, title="Mock exam")
+             timed=True, feedback=False, title=ASSESSMENT_NAME)
 
 
 def mode_practice(args, questions, bp, hist) -> None:
@@ -744,9 +749,9 @@ def mode_stats(args, questions, bp, hist) -> None:
             print(f"  {C.YELLOW}Coverage is partial — this estimate is optimistic "
                   f"until you have attempted every domain.{C.RESET}")
 
-    exams = [e for e in hist["exams"] if e["mode"] == "Mock exam"]
+    exams = [e for e in hist["exams"] if e["mode"] == ASSESSMENT_NAME]
     if exams:
-        print(f"\n  {C.BOLD}Mock exam history{C.RESET}")
+        print(f"\n  {C.BOLD}{ASSESSMENT_NAME} history{C.RESET}")
         for e in exams[-10:]:
             f = e["score"]
             mark = f"{C.GREEN}pass{C.RESET}" if f >= PASS_MARK else f"{C.RED}below{C.RESET}"
@@ -954,18 +959,20 @@ def mode_case(args, questions, bp, hist) -> None:
              title=f"Case {chosen['id']}", shuffle=False)
 
 
-def mode_certs(args, questions, bp, hist) -> None:
+def mode_tracks(args, questions, bp, hist) -> None:
     """List the certifications this checkout carries."""
-    print(f"\n{C.BOLD}Certifications{C.RESET}")
+    print(f"\n{C.BOLD}Learning tracks{C.RESET}")
     print(rule("="))
     for c in certlib.available():
         n = c.counts()
-        mark = f"{C.GREEN}*{C.RESET}" if c.id == CERT.id else " "
-        e = c.blueprint["exam"]
-        print(f"\n {mark} {C.BOLD}{c.id}{C.RESET}  {C.DIM}{e.get('code', '')}{C.RESET}")
-        print(f"     {e['name']}")
-        print(f"     {C.DIM}{n['total']} questions · {len(c.blueprint['domains'])} "
-              f"topic areas{C.RESET}")
+        mark = f"{C.GREEN}*{C.RESET}" if c.id == TRACK.id else " "
+        print(f"\n {mark} {C.BOLD}{c.name}{C.RESET}  {C.DIM}{c.id}{C.RESET}")
+        print(wrap(c.tagline, width=78, indent="     " + C.DIM) + C.RESET)
+        print(f"     {C.DIM}{n['total']} questions · "
+              f"{len(c.blueprint['domains'])} topic areas{C.RESET}")
+        cert = c.certification
+        if cert:
+            print(f"     {C.BRAND}also prepares {cert['code']}{C.RESET}")
     print(f"\n{C.DIM}Switch with  ./sim.py -k <id>  (remembered for next time){C.RESET}\n")
 
 
@@ -1040,16 +1047,18 @@ def mode_cheat(args, questions, bp, hist) -> None:
 def mode_menu(args, questions, bp, hist) -> None:
     while True:
         clear()
-        e = bp["exam"]
+        e = bp["track"]
         print(f"\n{C.BRAND}◣{C.BRANDB}◥{C.RESET}  {C.BOLD}Gama Core{C.RESET}"
-              f"  {C.DIM}certification simulator{C.RESET}")
-        print(f"{C.BOLD}{e['name']}{C.RESET}  "
-              f"{C.BRAND}{e['code']}{C.RESET}")
+              f"  {C.DIM}AI learning tracks{C.RESET}")
+        print(f"{C.BOLD}{e['name']}{C.RESET}  {C.DIM}{e.get('tagline','')}{C.RESET}")
+        cert = e.get("certification")
+        if cert:
+            print(f"{C.DIM}also prepares {C.RESET}{C.BRAND}{cert['code']}{C.RESET}"
+                  f"{C.DIM} · {cert['name']}{C.RESET}")
         print(rule("="))
-        print(f"  {C.DIM}{e['duration_minutes']} min · {e['question_count_min']}-"
-              f"{e['question_count_max']} questions · ${e['price_usd']} · "
+        print(f"  {C.DIM}{len(bp['domains'])} topic areas · "
               f"{len(questions)} in local bank{C.RESET}\n")
-        print(f"  {C.BOLD}1{C.RESET}  Mock exam        {C.DIM}timed, blueprint-weighted{C.RESET}")
+        print(f"  {C.BOLD}1{C.RESET}  {ASSESSMENT_NAME:<16} {C.DIM}timed, weighted across topic areas{C.RESET}")
         print(f"  {C.BOLD}2{C.RESET}  Practice         {C.DIM}15 q, untimed, explanations as you go{C.RESET}")
         print(f"  {C.BOLD}3{C.RESET}  Practice a domain")
         print(f"  {C.BOLD}4{C.RESET}  Review due       {C.DIM}spaced repetition — what the scheduler says is due{C.RESET}")
@@ -1063,7 +1072,7 @@ def mode_menu(args, questions, bp, hist) -> None:
             print(f"  {C.BOLD}c{C.RESET}  Switch certification")
         print(f"  {C.BOLD}q{C.RESET}  Quit\n")
         choice = input("> ").strip().lower()
-        ns = argparse.Namespace(count=None, domain=None, concept=None)
+        ns = argparse.Namespace(count=None, domain=None, concept=None, track=None)
         if choice == "1":
             mode_exam(ns, questions, bp, hist)
         elif choice == "2":
@@ -1106,7 +1115,7 @@ def mode_menu(args, questions, bp, hist) -> None:
             sel = input("\nCertification > ").strip()
             if sel.isdigit() and 1 <= int(sel) <= len(certs):
                 bind(certs[int(sel) - 1])
-                certlib.remember(CERT.id)
+                certlib.remember(TRACK.id)
                 return mode_menu(args, load_questions(), load_blueprint(), load_history())
         elif choice in {"q", "quit", "exit"}:
             print()
@@ -1120,7 +1129,7 @@ def mode_menu(args, questions, bp, hist) -> None:
 
 def main() -> None:
     p = argparse.ArgumentParser(
-        description="NCP-AAI certification simulator",
+        description="Learning-track simulator for AI fields",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="Examples:\n"
                "  ./sim.py                          menu\n"
@@ -1140,9 +1149,9 @@ def main() -> None:
                "  ./sim.py concepts                 concept taxonomy + your accuracy\n"
                "  ./sim.py practice -c kv-cache\n")
     p.add_argument("mode", nargs="?", default="menu",
-                   choices=["menu", "exam", "practice", "drill", "stats", "cram", "cheat", "case", "review", "flash", "concepts", "certs"])
+                   choices=["menu", "exam", "practice", "drill", "stats", "cram", "cheat", "case", "review", "flash", "concepts", "tracks"])
     p.add_argument("-n", "--count", type=int, help="number of questions")
-    p.add_argument("-k", "--cert", help="certification id (see `./sim.py certs`)")
+    p.add_argument("-k", "--track", help="track id (see `./sim.py tracks`)")
     p.add_argument("-c", "--concept", help="concept id (see `./sim.py concepts`)")
     p.add_argument("-d", "--domain",
                    help="blueprint domain id, or cheat-sheet section id for `cheat`")
@@ -1151,15 +1160,15 @@ def main() -> None:
     args = p.parse_args()
 
     if args.reset:
-        bind(certlib.resolve(args.cert))
+        bind(certlib.resolve(args.track))
         HISTORY.unlink(missing_ok=True)
-        print(f"Progress cleared for {CERT.code}.")
+        print(f"Progress cleared for {TRACK.name}.")
         return
     if args.seed is not None:
         random.seed(args.seed)
 
-    bind(certlib.resolve(args.cert))
-    certlib.remember(CERT.id)
+    bind(certlib.resolve(args.track))
+    certlib.remember(TRACK.id)
     bp, questions, hist = load_blueprint(), load_questions(), load_history()
     migrate(hist)
     try:

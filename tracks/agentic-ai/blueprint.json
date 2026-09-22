@@ -1,48 +1,45 @@
 {
-  "exam": {
-    "name": "NVIDIA-Certified Professional: Agentic AI LLMs",
-    "code": "NCP-AAI",
-    "level": "Professional (intermediate)",
-    "duration_minutes": 120,
-    "question_count_min": 60,
-    "question_count_max": 70,
-    "price_usd": 200,
-    "language": "English",
-    "validity_years": 2,
-    "delivery": "Online, remotely proctored (Certiverse)",
-    "passing_score_note": "NVIDIA does not publish the cut score. Community reports cluster around 70-75%. This simulator defaults to 75% so you train with margin.",
-    "source": "https://www.nvidia.com/en-us/learn/certification/agentic-ai-professional/",
+  "track": {
+    "id": "agentic-ai",
+    "name": "Agentic AI",
+    "tagline": "Designing, evaluating and operating autonomous AI systems",
+    "target_pct": 75,
+    "assessment_minutes": 120,
+    "assessment_min": 60,
+    "assessment_max": 70,
     "weights_note": "NVIDIA publishes these weights in two places that disagree. The certification page gives Deployment and Scaling 13% and Run, Monitor and Maintain 5% (summing to 98%); the official study guide PDF gives 5% and 7% (summing to 92%). Taking the higher figure from each source sums to exactly 100%, so each document appears to carry one typo. This blueprint uses the reconciled figures: Deployment 13%, Run/Monitor 7%.",
+    "scope_note": "",
     "facts": [
       {
-        "label": "Questions",
-        "value": "60–70"
-      },
-      {
-        "label": "Minutes",
-        "value": "120"
+        "label": "Topic areas",
+        "value": "10"
       },
       {
         "label": "Target",
         "value": "75%"
       },
       {
-        "label": "Fee",
-        "value": "$200"
-      },
-      {
-        "label": "Valid",
-        "value": "2 yr"
+        "label": "Also preps",
+        "value": "NCP-AAI"
       }
     ],
     "ui": {
-      "eyebrow": "NVIDIA-Certified Professional",
-      "hero_title": "Train against the published blueprint, not a guess at it.",
-      "hero_body": "Every mock exam here is apportioned across the ten official topic areas in their real proportions, so a weak 15% domain costs you what it would cost you on exam day. {N} questions, each with the reasoning and a primary source.",
-      "footer_note": "Topic weights reconcile NVIDIA's two published sources, which disagree on two domains — taking the higher figure from each sums to exactly 100%. Target of 75% is this tool's own margin; NVIDIA does not publish a cut score, though community reports and prep sites cite 70%.",
-      "exam_mode_sub": "Blueprint-weighted, no feedback until you submit. Flag and revisit like the real thing."
+      "eyebrow": "Learning track · Agentic AI",
+      "hero_title": "Agents are systems, not prompts.",
+      "hero_body": "Architecture, memory, tool orchestration, evaluation and the operational reality of running agents in production. {N} questions across ten topic areas, each with the reasoning and a primary source.",
+      "assessment_name": "Timed assessment",
+      "readiness_label": "Weighted readiness",
+      "assessment_sub": "Blueprint-weighted, no feedback until you submit. Flag and revisit like the real thing.",
+      "footer_note": "Topic weights reconcile NVIDIA's two published sources, which disagree on two domains — taking the higher figure from each sums to exactly 100%. Target of 75% is this tool's own margin; NVIDIA does not publish a cut score, though community reports and prep sites cite 70%."
     },
-    "target_pct": 75
+    "certification": {
+      "name": "NVIDIA-Certified Professional: Agentic AI LLMs",
+      "code": "NCP-AAI",
+      "source": "https://www.nvidia.com/en-us/learn/certification/agentic-ai-professional/",
+      "format": "60–70 multiple-choice questions, 120 minutes, remotely proctored via Certiverse",
+      "price_usd": 200,
+      "alignment": "This track's ten topic areas and their weights follow NVIDIA's published blueprint, and the bank covers 52 of its 54 numbered exam objectives, so it doubles as preparation for NCP-AAI."
+    }
   },
   "domains": [
     {

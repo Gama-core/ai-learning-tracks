@@ -1,53 +1,45 @@
 {
-  "exam": {
-    "name": "IBM Generative AI Engineering Professional Certificate",
-    "code": "IBM-GENAI",
-    "level": "Professional Certificate (Coursera, self-paced)",
-    "duration_minutes": 90,
-    "question_count_min": 50,
-    "question_count_max": 60,
-    "price_usd": 49,
-    "language": "English",
-    "validity_years": 0,
-    "delivery": "Coursera, self-paced · graded quizzes per module plus a capstone project",
-    "passing_score_note": "Coursera graded quizzes generally require 70-80% to pass and can be retaken. This simulator targets 80%, above the usual bar, because a retakeable quiz measures less than an unseen one.",
-    "source": "https://www.coursera.org/professional-certificates/ibm-generative-ai-engineering",
+  "track": {
+    "id": "generative-ai",
+    "name": "Generative AI Engineering",
+    "tagline": "From prompting through transformers and fine-tuning to RAG",
+    "target_pct": 80,
+    "assessment_minutes": 90,
+    "assessment_min": 50,
+    "assessment_max": 60,
     "weights_note": "This certificate publishes no exam blueprint — it is 16 courses, not one exam. Topic weights here are each course's share of the covered hours.",
     "scope_note": "Covers the 10 generative-AI courses (1-3 and 10-16), 91 of the certificate's 168 hours. The Python, Flask, Pandas, scikit-learn and Keras block (courses 4-9) is excluded: it teaches library work that multiple choice tests poorly.",
     "facts": [
       {
-        "label": "Courses",
-        "value": "10 of 16"
-      },
-      {
-        "label": "Hours",
-        "value": "91"
-      },
-      {
-        "label": "Practice set",
-        "value": "50–60"
+        "label": "Topic areas",
+        "value": "10"
       },
       {
         "label": "Target",
         "value": "80%"
       },
       {
-        "label": "Cost",
-        "value": "$49/mo"
-      },
-      {
-        "label": "Expires",
-        "value": "Never"
+        "label": "Also preps",
+        "value": "IBM cert"
       }
     ],
     "ui": {
-      "eyebrow": "IBM · Coursera Professional Certificate",
-      "hero_title": "Ten courses, ninety-one hours, one question bank.",
-      "hero_body": "The certificate has no cumulative exam, so practice sets here are weighted by each course's share of the hours. {N} questions across prompt engineering, transformer internals, fine-tuning and RAG — each with the reasoning and a primary source.",
-      "footer_note": "No published exam blueprint exists: this is 16 courses, not one exam. Weights are each course's share of the 91 covered hours. The 80% target is this tool's own bar — Coursera quizzes are retakeable and typically pass at 70-80%.",
-      "exam_mode_sub": "Weighted by course hours, no feedback until you submit. A cumulative self-check the certificate itself never gives you."
+      "eyebrow": "Learning track · Generative AI",
+      "hero_title": "From a prompt to a fine-tuned, retrieval-grounded system.",
+      "hero_body": "Prompt engineering, tokenisation and data pipelines, transformer internals, fine-tuning and alignment, RAG and agents. {N} questions across ten topic areas, each with the reasoning and a primary source.",
+      "assessment_name": "Timed assessment",
+      "readiness_label": "Weighted readiness",
+      "assessment_sub": "Weighted by course hours, no feedback until you submit. A cumulative self-check the certificate itself never gives you.",
+      "footer_note": "No published exam blueprint exists: this is 16 courses, not one exam. Weights are each course's share of the 91 covered hours. The 80% target is this tool's own bar — Coursera quizzes are retakeable and typically pass at 70-80%."
     },
-    "target_pct": 80
+    "certification": {
+      "name": "IBM Generative AI Engineering Professional Certificate",
+      "code": "IBM-GENAI",
+      "source": "https://www.coursera.org/professional-certificates/ibm-generative-ai-engineering",
+      "format": "16 self-paced Coursera courses with retakeable per-course quizzes and a capstone",
+      "price_usd": 49,
+      "alignment": "The ten topic areas map to the ten generative-AI courses of IBM's certificate (1–3 and 10–16), weighted by each course's share of the 91 covered hours. The Python, Flask, Pandas, scikit-learn and Keras block is out of scope here."
+    }
   },
   "domains": [
     {

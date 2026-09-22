@@ -439,11 +439,14 @@ ul.cs li::before{content:""; position:absolute; left:2px; top:.62em; width:5px; 
 /* eslint-disable */
 const DATA = /*__DATA__*/;
 
-const UI = DATA.exam.ui || {};
+const TRACK = DATA.track;
+const ASSESSMENT = (TRACK.ui || {}).assessment_name || "Timed assessment";
+const UI = TRACK.ui || {};
+const CERTIFICATION = TRACK.certification || null;
 // Mid-point of the published question range, so a mock matches the real sitting.
-const EXAM_N = Math.round(((DATA.exam.question_count_min || 60) +
-                           (DATA.exam.question_count_max || 70)) / 2);
-const PASS = (DATA.exam.target_pct || 75) / 100;
+const EXAM_N = Math.round(((TRACK.assessment_min || 50) +
+                           (TRACK.assessment_max || 60)) / 2);
+const PASS = (TRACK.target_pct || 80) / 100;
 
 /* Other people's practice exams. Linked, never copied — every question in this
    simulator is original. Sites advertising "actual exam questions" are excluded
@@ -722,7 +725,7 @@ function startSession(kind) {
   if (kind.mode === "exam") {
     const n = Math.min(kind.count || EXAM_N, DATA.questions.length);
     items = weightedSample(n);
-    timed = true; feedback = false; title = "Mock exam";
+    timed = true; feedback = false; title = ASSESSMENT;
   } else if (kind.mode === "domain") {
     items = shuffled(DATA.questions.filter(q => q.domain === kind.domain));
     title = DOM_BY_ID[kind.domain].name;
@@ -762,7 +765,7 @@ function startSession(kind) {
     peeked: new Set(),
     i: 0,
     started: Date.now(),
-    deadline: timed ? Date.now() + DATA.exam.duration_minutes * 60000 : null,
+    deadline: timed ? Date.now() + TRACK.assessment_minutes * 60000 : null,
     report: null,
   };
   view = "quiz";
@@ -955,7 +958,7 @@ function renderRail() {
   const val = r.value === null ? "—" : (r.value * 100).toFixed(0);
   rail.innerHTML = `<div class="panel rail">
     <div class="gauge">
-      <span class="eyebrow">Blueprint-weighted readiness</span>
+      <span class="eyebrow">${esc(UI.readiness_label || "Weighted readiness")}</span>
       <div class="gauge-val"><b${r.value === null ? ' style="color:var(--muted);font-size:26px"' : ""}>${r.value === null ? "not yet" : val + "<span>%</span>"}</b>
         <span>target ${PASS * 100}%</span></div>
       ${meter(r.value)}
@@ -982,7 +985,7 @@ function homeHTML() {
   const drills = drillPool().length;
   const dc = dueCounts();
   const unseen = DATA.questions.filter(q => !progress.q[q.id]).length;
-  const e = DATA.exam;
+  const e = TRACK;
   const exams = progress.exams;
   return `<div class="panel">
     <div class="hero">
@@ -998,9 +1001,9 @@ function homeHTML() {
 
   <div class="modes">
     <button class="mode primary" data-start="exam">
-      <span class="mode-meta">${EXAM_N} q · ${e.duration_minutes} min · timed</span>
-      <span class="mode-nm">Mock exam</span>
-      <span class="mode-sub">${esc(UI.exam_mode_sub || "Blueprint-weighted, no feedback until you submit. Flag and revisit like the real thing.")}</span>
+      <span class="mode-meta">${EXAM_N} q · ${e.assessment_minutes} min · timed</span>
+      <span class="mode-nm">${esc(ASSESSMENT)}</span>
+      <span class="mode-sub">${esc(UI.assessment_sub || "Weighted across the topic areas, with no feedback until you submit.")}</span>
     </button>
     <button class="mode" data-start="practice">
       <span class="mode-meta">15 q · untimed</span>
@@ -1051,7 +1054,7 @@ function homeHTML() {
 
 
   ${exams.length ? `<div class="panel history">
-    <div class="panel-hd"><span class="eyebrow">Mock exam history</span>
+    <div class="panel-hd"><span class="eyebrow">${esc(ASSESSMENT)} history</span>
       <span class="sync" style="margin-left:auto">${esc(syncLabel)}</span></div>
     <div class="panel-bd" style="padding:14px 6px">
       <table class="htable"><thead><tr>
@@ -1413,9 +1416,10 @@ const cramOpen = new Set();
 
 function renderFoot() {
   document.getElementById("foot").innerHTML =
-    `${esc(DATA.exam.name)} · ${esc(DATA.exam.delivery)}<br>
+    `${esc(TRACK.name)} \u00b7 ${esc(TRACK.tagline || "")}<br>
      ${esc(UI.footer_note || "")}<br>
-     Progress saved ${esc(syncLabel)} · <a href="${esc(DATA.exam.source)}" target="_blank" rel="noopener">official page ↗</a>`;
+     ${CERTIFICATION ? `Aligned with <a href="${esc(CERTIFICATION.source)}" target="_blank" rel="noopener">${esc(CERTIFICATION.name)}</a> (${esc(CERTIFICATION.code)}) \u2014 ${esc(CERTIFICATION.alignment)}<br>` : ""}
+     Progress saved ${esc(syncLabel)}`;
 }
 
 /* ------------------------------------------------------------------- input */
@@ -1507,8 +1511,8 @@ document.addEventListener("keydown", ev => {
 
 /* -------------------------------------------------------------------- boot */
 
-document.getElementById("brand-sub").textContent = UI.eyebrow || DATA.exam.name;
-document.getElementById("brand-code").textContent = DATA.exam.code || "";
+document.getElementById("brand-sub").textContent = TRACK.tagline || TRACK.name;
+document.getElementById("brand-code").textContent = TRACK.name;
 
 const loaded = readLocal();
 if (loaded && loaded.q) progress = { v: 1, updatedAt: loaded.updatedAt || null, q: loaded.q || {}, exams: loaded.exams || [] };

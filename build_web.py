@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Build the web simulator for each certification under certs/.
+"""Build the web simulator for each learning track under tracks/.
 
-Emits two targets per certification into web/<cert-id>/:
+Emits two targets per track into web/<track-id>/:
 
   simulator.html  for the claude.ai artifact, where the platform supplies the
                   surrounding document, so this file starts at <title>
@@ -9,7 +9,7 @@ Emits two targets per certification into web/<cert-id>/:
 
 Served from a plain web server, simulator.html would render in quirks mode with
 a guessed character encoding and no mobile viewport; index.html is the one to
-deploy. Pass a certification id to build only that one.
+deploy. Pass a track id to build only that one.
 """
 import json
 import re
@@ -24,20 +24,20 @@ TEMPLATE = ROOT / "web" / "template.html"
 MARKER = "/*__DATA__*/"
 
 
-def collect(cert) -> dict:
+def collect(track) -> dict:
     """Everything the page needs, inlined so it makes no runtime requests."""
-    bp = json.loads(cert.blueprint_path.read_text())
+    bp = json.loads(track.blueprint_path.read_text())
 
     questions = []
-    for path in sorted(cert.bank_dir.glob("*.json")):
+    for path in sorted(track.bank_dir.glob("*.json")):
         bank = json.loads(path.read_text())
         for q in bank["questions"]:
             q["domain"] = bank["domain"]
             questions.append(q)
 
     cases = []
-    if cert.case_dir.is_dir():
-        for path in sorted(cert.case_dir.glob("*.json")):
+    if track.case_dir.is_dir():
+        for path in sorted(track.case_dir.glob("*.json")):
             case = json.loads(path.read_text())
             cases.append({"id": case["id"], "title": case["title"],
                           "scenario": case["scenario"],
@@ -46,7 +46,7 @@ def collect(cert) -> dict:
                 q["case"] = case["id"]
                 questions.append(q)
 
-    cheats = json.loads(cert.cheats_path.read_text())
+    cheats = json.loads(track.cheats_path.read_text())
     cards = []
     for sec in cheats["sections"]:
         for bi, block in enumerate(sec["blocks"]):
@@ -58,14 +58,13 @@ def collect(cert) -> dict:
                               "prompt": row[0], "answer": " · ".join(row[1:])})
 
     return {
-        "cert": cert.id,
-        "exam": bp["exam"],
+        "track": bp["track"],
         "domains": [{k: v for k, v in d.items() if k != "note"} for d in bp["domains"]],
         "questions": questions,
         "cases": cases,
         "cheats": cheats,
         "cards": cards,
-        "concepts": json.loads(cert.concepts_path.read_text())["concepts"],
+        "concepts": json.loads(track.concepts_path.read_text())["concepts"],
     }
 
 
@@ -79,7 +78,7 @@ def standalone(page: str, payload: dict) -> str:
                 + mark.group(0).split(">", 1)[1])
         favicon = ('\n<link rel="icon" href="data:image/svg+xml,'
                    + urllib.parse.quote(icon) + '">')
-    desc = (f"Practice simulator for {payload['exam']['name']}. "
+    desc = (f"Practice bank for the {payload['track']['name']} learning track. "
             f"{len(payload['questions'])} questions with spaced repetition, "
             f"case studies and cheat sheets.")
     return f"""<!doctype html>
@@ -105,27 +104,27 @@ def standalone(page: str, payload: dict) -> str:
 """
 
 
-def build(cert) -> None:
-    payload = collect(cert)
+def build(track) -> None:
+    payload = collect(track)
     template = TEMPLATE.read_text()
     if MARKER not in template:
         raise SystemExit(f"{TEMPLATE.name} is missing the {MARKER} marker")
     page = template.replace(
         MARKER, json.dumps(payload, separators=(",", ":"), ensure_ascii=False))
 
-    outdir = ROOT / "web" / cert.id
+    outdir = ROOT / "web" / track.id
     outdir.mkdir(parents=True, exist_ok=True)
     (outdir / "simulator.html").write_text(page)
     (outdir / "index.html").write_text(standalone(page, payload))
 
     kb = (outdir / "index.html").stat().st_size // 1024
-    print(f"  {cert.id:12} {len(payload['questions']):>4} questions · "
+    print(f"  {track.id:12} {len(payload['questions']):>4} questions · "
           f"{len(payload['cases']):>2} cases · {len(payload['cards']):>3} cards · "
           f"{len(payload['concepts']):>2} concepts · {kb} KB")
 
 
 if __name__ == "__main__":
     targets = [certlib.resolve(sys.argv[1])] if len(sys.argv) > 1 else certlib.available()
-    print(f"Building {len(targets)} certification(s) -> web/<cert-id>/")
+    print(f"Building {len(targets)} track(s) -> web/<track-id>/")
     for c in targets:
         build(c)
