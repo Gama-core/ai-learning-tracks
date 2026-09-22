@@ -1,18 +1,18 @@
-# Six weeks to NCP-AAI
+# Six weeks of Agentic AI
 
-Roughly 6–8 hours a week. The order is deliberate: the heavy domains first while you have
-the most runway, NVIDIA product specifics late (they are memorization and decay fast), and
-full timed mocks only in the last two weeks so the score means something.
+Roughly 6–8 hours a week. The order is deliberate: the heaviest topic areas first while you
+have the most runway, NVIDIA product specifics late (they are memorisation and decay fast),
+and full timed assessments only in the last two weeks so the score means something.
 
 Every week ends with the same loop:
 
 ```bash
-./sim.py practice -d <domain>   # learn
+./sim.py -k agentic-ai practice -d <domain>   # learn
 ./sim.py review                 # whatever the scheduler says is due
 ./sim.py stats                  # check where you actually stand
 ```
 
-`stats` ends with your weakest **concepts**, ranked by what each gap costs on the exam, and
+`stats` ends with your weakest **concepts**, ranked by what each gap costs across the track, and
 hands you the two commands that fix it: `practice -c <concept>` to drill it and
 `cheat -d <section>` to read it. Work that list top-down rather than guessing.
 
@@ -30,21 +30,19 @@ beats thirty minutes of rereading.
 
 ## Week 0 — baseline (1 hour)
 
-Take a cold mock before studying anything. It is meant to be unpleasant; it tells you which
-domains you already have from work experience and which are genuinely new.
+Take a cold timed assessment before studying anything. It is meant to be unpleasant; it
+tells you which topic areas you already have from work experience and which are genuinely
+new.
 
 ```bash
-./sim.py exam
+./sim.py -k agentic-ai exam
 ```
 
 Write down the per-domain numbers. You will compare against them in week 5.
 
-Then read the [official exam page](https://www.nvidia.com/en-us/learn/certification/agentic-ai-professional/)
-and book the exam. A booked date is the only scheduling mechanism that works.
-
 ---
 
-## Week 1 — Agent architecture + development (30% of the exam)
+## Week 1 — Agent architecture + development (30% of the track)
 
 The two heaviest domains, and the ones most likely to reward what you already do.
 
@@ -60,8 +58,8 @@ the process mid-run and resume it. You will not forget what persistence buys you
 
 **Drill**
 ```bash
-./sim.py practice -d agent-architecture
-./sim.py practice -d agent-development
+./sim.py -k agentic-ai practice -d agent-architecture
+./sim.py -k agentic-ai practice -d agent-development
 ```
 
 Target: 75%+ on both before moving on.
@@ -84,8 +82,8 @@ does that a bi-encoder cannot.
 structure-aware chunking and parent-document retrieval.
 
 ```bash
-./sim.py practice -d cognition-planning-memory
-./sim.py practice -d knowledge-data
+./sim.py -k agentic-ai practice -d cognition-planning-memory
+./sim.py -k agentic-ai practice -d knowledge-data
 ```
 
 ---
@@ -111,7 +109,7 @@ constrain decoding. Wrong tool choice → fix tool descriptions.
 shrinking top-k, and confirm the metric catches it.
 
 ```bash
-./sim.py practice -d evaluation-tuning
+./sim.py -k agentic-ai practice -d evaluation-tuning
 ```
 
 ---
@@ -124,7 +122,7 @@ shrinking top-k, and confirm the metric catches it.
 - TensorRT-LLM: in-flight batching, paged KV cache, KV-cache reuse, quantization, parallelism
 - Triton: multi-backend serving, ensembles, dynamic batching
 - Dynamo: disaggregated prefill/decode, KV-aware routing
-- NeMo component boundaries — **this is the most testable list in the exam**
+- NeMo component boundaries — **this is the most testable list in the track**
 
 **Memorize the product map.** Most `NVIDIA Platform` questions are "which component for X":
 
@@ -153,13 +151,13 @@ is capacity and bandwidth, not compute.
 parameter and with a JSON schema. Free, and it makes the whole domain concrete.
 
 ```bash
-./sim.py practice -d deployment-scaling
-./sim.py practice -d nvidia-platform
+./sim.py -k agentic-ai practice -d deployment-scaling
+./sim.py -k agentic-ai practice -d nvidia-platform
 ```
 
 ---
 
-## Week 5 — Operations, safety, oversight (15%) + first real mock
+## Week 5 — Operations, safety, oversight (15%) + first full assessment
 
 Small weights, cheap points. These questions are mostly reasoning from first principles,
 so a focused pass is enough.
@@ -177,10 +175,10 @@ past are not controls. Least-privilege tool scopes, pre-execution authorization,
 filters, and reversibility are. Anything enforced by a system prompt is the wrong answer.
 
 ```bash
-./sim.py practice -d run-monitor-maintain
-./sim.py practice -d safety-ethics-compliance
-./sim.py practice -d human-ai-oversight
-./sim.py exam        # full timed mock — compare against week 0
+./sim.py -k agentic-ai practice -d run-monitor-maintain
+./sim.py -k agentic-ai practice -d safety-ethics-compliance
+./sim.py -k agentic-ai practice -d human-ai-oversight
+./sim.py -k agentic-ai exam        # full timed assessment — compare vs week 0
 ```
 
 ---
@@ -191,26 +189,21 @@ Work one whenever a domain starts to feel solid — they test whether you can ho
 situation across several questions, which standalone items do not.
 
 ```bash
-./sim.py case      # pick from ten scenarios
+./sim.py -k agentic-ai case      # pick from ten scenarios
 ```
 
 ## Week 6 — Consolidation
 
-Stop reading new material. Two or three full timed mocks, drill between them, and read the
-cram sheet for anything still under 75%.
+Stop reading new material. Two or three full timed assessments, drill between them, and read
+the cram sheet for anything still under 75%.
 
 ```bash
-./sim.py exam
+./sim.py -k agentic-ai exam
 ./sim.py review
-./sim.py flash -d nvidia-platform   # the product map is pure recall
+./sim.py -k agentic-ai flash -d nvidia-platform   # the product map is pure recall
 ./sim.py stats
-./sim.py cheat -d <weakest domain>
+./sim.py -k agentic-ai cheat -d <weakest domain>
 ```
-
-Read `./sim.py cheat -d logistics` before you book, and again the night before. It covers
-the Certiverse rules that fail people before they answer a question: exact name matching,
-the room scan, the 14-day retake wait, and that NVIDIA returns **pass/fail with no score** —
-so your last mock here is the only diagnostic you will ever get.
 
 Ship it when `./sim.py stats` shows blueprint-weighted accuracy above 80% with every domain
 attempted **and** no concept below target in a 13-15% topic area. The margin over the 75% target absorbs the gap between a question bank you have
@@ -218,7 +211,19 @@ seen and one you have not.
 
 ---
 
-## Exam-day mechanics
+## If you are also taking NCP-AAI
+
+Everything above stands on its own — this section is only for the exam.
+
+Book a date early: it is the only scheduling mechanism that reliably works. Then read
+`./sim.py -k agentic-ai cheat -d logistics` before you book and again the night before. It
+covers the Certiverse rules that fail people before they answer a question: exact name
+matching, the room scan, the 14-day retake wait, and that NVIDIA returns **pass/fail with no
+score** — so your last assessment here is the only diagnostic you will ever get. The
+[official exam page](https://www.nvidia.com/en-us/learn/certification/agentic-ai-professional/)
+has the current price and window.
+
+Mechanics on the day:
 
 - 120 minutes for 60–70 questions ≈ **1:45 per question**. Anything past three minutes gets
   flagged and left.

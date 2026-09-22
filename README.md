@@ -1,4 +1,4 @@
-# cert-helper
+# AI Learning Tracks
 
 A study tool for learning **AI fields** — generative AI, computer vision and agentic AI —
 built around question banks with worked reasoning, spaced repetition, condensed cheat sheets
@@ -42,8 +42,8 @@ including NVIDIA's official 20-page study guide and its 54 objectives.
 ## Quick start
 
 ```bash
-git clone https://github.com/Gama-core/cert-helper.git
-cd cert-helper
+git clone https://github.com/Gama-core/ai-learning-tracks.git
+cd ai-learning-tracks
 ./sim.py                       # menu-driven; nothing to install
 ./sim.py tracks                # list the tracks
 ./sim.py -k computer-vision    # switch (remembered for next time)
@@ -139,7 +139,7 @@ tracks/<id>/
   bank/*.json        Standalone questions, one file per topic area.
   cases/*.json       Case studies: one scenario, several linked questions.
   RESOURCES.md       Curated free study material. Every link verified in CI.
-  STUDY_PLAN.md      A study plan mapped to the weights. (agentic-ai)
+  STUDY_PLAN.md      A six-week study plan mapped to the weights.
   CHEATSHEET.md      Generated. Printable and greppable.
 
 .progress/<id>.json  Your progress, per track. Gitignored.
@@ -498,9 +498,17 @@ agreement, is grounds for revoking a credential, and is frequently wrong.
 
 ## Study plan
 
-[`tracks/agentic-ai/STUDY_PLAN.md`](tracks/agentic-ai/STUDY_PLAN.md) lays out six weeks at roughly 6–8 hours a week: a cold
-baseline mock first, heavy domains early, NVIDIA product specifics in week 4, timed timed assessments
-only in the last two weeks.
+Each track has one, six weeks at roughly 6–8 hours a week: a cold baseline assessment first,
+the heaviest topic areas early, full timed assessments only in the last two weeks so the
+score means something.
+
+| Track | Plan | Shape |
+|---|---|---|
+| Agentic AI | [`STUDY_PLAN.md`](tracks/agentic-ai/STUDY_PLAN.md) | Heavy domains first, NVIDIA product specifics in week 4 (pure recall, decays fast) |
+| Generative AI | [`STUDY_PLAN.md`](tracks/generative-ai/STUDY_PLAN.md) | Follows the material's dependencies — embeddings before RAG, transformers before fine-tuning |
+| Computer Vision | [`STUDY_PLAN.md`](tracks/computer-vision/STUDY_PLAN.md) | Geometry first, detection gets a full week, video and deployment last |
+
+Each plan closes with an optional section for the aligned certification, where one exists.
 
 The daily habit that matters most:
 
