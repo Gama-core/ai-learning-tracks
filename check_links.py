@@ -30,6 +30,12 @@ SKIP_HOSTS = {"claude.ai"}
 # Reported, never fatal. A 404, 410, 5xx or DNS failure is a real break.
 BLOCKED_CODES = {401, 403, 429}
 
+# Hosts that refuse datacenter traffic with a 404 instead of a 403, making a
+# block indistinguishable from a dead page. Kept deliberately tiny: each entry
+# is a host verified by hand to serve the page correctly to a normal browser.
+# fda.gov: returns 200 from a residential connection, 404 from GitHub runners.
+BLOCKS_WITH_404 = {"fda.gov"}
+
 
 def is_placeholder(url: str) -> bool:
     """Skip illustrative URLs in documentation samples (https://..., example.com)."""
@@ -103,7 +109,9 @@ def main() -> None:
     for url, status, reason in results:
         if status == 200:
             continue
-        if status in BLOCKED_CODES:
+        host = url.split("/")[2] if "://" in url else ""
+        if status in BLOCKED_CODES or (
+                status == 404 and any(host.endswith(h) for h in BLOCKS_WITH_404)):
             tolerated.append((url, status))
             continue
         broken.append((url, status, reason, sorted(refs[url])))

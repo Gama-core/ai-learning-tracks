@@ -47,7 +47,7 @@ It contains what no third-party guide has:
 | [Nsight Systems](https://developer.nvidia.com/nsight-systems) — profiling | Deployment |
 | [LangChain structured outputs](https://python.langchain.com/docs/concepts/structured_outputs/) · [tracing](https://python.langchain.com/docs/concepts/tracing/) | Development, Run/Monitor |
 | [Azure patterns: retry](https://learn.microsoft.com/en-us/azure/architecture/patterns/retry) · [circuit breaker](https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker) · [transient faults](https://learn.microsoft.com/en-us/azure/architecture/best-practices/transient-faults) | Development |
-| [FDA: AI-enabled medical devices](https://www.fda.gov/medical-devices/software-medical-device-samd/artificial-intelligence-enabled-medical-devices) — NVIDIA's guide links the old AI/ML SaMD URL, which FDA has since retired | Safety |
+| [FDA: AI-enabled medical devices](https://www.fda.gov/medical-devices/software-medical-device-samd/artificial-intelligence-enabled-medical-devices) — NVIDIA's guide links the old AI/ML SaMD URL, which FDA retired. Note fda.gov serves a 404 to datacenter traffic, so automated link checks flag it; it opens fine in a browser | Safety |
 
 ## 1. Official NVIDIA — free courses (DLI)
 
