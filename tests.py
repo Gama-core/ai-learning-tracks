@@ -174,6 +174,64 @@ if concepts_path.exists():
             warnings.append(f"concepts.json:{cid}: only {n} question(s) — "
                             f"too thin to report accuracy on")
 
+# ---- chapter summaries ---------------------------------------------------
+VISUALS = {"spectrum", "ladder", "flow", "topologies", "compare", "map", "cards",
+           "stack", "triad", "matrix", "trace", "bar"}
+# A chapter should stay a high-level view; past this it is repeating the cheat sheet.
+SLIDES_RECOMMENDED = 7
+SHAPES = {"single", "supervisor", "hierarchical", "network", "pipeline"}
+n_slides = 0
+if TRACK.summary_path.exists():
+    summary = json.loads(TRACK.summary_path.read_text())
+    concept_ids = ({c["id"] for c in json.loads(concepts_path.read_text())["concepts"]}
+                   if concepts_path.exists() else set())
+    seen_ch = set()
+    for ch in summary.get("chapters", []):
+        where = f"summary.json:{ch.get('domain')}"
+        if ch.get("domain") not in domains:
+            errors.append(f"{where}: domain not in blueprint")
+        if ch.get("domain") in seen_ch:
+            errors.append(f"{where}: chapter appears twice")
+        seen_ch.add(ch.get("domain"))
+        slides = ch.get("slides", [])
+        if len(slides) < 2:
+            errors.append(f"{where}: needs at least 2 slides, has {len(slides)}")
+        elif len(slides) > SLIDES_RECOMMENDED:
+            warnings.append(f"{where}: {len(slides)} slides; {SLIDES_RECOMMENDED} or fewer "
+                            f"keeps a chapter high-level")
+        # Every concept in the chapter's topic area should surface on some slide,
+        # or the summary has silently skipped part of the chapter.
+        linked = {cid for s in slides for cid in s.get("concepts", [])}
+        if concepts_path.exists():
+            for c in json.loads(concepts_path.read_text())["concepts"]:
+                if c["domain"] == ch.get("domain") and c["id"] not in linked:
+                    warnings.append(f"{where}: concept '{c['id']}' appears on no slide")
+        for si, s in enumerate(slides):
+            n_slides += 1
+            at = f"{where}[{si}]"
+            if not s.get("title") or not s.get("lede"):
+                errors.append(f"{at}: needs a title and a lede")
+            v = s.get("visual", {})
+            if v.get("type") not in VISUALS:
+                errors.append(f"{at}: unknown visual '{v.get('type')}'")
+            if v.get("type") == "topologies":
+                for it in v.get("items", []):
+                    if it.get("shape") not in SHAPES:
+                        errors.append(f"{at}: unknown topology shape '{it.get('shape')}'")
+            if v.get("type") == "triad" and len(v.get("nodes", [])) != 3:
+                errors.append(f"{at}: a triad needs exactly 3 nodes")
+            if v.get("type") == "map":
+                for row in v.get("rows", []):
+                    if len(row) != 2:
+                        errors.append(f"{at}: map rows need 2 cells")
+            if v.get("type") == "matrix":
+                for row in v.get("rows", []):
+                    if len(row) != len(v.get("head", [])):
+                        errors.append(f"{at}: matrix row width does not match its header")
+            for cid in s.get("concepts", []):
+                if cid not in concept_ids:
+                    errors.append(f"{at}: concept '{cid}' does not exist")
+
 total = sum(counts.values())
 for d in bp["domains"]:
     have = counts.get(d["id"], 0)
@@ -184,7 +242,8 @@ for d in bp["domains"]:
                       f"needs {need}")
 
 print(f"[{TRACK.name}] {total} bank questions across {len(counts)} topic areas, "
-      f"{case_q} case questions, {cards} flashcards, {n_concepts} concepts")
+      f"{case_q} case questions, {cards} flashcards, {n_concepts} concepts, "
+      f"{n_slides} summary slides")
 for w in warnings:
     print(f"  warn  {w}")
 for e in errors:

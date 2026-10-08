@@ -136,6 +136,7 @@ tracks/<id>/
                      optional `certification` block when one aligns.
   concepts.json      Concept taxonomy mapping question tags to diagnosable concepts.
   cheatsheet.json    Condensed reference; every table row also becomes a flashcard.
+  summary.json       Chapter summaries: a few visual slides per topic area.
   bank/*.json        Standalone questions, one file per topic area.
   cases/*.json       Case studies: one scenario, several linked questions.
   RESOURCES.md       Curated free study material. Every link verified in CI.
@@ -244,11 +245,12 @@ palette (crimson `#C5184B`, blue `#1D98D6`), their typefaces (Space Grotesk / In
 Plex Mono), their light and dark themes. Tokens sit at the top of `web/template.html`;
 change them there and rebuild.
 
-Four tabs:
+Five tabs:
 
 | Tab | Holds |
 |---|---|
 | **Console** | Readiness gauge, the four start-a-session cards, weakest concepts, timed assessment history, coverage |
+| **Summary** | Each chapter as a short visual deck — diagrams, key distinctions, and buttons that practise the concepts on each slide |
 | **Case studies** | The 10 scenarios, plus links to other people's practice exams |
 | **Cheat sheets** | The 13 condensed reference sections. Prints. |
 | **Cram sheet** | Every question with its answer and explanation, by topic area |
@@ -364,7 +366,7 @@ the `<link>`; the CSS declares real fallback stacks, so the page stays readable 
 
 ## Extending the content
 
-Four content files, each with its own shape. After editing any of them, run `tests.py`,
+Five content files, each with its own shape. After editing any of them, run `tests.py`,
 then the relevant build script.
 
 ### Questions
@@ -432,6 +434,28 @@ union over its tags, so adding a question usually needs no extra work — but `t
 **fails** if a tag belongs to no concept, or if a question maps to none. That is what stops
 the taxonomy silently drifting out of date as the bank grows. It also warns when a concept
 has fewer than four questions, since accuracy on such a concept cannot be reported.
+
+### Chapter summaries
+
+`tracks/<id>/summary.json` holds one chapter per topic area, each a short deck of slides. A
+slide has a title, a lede, one diagram, optional points and a takeaway, and the concepts it
+covers — each becomes a *Practise* button:
+
+```json
+{ "title": "The agent loop",
+  "lede": "An agent is a loop around a model...",
+  "visual": { "type": "flow",
+              "nodes": [{ "label": "Reason", "sub": "Model picks the next action" }],
+              "loop": "repeat until a termination condition" },
+  "points": [{ "h": "Explicit termination", "t": "A stop condition and a step budget." }],
+  "concepts": ["deterministic-control-flow"] }
+```
+
+Diagrams are data, drawn by the template so they follow the theme and reflow on a phone:
+`spectrum`, `ladder`, `flow`, `topologies`, `compare`, `map`, `matrix`, `cards`, `stack`,
+`triad`, `trace` and `bar`. `tests.py` fails on an unknown diagram type or concept, and warns
+when a chapter runs past seven slides or leaves one of its concepts off every slide. A track
+without a `summary.json` simply has no Summary tab.
 
 ---
 
