@@ -1,0 +1,827 @@
+{
+  "title": "Generative AI at a glance",
+  "intro": "Each chapter in a few visual slides: the mental model, the distinctions the questions turn on, and the concepts to practise next.",
+  "chapters": [
+    {
+      "domain": "intro-ai",
+      "hook": "What AI is, how machines learn, and how to tell whether a model is any good.",
+      "slides": [
+        {
+          "title": "AI, ML, deep learning, generative AI",
+          "lede": "Four terms, each a subset of the one before. The nesting is asked constantly and easy to invert under pressure.",
+          "visual": {
+            "type": "stack",
+            "top": "most specific",
+            "bottom": "broadest",
+            "layers": [
+              { "label": "Generative AI", "sub": "Deep learning that produces new content" },
+              { "label": "Deep learning", "sub": "Machine learning with multi-layer neural networks" },
+              { "label": "Machine learning", "sub": "Learns patterns from data instead of hand-written rules" },
+              { "label": "Artificial intelligence", "sub": "Any technique that makes machines appear intelligent" }
+            ]
+          },
+          "points": [
+            { "h": "Narrow vs general", "t": "Everything in production today is narrow AI — one defined task. General AI, with human breadth, does not exist." },
+            { "h": "Foundation models", "t": "Trained broadly at scale, then adapted to many downstream tasks." }
+          ],
+          "concepts": ["ai-taxonomy"]
+        },
+        {
+          "title": "How machines learn",
+          "lede": "Learning paradigms differ in the signal the model learns from. Match the paradigm to the shape of the problem.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Paradigm", "Learns from", "Fits"],
+            "rows": [
+              ["Supervised", "Labelled examples: input paired with the right answer", "Classification, regression"],
+              ["Unsupervised", "Structure in unlabelled data", "Clustering, dimensionality reduction"],
+              ["Reinforcement", "Rewards and penalties after actions", "Sequential decisions in an environment"],
+              ["Self-supervised", "Labels derived from the data itself", "Pretraining LLMs: predict the masked or next token"]
+            ]
+          },
+          "concepts": ["learning-paradigms"]
+        },
+        {
+          "title": "Neural network basics",
+          "lede": "A neural network is layers of learned weights with non-linear functions between them.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Parameters", "text": "The weights and biases learned from data. “Model size” counts them." },
+              { "label": "Activation functions", "text": "Add non-linearity. Without them, any stack of layers collapses into one linear map." },
+              { "label": "Depth", "text": "More layers learn more abstract features, at the cost of harder training." },
+              { "label": "Convolution", "text": "For images: a small filter slides across the input, sharing weights across positions." }
+            ]
+          },
+          "concepts": ["neural-basics"]
+        },
+        {
+          "title": "Is the model any good?",
+          "lede": "The gap between training and validation performance tells you which problem you have.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Overfitting", "tag": "train good, validation poor", "items": ["Memorised the training data", "More data or augmentation", "Regularisation or a simpler model", "Stop early, at the validation minimum"] },
+              { "title": "Underfitting", "tag": "both poor", "items": ["Has not captured the pattern", "More capacity or better features", "Train longer", "Check the data pipeline first"] }
+            ]
+          },
+          "points": [
+            { "h": "The accuracy trap", "t": "At 97% negatives, always predicting “negative” scores 97%. Ask for precision, recall or the confusion matrix." },
+            { "h": "Keep the test set honest", "t": "Tune on validation; touch the test set once, at the end." }
+          ],
+          "concepts": ["model-evaluation", "overfitting"]
+        },
+        {
+          "title": "Framing an AI project",
+          "lede": "The most expensive mistakes happen before any model is trained.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Define success", "sub": "A measurable business outcome" },
+              { "label": "Is ML needed?", "sub": "Rules may be enough" },
+              { "label": "Build or buy", "sub": "An existing model or service?" },
+              { "label": "Data", "sub": "Available, representative, good quality" },
+              { "label": "Build and monitor", "sub": "Evaluate, deploy, watch for drift", "tone": "alt" }
+            ]
+          },
+          "concepts": ["project-practice"]
+        },
+        {
+          "title": "Responsible AI",
+          "lede": "A model learns whatever its data contains, including the unfairness. Responsibility is designed in, not added afterwards.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Bias from data", "text": "Historical data encodes historical decisions. The model reproduces them at scale." },
+              { "label": "Explainability", "text": "People affected by a decision should be able to understand why it was made." },
+              { "label": "Contestability", "text": "A route to challenge and correct a decision." },
+              { "label": "Transparency", "text": "Disclose when AI is used and what data it relies on." },
+              { "label": "AI and work", "text": "Automation changes tasks and roles; plan for the people affected." }
+            ]
+          },
+          "concepts": ["responsible-ai"]
+        },
+        {
+          "title": "IBM watsonx",
+          "lede": "Three components, three jobs. The names give most of it away.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Component", "Job"],
+            "rows": [
+              ["watsonx.ai", "Studio to train, validate, tune and deploy models, including foundation models"],
+              ["watsonx.data", "Lakehouse for storing and querying the data models use"],
+              ["watsonx.governance", "Model risk documentation, drift monitoring, compliance and audit"]
+            ]
+          },
+          "concepts": ["ibm-platform"]
+        }
+      ]
+    },
+    {
+      "domain": "genai-intro",
+      "hook": "How generative models create, what they are good for, and why fluent is not the same as true.",
+      "slides": [
+        {
+          "title": "Four ways to generate",
+          "lede": "Generative models learn the distribution of their training data well enough to sample new examples from it. They differ in how.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "GAN", "text": "A generator and a discriminator compete; the discriminator's judgement trains the generator." },
+              { "label": "VAE", "text": "Encodes inputs to a distribution over a latent space; sampling that space decodes to new data." },
+              { "label": "Diffusion", "text": "Learns to reverse a noising process, then denoises from pure noise, step by step." },
+              { "label": "Transformer", "text": "Attention over sequences, generating one token at a time. The basis of nearly every LLM." }
+            ]
+          },
+          "points": [
+            { "h": "Generative vs discriminative", "t": "A discriminative model learns to tell classes apart. A generative model learns what the data looks like, so it can produce more of it." }
+          ],
+          "concepts": ["generative-architectures"]
+        },
+        {
+          "title": "How text gets generated",
+          "lede": "An LLM produces one token at a time. Each step is a probability distribution, and decoding decides which token to take.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Context", "sub": "The prompt plus tokens so far" },
+              { "label": "Distribution", "sub": "A probability for every token in the vocabulary" },
+              { "label": "Temperature", "sub": "Sharpens or flattens it" },
+              { "label": "Choose", "sub": "Sample, take the top token, or beam search" }
+            ],
+            "loop": "append the token and repeat — N tokens need about N forward passes"
+          },
+          "points": [
+            { "h": "Temperature by task", "t": "Low for extraction and structured output; higher for ideation and variety." },
+            { "h": "Beam search", "t": "Keeps several candidate sequences and returns the most probable overall — common in translation." }
+          ],
+          "concepts": ["sampling"]
+        },
+        {
+          "title": "Fluent is not true",
+          "lede": "A language model is trained to produce plausible text, not true text. Hallucination is the default when it lacks the facts.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Does not fix it", "tone": "bad", "items": ["Asking the model to be accurate", "Lowering temperature — that reduces variety, not invention", "Trusting a confident tone"] },
+              { "title": "Reduces it", "tone": "good", "items": ["Grounding in retrieved sources", "“Answer only from the context, and say when it isn't there”", "Citations the reader can check", "Verifying claims before acting on them"] }
+            ]
+          },
+          "concepts": ["hallucination"]
+        },
+        {
+          "title": "Capabilities, limits and data",
+          "lede": "Use generative AI where plausible drafts are valuable and errors are cheap to catch.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Strong at", "tone": "good", "items": ["Drafting and rewriting text", "Summarising and translating", "Code and boilerplate", "Brainstorming options"] },
+              { "title": "Weak at", "tone": "bad", "items": ["Exact facts and recent events", "Precise arithmetic", "Knowing what it doesn't know", "Consistency across long outputs"] }
+            ]
+          },
+          "points": [
+            { "h": "What happens to your data", "t": "A hosted provider may retain submitted data or use it for training. Check the terms before sending anything confidential or personal." }
+          ],
+          "concepts": ["genai-capabilities", "data-governance"]
+        }
+      ]
+    },
+    {
+      "domain": "prompt-engineering",
+      "hook": "Writing prompts that work reliably — and remembering they change nothing in the model.",
+      "slides": [
+        {
+          "title": "Anatomy of a prompt",
+          "lede": "A good prompt pins down six things. “Make it good” instructs nothing.",
+          "visual": {
+            "type": "stack",
+            "uniform": true,
+            "layers": [
+              { "label": "Task", "sub": "What to do, as a verb: summarise, classify, draft" },
+              { "label": "Context", "sub": "The material and background it needs" },
+              { "label": "Audience", "sub": "Who the output is for" },
+              { "label": "Format", "sub": "Bullets, table, JSON, a single word" },
+              { "label": "Length", "sub": "At most three sentences, under 200 words" },
+              { "label": "Tone", "sub": "Formal, friendly, neutral" }
+            ]
+          },
+          "points": [
+            { "h": "Specific beats long", "t": "More words do not help if they do not constrain the output." },
+            { "h": "Positive and checkable", "t": "“At most three sentences” beats “don't be verbose”." }
+          ],
+          "concepts": ["prompt-anatomy"]
+        },
+        {
+          "title": "Prompting techniques",
+          "lede": "Each technique suits a different kind of task. The question usually describes the task.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Technique", "Use when"],
+            "rows": [
+              ["Zero-shot", "The task is common and the instruction alone carries it"],
+              ["Few-shot", "The format or style is easier to show than to describe"],
+              ["Chain-of-thought", "The answer needs several reasoning steps"],
+              ["Self-consistency", "One correct answer exists; sample several chains and vote"],
+              ["Interview pattern", "The model should ask you questions before producing output"],
+              ["Persona", "Tone and register need shaping — it confers no real expertise"]
+            ]
+          },
+          "concepts": ["prompt-patterns"]
+        },
+        {
+          "title": "Self-consistency",
+          "lede": "One reasoning chain can go wrong at any step. Several independent chains rarely go wrong the same way.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Question", "sub": "With a chain-of-thought prompt" },
+              { "label": "Sample chains", "sub": "Several, at non-zero temperature" },
+              { "label": "Extract answers", "sub": "The final answer from each" },
+              { "label": "Majority vote", "sub": "The most common answer wins", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "Needs one right answer", "t": "Voting works for arithmetic and logic, not for open-ended writing." },
+            { "h": "Costs more", "t": "Every extra chain is another full generation." }
+          ],
+          "concepts": ["prompt-patterns"]
+        },
+        {
+          "title": "Prompts in production",
+          "lede": "A prompt that ships is code: templated, versioned and tested.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Templates", "text": "Parameterised prompts with named variables, not strings pasted together." },
+              { "label": "Version and evaluate", "text": "Test every change on a fixed set of inputs, not on one output you happened to like." },
+              { "label": "Delimit untrusted text", "text": "Fence user and retrieved content. It marks the trust boundary against injection." },
+              { "label": "Examples teach everything", "text": "Few-shot examples teach whatever they share, intended or not. Vary what should vary." }
+            ]
+          },
+          "takeaway": "Prompting changes nothing in the model — weights are fixed at inference. In-context learning lasts for one request, which is exactly why RAG works.",
+          "concepts": ["prompt-ops"]
+        }
+      ]
+    },
+    {
+      "domain": "llm-architecture",
+      "hook": "Turning text into tensors, and the data and sizing decisions behind a model.",
+      "slides": [
+        {
+          "title": "From text to token ids",
+          "lede": "A model never sees text. It sees integer ids, and those ids only mean something relative to its own vocabulary.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Raw text", "sub": "“Tokenisation matters”" },
+              { "label": "Subword split", "sub": "WordPiece, SentencePiece or BPE" },
+              { "label": "Vocabulary lookup", "sub": "Each piece becomes an id" },
+              { "label": "Special tokens", "sub": "[CLS], [SEP], padding" },
+              { "label": "Attention mask", "sub": "Marks which positions are padding", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "Subwords handle new words", "t": "An unseen word is composed from known fragments, and the vocabulary stays small." },
+            { "h": "Tokens, not words", "t": "The context window counts tokens, and covers the prompt and the output together." }
+          ],
+          "concepts": ["tokenisation"]
+        },
+        {
+          "title": "Tokenisers are not interchangeable",
+          "lede": "Each tool has a job. The model-specific tokenisers must match the model they were built for.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Tool", "What it is for"],
+            "rows": [
+              ["NLTK / spaCy", "General linguistics: sentence and word segmentation, stemming, stop words"],
+              ["BertTokenizer", "WordPiece subwords matching BERT's vocabulary"],
+              ["XLNetTokenizer", "SentencePiece with XLNet's own vocabulary and special tokens"]
+            ]
+          },
+          "takeaway": "Always pair a model with its own tokeniser. Another vocabulary produces ids that mean something else entirely — and nothing raises an error.",
+          "concepts": ["tokenisation"]
+        },
+        {
+          "title": "PyTorch data pipelines",
+          "lede": "Three pieces turn a corpus into batches. Each has one job.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Dataset", "sub": "__len__ and __getitem__: fetch item i, lazily" },
+              { "label": "DataLoader", "sub": "Batching, shuffling, parallel workers" },
+              { "label": "collate_fn", "sub": "Pads a list of samples into one tensor" },
+              { "label": "Model", "sub": "Batch plus attention mask", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "Pad per batch", "t": "Padding to the dataset-wide maximum wastes compute on every batch." },
+            { "h": "Always pass the mask", "t": "Without the attention mask, outputs depend on what else is in the batch." }
+          ],
+          "concepts": ["data-pipeline"]
+        },
+        {
+          "title": "Data quality beats scale",
+          "lede": "A model learns its training data's flaws as faithfully as its strengths. More bad data only teaches the flaws harder.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Diversity", "text": "Cover the topics, styles and languages the model will face." },
+              { "label": "Deduplication", "text": "Repeated text is over-weighted and memorised. Remove near-duplicates." },
+              { "label": "Quality filtering", "text": "Drop spam, boilerplate and broken text before training, not after." },
+              { "label": "Scale", "text": "Helps only once the data is clean. It cannot redeem bad data." }
+            ]
+          },
+          "concepts": ["corpus-quality"]
+        },
+        {
+          "title": "Choosing a model size",
+          "lede": "The biggest model is rarely the right one. Choose the smallest that meets the quality bar within your constraints.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Latency", "text": "Larger models generate each token more slowly." },
+              { "label": "Memory", "text": "The weights must fit on the hardware you have, with room for the context." },
+              { "label": "Cost", "text": "Every request pays for the model's size." },
+              { "label": "Capability", "text": "Enough for the task — measured on your task, not a leaderboard." }
+            ]
+          },
+          "concepts": ["model-sizing"]
+        }
+      ]
+    },
+    {
+      "domain": "nlp-foundations",
+      "hook": "How words became vectors, how sequences were modelled before transformers, and how generated text is scored.",
+      "slides": [
+        {
+          "title": "From one-hot to contextual",
+          "lede": "Each step gives a word's representation more meaning and more context.",
+          "visual": {
+            "type": "spectrum",
+            "from": "Sparse, no meaning",
+            "to": "Dense, context-aware",
+            "items": [
+              { "label": "One-hot", "sub": "Every word equidistant from every other" },
+              { "label": "Bag of words", "sub": "Counts only; order discarded" },
+              { "label": "Static embeddings", "sub": "word2vec, GloVe: one vector per word" },
+              { "label": "Contextual", "sub": "BERT: a vector per occurrence" }
+            ]
+          },
+          "takeaway": "Static embeddings give “bank” one vector whether it means a river bank or a savings bank. Contextual embeddings compute a different one each time.",
+          "concepts": ["word-representation"]
+        },
+        {
+          "title": "word2vec: two directions",
+          "lede": "Both variants learn embeddings by predicting words from their neighbours. They differ in which way the prediction runs.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Skip-gram", "tag": "word → context", "items": ["Predict the surrounding words from the target", "More signal per occurrence", "Better on rare words"] },
+              { "title": "CBOW", "tag": "context → word", "items": ["Predict the target from the surrounding words", "Faster to train", "Smooths over rare words"] }
+            ]
+          },
+          "concepts": ["word-representation"]
+        },
+        {
+          "title": "Sequence models before transformers",
+          "lede": "Each generation fixed the previous one's limit — until sequential computation itself became the limit.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Model", "Idea", "Limit"],
+            "rows": [
+              ["N-gram", "Next word from the previous N−1", "Blind beyond its window"],
+              ["RNN", "A hidden state carried across time", "Vanishing and exploding gradients"],
+              ["LSTM / GRU", "Gates keep a shorter gradient path", "Still processes one step at a time"],
+              ["Seq2seq", "Encoder builds a representation; decoder generates from it", "One fixed vector for the whole input"]
+            ]
+          },
+          "points": [
+            { "h": "Teacher forcing", "t": "Training feeds the true previous token. At inference the model sees its own, which causes exposure bias." }
+          ],
+          "concepts": ["sequence-models"]
+        },
+        {
+          "title": "Scoring generated text",
+          "lede": "Automatic metrics are cheap and repeatable, and they measure surface overlap more than meaning.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Perplexity", "text": "How surprised the model is by held-out text. Lower is better; measures fit, not usefulness." },
+              { "label": "BLEU", "text": "N-gram precision against reference translations, with a brevity penalty." },
+              { "label": "ROUGE", "text": "Recall-oriented n-gram overlap, used for summarisation." },
+              { "label": "The catch", "text": "Overlap punishes valid paraphrases and rewards copied wording." }
+            ]
+          },
+          "concepts": ["text-metrics"]
+        },
+        {
+          "title": "Training mechanics",
+          "lede": "The same few controls decide whether a language model learns well.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Loss", "text": "Cross-entropy over the vocabulary: how much probability went to the right next token." },
+              { "label": "Learning-rate schedule", "text": "Warm up at the start, then decay. Too high diverges; too low stalls." },
+              { "label": "Underfitting", "text": "Training loss stays high: more capacity, more epochs, or check the data." },
+              { "label": "Overfitting", "text": "Validation loss rises while training loss falls: stop, regularise or add data." }
+            ]
+          },
+          "concepts": ["training-mechanics"]
+        }
+      ]
+    },
+    {
+      "domain": "transformers",
+      "hook": "Attention, the transformer block, and why BERT and GPT are built differently.",
+      "slides": [
+        {
+          "title": "Attention in four steps",
+          "lede": "Each position asks a question of every other position, and takes a weighted mix of their answers.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Query · Key", "sub": "A relevance score for every pair of positions" },
+              { "label": "÷ √dₖ", "sub": "Keeps softmax from saturating" },
+              { "label": "Softmax", "sub": "Scores become weights that sum to 1" },
+              { "label": "× Values", "sub": "A weighted average of the values", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "Multi-head", "t": "Several heads in parallel, in different subspaces, capture different kinds of relationship." },
+            { "h": "Self vs cross", "t": "Self-attention looks within one sequence. Cross-attention lets the decoder query the encoder." },
+            { "h": "Quadratic cost", "t": "One score per pair of positions — cost grows with the square of sequence length." }
+          ],
+          "concepts": ["attention"]
+        },
+        {
+          "title": "Inside a transformer block",
+          "lede": "A block moves information between positions, then transforms it within each position. Stacks repeat it many times.",
+          "visual": {
+            "type": "stack",
+            "uniform": true,
+            "top": "input",
+            "bottom": "output — to the next block",
+            "layers": [
+              { "label": "Token embeddings + positional encoding", "sub": "Attention has no sense of order until this injects it" },
+              { "label": "Multi-head self-attention", "sub": "Moves information between positions" },
+              { "label": "Add & layer norm", "sub": "Residual path around the sublayer; per-example normalisation" },
+              { "label": "Position-wise feed-forward", "sub": "Transforms each position on its own" },
+              { "label": "Add & layer norm", "sub": "A second residual path" }
+            ]
+          },
+          "concepts": ["transformer-block"]
+        },
+        {
+          "title": "Encoder, decoder, or both",
+          "lede": "BERT and GPT differ in masking and training objective — not in whether they use attention.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Encoder", "tag": "BERT", "items": ["Sees the whole sequence in both directions", "Masked language modelling", "Classification and understanding"] },
+              { "title": "Decoder", "tag": "GPT", "items": ["A causal mask hides later positions", "Next-token prediction", "Text generation"] },
+              { "title": "Encoder–decoder", "tag": "T5, BART", "items": ["Decoder cross-attends to the encoder", "Span corruption or denoising", "Translation and summarisation"] }
+            ]
+          },
+          "concepts": ["encoder-vs-decoder"]
+        },
+        {
+          "title": "BERT pretraining",
+          "lede": "BERT learns from unlabelled text with two self-supervised tasks and a handful of special tokens.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Token", "Role"],
+            "rows": [
+              ["[CLS]", "First position; its output represents the whole sequence"],
+              ["[SEP]", "Separates segments and marks the end"],
+              ["[MASK]", "Stands in for tokens to be predicted"],
+              ["[PAD]", "Fills to batch length; excluded by the attention mask"]
+            ]
+          },
+          "points": [
+            { "h": "Masked language modelling", "t": "About 15% of tokens are masked, and the model predicts them from context on both sides." },
+            { "h": "Next sentence prediction", "t": "Does sentence B actually follow sentence A?" }
+          ],
+          "concepts": ["bert-pretraining"]
+        }
+      ]
+    },
+    {
+      "domain": "finetuning",
+      "hook": "Adapting a pretrained model: how much to change, and how to keep training on the rails.",
+      "slides": [
+        {
+          "title": "How much of the model to change",
+          "lede": "Start at the cheapest rung and climb only when it falls short.",
+          "visual": {
+            "type": "ladder",
+            "from": "Cheap, reversible",
+            "to": "Strongest, costliest",
+            "items": [
+              { "label": "Prompting", "sub": "Changes nothing; always try first" },
+              { "label": "Feature extraction", "sub": "New head only; backbone frozen" },
+              { "label": "LoRA", "sub": "Small low-rank updates; most of the gain" },
+              { "label": "Full fine-tuning", "sub": "All weights; needs data and compute" }
+            ]
+          },
+          "points": [
+            { "h": "Small data", "t": "Feature extraction trains fast and resists overfitting." },
+            { "h": "Replace the head", "t": "A pretrained head predicts the pretraining objective's outputs, not your labels." }
+          ],
+          "concepts": ["adaptation-strategy"]
+        },
+        {
+          "title": "LoRA",
+          "lede": "Freeze the base model and learn the weight update as the product of two thin matrices.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "stat": "W frozen", "label": "the base model", "text": "Pretrained weights are never touched." },
+              { "stat": "ΔW = B · A", "label": "rank r", "text": "Two thin matrices; r sets capacity. Higher r adapts more and overfits small data sooner." },
+              { "stat": "1 base, N adapters", "label": "at serving time", "text": "Adapters are small, so many share one loaded base model." },
+              { "stat": "QLoRA", "label": "4-bit base", "text": "LoRA over a quantised base model, to fit in less memory." }
+            ]
+          },
+          "concepts": ["peft"]
+        },
+        {
+          "title": "The Hugging Face workflow",
+          "lede": "From a one-line demo to a fine-tuned model, with a matched tokenizer and model throughout.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "pipeline()", "sub": "Instant inference to try a task" },
+              { "label": "AutoTokenizer + AutoModel", "sub": "Loaded from the same checkpoint" },
+              { "label": "Tokenise the dataset", "sub": "Truncation, padding, labels" },
+              { "label": "Trainer", "sub": "Configured by TrainingArguments" },
+              { "label": "Evaluate and save", "sub": "Model and tokenizer together", "tone": "alt" }
+            ]
+          },
+          "concepts": ["huggingface"]
+        },
+        {
+          "title": "When fine-tuning goes wrong",
+          "lede": "Most fine-tuning failures have a standard cause and a standard fix.",
+          "visual": {
+            "type": "map",
+            "left": "Symptom",
+            "right": "Fix",
+            "rows": [
+              ["Out of memory", "Smaller per-device batch; restore the effective batch with gradient accumulation"],
+              ["Pretrained knowledge destroyed early", "Learning rate too high — use roughly 1e-5 to 5e-5"],
+              ["Validation loss rising, training falling", "Overfitting: stop"],
+              ["General ability lost after narrow tuning", "Catastrophic forgetting: mix general data back in, lower LR, fewer epochs"],
+              ["Different output on each evaluation run", "Call model.eval() so dropout is off"]
+            ]
+          },
+          "concepts": ["training-resources", "forgetting"]
+        }
+      ]
+    },
+    {
+      "domain": "advanced-finetuning",
+      "hook": "Teaching a model to follow instructions, then to prefer the answers people prefer.",
+      "slides": [
+        {
+          "title": "Instruction tuning",
+          "lede": "A pretrained model continues text. Training on many instruction–response pairs teaches it to follow instructions — including ones it never saw.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Base model", "items": ["Trained to predict the next token", "Continues whatever it is given", "A question may get more questions back"] },
+              { "title": "Instruction-tuned", "items": ["Supervised on instruction–response pairs across many tasks", "Answers the request", "Generalises to unseen instructions"] }
+            ]
+          },
+          "concepts": ["instruction-tuning"]
+        },
+        {
+          "title": "RLHF in three stages",
+          "lede": "Reinforcement learning from human feedback turns “which answer is better” into a training signal.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Supervised fine-tuning", "sub": "Demonstrations, so it responds sensibly at all" },
+              { "label": "Reward model", "sub": "Trained on pairwise human preferences" },
+              { "label": "PPO", "sub": "Improve the policy against the reward", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "The policy", "t": "The model itself, seen as a distribution over next tokens: state is the context, action is the token." },
+            { "h": "Climb in order", "t": "Prompt, then SFT, then preferences — only when you can judge better or worse but cannot write the right answer." }
+          ],
+          "concepts": ["rlhf", "instruction-tuning"]
+        },
+        {
+          "title": "Reward models",
+          "lede": "A reward model scores responses so the scores agree with human preference. It never generates anything.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Pairwise, not absolute", "text": "“Which of these two is better?” is far less noisy than a 1–10 rating." },
+              { "label": "A scorer only", "text": "Takes a prompt and a response, returns one number." },
+              { "label": "Hold out preferences", "text": "Keep preference data the optimiser never sees, or rising reward is indistinguishable from memorisation." },
+              { "label": "Reward hacking", "text": "High score, useless output. Hedging and padding are the classic symptoms." }
+            ]
+          },
+          "concepts": ["reward-modelling"]
+        },
+        {
+          "title": "PPO's safety catches",
+          "lede": "Optimising hard against a learned reward goes wrong fast. PPO adds two brakes.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "KL penalty", "tag": "stay near the reference", "items": ["Penalises drifting from a frozen copy of the starting model", "Prevents reward hacking", "The reference is frozen so the anchor does not move"] },
+              { "title": "Clipped objective", "tag": "the “proximal” in PPO", "items": ["Caps how far one update can move the policy", "Keeps training stable", "Small steps, many times"] }
+            ]
+          },
+          "takeaway": "PPO keeps the policy, the frozen reference and the reward model in memory at once. That cost is much of why DPO caught on.",
+          "concepts": ["rlhf"]
+        },
+        {
+          "title": "DPO: preferences without RL",
+          "lede": "Direct Preference Optimization reaches the same goal as RLHF with an ordinary supervised-style loss.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "RLHF with PPO", "items": ["Train a separate reward model", "Run a reinforcement-learning loop", "Policy, reference and reward model all resident"] },
+              { "title": "DPO", "tone": "good", "items": ["No reward model", "No RL loop — trains directly on chosen vs rejected pairs", "Only policy and reference needed"] }
+            ]
+          },
+          "takeaway": "Why it works: DPO reparameterises the objective so the intractable partition function cancels in the ratio of chosen to rejected responses.",
+          "concepts": ["dpo"]
+        }
+      ]
+    },
+    {
+      "domain": "rag-langchain",
+      "hook": "Retrieval-augmented generation end to end, LangChain's building blocks, and when a chain becomes an agent.",
+      "slides": [
+        {
+          "title": "RAG: offline and per request",
+          "lede": "Half the work happens once, when documents are indexed. The other half happens on every question.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Load", "sub": "PDF, HTML, CSV into Documents", "tone": "alt" },
+              { "label": "Split", "sub": "Chunks with overlap", "tone": "alt" },
+              { "label": "Embed & index", "sub": "Vectors into a store", "tone": "alt" },
+              { "label": "Embed the query", "sub": "Same embedding model" },
+              { "label": "Retrieve top-k", "sub": "Nearest chunks" },
+              { "label": "Generate", "sub": "Answer from the retrieved text" }
+            ],
+            "legend": [
+              { "tone": "alt", "label": "offline, once" },
+              { "tone": "code", "label": "every request" }
+            ]
+          },
+          "takeaway": "RAG for facts that change or answers that must cite sources; fine-tuning for stable behaviour and style. They solve different problems.",
+          "concepts": ["rag-pipeline"]
+        },
+        {
+          "title": "Retrieval mechanics",
+          "lede": "Dense retrieval finds passages by meaning, using vectors and a fast nearest-neighbour index.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Dense passage retrieval", "text": "Separate question and passage encoders, trained so questions land near the passages that answer them." },
+              { "label": "FAISS", "text": "Fast nearest-neighbour search over dense vectors. It stores and searches — nothing more." },
+              { "label": "Top-k", "text": "Too few and the answer is missing; too many and the signal is diluted and the prompt costs more." },
+              { "label": "Always an answer", "text": "Similarity search returns its nearest neighbours however far away. Out-of-scope questions need a relevance threshold." }
+            ]
+          },
+          "concepts": ["retrieval-mechanics"]
+        },
+        {
+          "title": "Chunking",
+          "lede": "Chunk size decides whether one passage holds a whole answer.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Too small", "items": ["The answer is split across chunks", "Each piece lacks context", "Retrieval returns fragments"] },
+              { "title": "Too large", "items": ["One embedding blurs many topics", "Matches get weaker", "Wastes prompt space"] }
+            ]
+          },
+          "points": [
+            { "h": "Overlap", "t": "Content that crosses a boundary appears whole in at least one chunk." },
+            { "h": "Split on structure", "t": "Paragraphs and sections, not fixed character counts that cut sentences in half." }
+          ],
+          "concepts": ["chunking"]
+        },
+        {
+          "title": "Diagnose the RAG failure",
+          "lede": "Name the failing stage before changing anything.",
+          "visual": {
+            "type": "map",
+            "left": "Symptom",
+            "right": "Where to look",
+            "rows": [
+              ["Topically right chunks that never contain the answer", "Chunking"],
+              ["Good chunks retrieved, poor answer", "Generation: context assembly, instructions, the model"],
+              ["Confident answer to an out-of-scope question", "No relevance threshold or grading step"],
+              ["Answers from a deleted document", "Its chunks are still in the index"],
+              ["Results collapse after an upgrade", "New embedding model: re-embed the whole corpus"]
+            ]
+          },
+          "concepts": ["retrieval-mechanics", "chunking"]
+        },
+        {
+          "title": "LangChain's building blocks",
+          "lede": "Each component does one job. Questions often describe the job and ask for the component.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Component", "Job"],
+            "rows": [
+              ["Document loader", "Reads a source format into Documents with metadata"],
+              ["Text splitter", "Chunks documents — chunk_size and chunk_overlap"],
+              ["Prompt template", "A prompt with named variables"],
+              ["Example selector", "Picks which few-shot examples to include for this input"],
+              ["Output parser", "Turns model text into structured data"],
+              ["Retriever", "Query in, documents out — any backend"],
+              ["Chain", "Composition: each step's output feeds the next"],
+              ["Agent", "Chooses tools, observes results, decides what next"]
+            ]
+          },
+          "concepts": ["langchain"]
+        },
+        {
+          "title": "Chain or agent?",
+          "lede": "The difference is who decides the next step: your code, or the model.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Chain", "tag": "code decides", "items": ["A fixed sequence of steps", "Predictable, cheaper, easier to test", "Right when the steps are known"] },
+              { "title": "Agent", "tag": "model decides", "items": ["Chooses tools and when to stop", "Adapts to what it finds", "More calls, more ways to fail"] }
+            ]
+          },
+          "points": [
+            { "h": "Tool calling", "t": "The model proposes a structured call; your code runs it and returns the result." },
+            { "h": "When not to use one", "t": "If the steps are known in advance, a chain is simpler and more reliable." }
+          ],
+          "concepts": ["agents"]
+        },
+        {
+          "title": "Retrieved text is data",
+          "lede": "Anything retrieved or pasted in can contain instructions. The model cannot tell them apart from yours unless the structure does.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Injection through content", "text": "A document that says “ignore previous instructions” is read like any other text." },
+              { "label": "Fence it", "text": "Delimit retrieved and user text, and label it as data." },
+              { "label": "Keep privileges apart", "text": "Untrusted text never goes into the system or privileged section of the prompt." },
+              { "label": "Answer from context", "text": "Instruct the model to use only the context, and to say when the answer is not there." }
+            ]
+          },
+          "concepts": ["rag-security"]
+        }
+      ]
+    },
+    {
+      "domain": "capstone",
+      "hook": "Assembling a working RAG application — integration decisions rather than new theory.",
+      "slides": [
+        {
+          "title": "The build, in order",
+          "lede": "The capstone wires components you already know. Getting the order and the contracts between them right is the work.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Load & split", "sub": "Documents into chunks with metadata" },
+              { "label": "Embed & store", "sub": "One embedding model, one vector store" },
+              { "label": "Retriever", "sub": "Over the store, top-k" },
+              { "label": "QA chain", "sub": "Prompt + model + retrieved context" },
+              { "label": "Gradio interface", "sub": "A front end over the chain", "tone": "alt" }
+            ]
+          },
+          "takeaway": "Embed the query with the same model that embedded the documents. Vectors from different models live in incomparable spaces.",
+          "concepts": ["capstone-build"]
+        },
+        {
+          "title": "Citations and provenance",
+          "lede": "An answer the user cannot check is an answer they have to take on faith.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Carry the metadata", "text": "Source file, page or URL from the loader, kept with every chunk." },
+              { "label": "Return sources", "text": "Show which chunks the answer came from, alongside the answer." },
+              { "label": "Conflicting sources", "text": "Surface the conflict and cite both, rather than silently picking one." }
+            ]
+          },
+          "concepts": ["citations"]
+        },
+        {
+          "title": "Keeping the index honest",
+          "lede": "The vector store is a copy of the corpus. It drifts out of date unless something keeps it in step.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Deletion", "text": "Removing a source file does nothing until its chunks are removed from the index." },
+              { "label": "Updates", "text": "Re-ingest changed documents and drop the chunks of their old versions." },
+              { "label": "Embedding changes", "text": "A new embedding model means re-embedding the whole corpus." }
+            ]
+          },
+          "concepts": ["index-maintenance"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1133 @@
+{
+  "title": "Agentic AI at a glance",
+  "intro": "Each chapter in a few visual slides: the mental model, the distinctions the questions turn on, and the concepts to practise next.",
+  "chapters": [
+    {
+      "domain": "agent-architecture",
+      "hook": "Decide who owns control flow, then design the system around failure.",
+      "slides": [
+        {
+          "title": "Who owns control flow?",
+          "lede": "The one distinction everything else hangs on. In a workflow, code decides the next step. In an agent, the model chooses actions and when to stop. Model count, retrieval and hardware do not change which one you have.",
+          "visual": {
+            "type": "spectrum",
+            "from": "Workflow — code decides",
+            "to": "Agent — model decides",
+            "items": [
+              { "label": "Prompt chain", "sub": "Fixed sequence, each output feeds the next" },
+              { "label": "Routing", "sub": "Classify once, send to the right handler" },
+              { "label": "Parallel fan-out", "sub": "Independent subtasks, merged at the end" },
+              { "label": "Orchestrator–worker", "sub": "A coordinator picks who works next" },
+              { "label": "Evaluator–optimizer", "sub": "Critique drives revision until criteria pass" },
+              { "label": "ReAct loop", "sub": "Path unknown; adapts to every observation" }
+            ]
+          },
+          "points": [
+            { "h": "Use the least autonomy that works", "t": "Every step you hand to the model is a step you can no longer guarantee." },
+            { "h": "Known order belongs in the graph", "t": "If the sequence is known in advance, encode it as a state machine rather than asking the model to remember it." }
+          ],
+          "concepts": ["agent-vs-workflow", "deterministic-control-flow"]
+        },
+        {
+          "title": "The agent loop",
+          "lede": "An agent is a loop around a model: reason about the goal, call a tool, read the result, repeat. The engineering is in what bounds that loop and what survives when it breaks.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Goal + state", "sub": "What the task is, what is known" },
+              { "label": "Reason", "sub": "Model picks the next action" },
+              { "label": "Act", "sub": "Tool call, executed by your code" },
+              { "label": "Observe", "sub": "Result appended to state" }
+            ],
+            "loop": "repeat until a termination condition or the step budget is hit"
+          },
+          "points": [
+            { "h": "Explicit termination", "t": "A stop condition and a step budget. Without them, two agents can ping-pong a task until the limit." },
+            { "h": "State lives outside the model", "t": "Checkpoint graph state after every step, keyed by thread id, so a pod restart resumes instead of restarting." },
+            { "h": "Side effects go last", "t": "Make the side-effecting node terminal and idempotent, so a retry cannot pay an invoice twice." }
+          ],
+          "concepts": ["deterministic-control-flow", "durable-state"]
+        },
+        {
+          "title": "Single or multi-agent?",
+          "lede": "More agents means more coordination, more tokens and more places to fail. Split only when the parts genuinely need different tools, context or permissions — or when there is real parallelism to win.",
+          "visual": {
+            "type": "topologies",
+            "items": [
+              { "shape": "single", "label": "Single agent + tools", "sub": "The default. One context, one loop." },
+              { "shape": "supervisor", "label": "Supervisor", "sub": "A coordinator delegates to specialists and decides when done." },
+              { "shape": "hierarchical", "label": "Hierarchical", "sub": "Supervisors of supervisors, for large tool sets." },
+              { "shape": "network", "label": "Group chat", "sub": "Peers share a thread; needs speaker selection and a stop rule." }
+            ]
+          },
+          "takeaway": "Not a reason to go multi-agent: a long prompt, or mirroring the org chart. A reason: tool-selection accuracy falling as tools are added — partition them behind sub-agents.",
+          "concepts": ["multi-agent-topologies", "parallel-execution"]
+        },
+        {
+          "title": "Two protocols, two boundaries",
+          "lede": "Standard protocols replace one-off integrations. They answer different questions: what can this agent use, and which other agent can it hand work to?",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              {
+                "title": "MCP",
+                "tag": "Agent → tools",
+                "items": [
+                  "Model Context Protocol",
+                  "Servers expose tools, resources and prompts",
+                  "Clients discover and invoke them",
+                  "One server, reusable by any compatible agent"
+                ]
+              },
+              {
+                "title": "A2A",
+                "tag": "Agent → agent",
+                "items": [
+                  "Agent2Agent protocol",
+                  "Capabilities advertised in an agent card",
+                  "Tasks delegated between opaque peers",
+                  "Neither side sees the other's internals"
+                ]
+              }
+            ]
+          },
+          "points": [
+            { "h": "Typed contracts at every boundary", "t": "Inter-agent handoffs that parse inconsistently need a validated message schema, not a better prompt." }
+          ],
+          "concepts": ["tool-protocols"]
+        },
+        {
+          "title": "Design for failure",
+          "lede": "Most architecture questions describe a symptom and ask for the structural fix. Learn the pairs.",
+          "visual": {
+            "type": "map",
+            "left": "Symptom",
+            "right": "Architectural fix",
+            "rows": [
+              ["Model skips a required step or repeats a side effect", "Encode the order in a graph; terminal, idempotent side-effect node"],
+              ["A flaky dependency aborts whole runs", "Bounded retries, circuit breaker, a documented degraded path"],
+              ["Long job dies on pod restart", "Durable checkpoint per step, keyed by thread id"],
+              ["Cost dominated by easy traffic", "Router or cascade: small model for simple intents"],
+              ["Cross-department questions fail", "Add decomposition and synthesis, not just routing"]
+            ]
+          },
+          "takeaway": "Hard real-time paths do not contain LLM loops. A fast tier decides; the agentic tier investigates asynchronously.",
+          "concepts": ["resilience-patterns", "durable-state", "cost-architecture"]
+        }
+      ]
+    },
+    {
+      "domain": "agent-development",
+      "hook": "Tools, schemas, errors and tests: where agents actually break.",
+      "slides": [
+        {
+          "title": "Function calling: the model only proposes",
+          "lede": "The model never executes anything. It emits a structured request; your code validates, authorizes and runs it, then hands the result back as a message.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Model proposes", "sub": "Tool name + JSON arguments", "tone": "model" },
+              { "label": "Client validates", "sub": "Schema, permissions, limits", "tone": "code" },
+              { "label": "Client executes", "sub": "The real side effect", "tone": "code" },
+              { "label": "Result returned", "sub": "As a tool message", "tone": "code" },
+              { "label": "Model continues", "sub": "Next call or final answer", "tone": "model" }
+            ],
+            "legend": [
+              { "tone": "model", "label": "model" },
+              { "tone": "code", "label": "your code" }
+            ]
+          },
+          "points": [
+            { "h": "Controls live in the client", "t": "Validation and authorization happen between propose and execute, where the model cannot talk past them." },
+            { "h": "Streaming arrives in deltas", "t": "Arguments stream as fragments. Accumulate them and parse once the call is complete." }
+          ],
+          "concepts": ["function-calling"]
+        },
+        {
+          "title": "Design tools the model can choose correctly",
+          "lede": "A tool's name, schema and description are prompt surface. Vague tools cause wrong selection, bad arguments and over-invocation.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              {
+                "title": "Hard to use",
+                "tone": "bad",
+                "items": [
+                  "run_sql(query) or hr_tool(action, params)",
+                  "Description says what it is, not when to use it",
+                  "Allowed values described in prose",
+                  "Returns a 900-line document"
+                ]
+              },
+              {
+                "title": "Easy to use",
+                "tone": "good",
+                "items": [
+                  "get_employee_pto_balance(employee_id, as_of_date)",
+                  "States what it returns, when to use it — and when not",
+                  "Allowed values enumerated in the schema",
+                  "Projected fields, explicit pagination"
+                ]
+              }
+            ]
+          },
+          "takeaway": "Selection accuracy falls as the tool count grows. Past a few dozen, retrieve a candidate subset per turn or partition tools behind sub-agents.",
+          "concepts": ["tool-design"]
+        },
+        {
+          "title": "Structured output: the reliability ladder",
+          "lede": "Every rung is more reliable than the one before. Questions often offer a lower rung as a distractor when the stem calls for a guarantee.",
+          "visual": {
+            "type": "ladder",
+            "from": "Hope",
+            "to": "Guarantee",
+            "items": [
+              { "label": "“Respond only in JSON”", "sub": "No guarantee" },
+              { "label": "Few-shot format examples", "sub": "Better, still probabilistic" },
+              { "label": "Regex extraction or LLM repair", "sub": "Fixes failures after the fact" },
+              { "label": "Schema validation + error back", "sub": "Catches all, costs a turn" },
+              { "label": "Constrained decoding", "sub": "Malformed output is impossible" }
+            ]
+          },
+          "concepts": ["structured-output"]
+        },
+        {
+          "title": "Prompting an agent: what goes where",
+          "lede": "An agent's prompt is assembled every turn from parts with different jobs. Where each part sits decides how reliably the model uses it.",
+          "visual": {
+            "type": "stack",
+            "uniform": true,
+            "top": "start of context · stable, cacheable prefix",
+            "bottom": "end of context · most recent, most attended",
+            "layers": [
+              { "label": "System prompt", "sub": "Role, rules, tool-use policy, when to stop or ask" },
+              { "label": "Tool catalog", "sub": "Names, schemas, descriptions — identical every turn" },
+              { "label": "Few-shot examples", "sub": "Format and edge cases; the model copies them closely" },
+              { "label": "Compacted history", "sub": "Older turns summarized, not dropped" },
+              { "label": "Retrieved context + recent turns", "sub": "Fenced and labelled as data" },
+              { "label": "Critical constraints, re-asserted", "sub": "Instructions far from the end get diluted in long runs" }
+            ]
+          },
+          "points": [
+            { "h": "Sampling per task", "t": "Low temperature for tool calls and extraction; several samples at non-zero temperature only when you will vote over them." },
+            { "h": "Ambiguity gets a question", "t": "A clarifying question names the ambiguity, lists the options and says what each answer will do." }
+          ],
+          "concepts": ["prompt-engineering", "context-management"]
+        },
+        {
+          "title": "Errors are prompt input",
+          "lede": "Whatever a tool returns on failure is what the model reasons over next. Make it actionable, make it loud, and make retries safe.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Actionable errors", "text": "Name the invalid field, the constraint and a valid example. Never a raw stack trace or a silent empty result." },
+              { "label": "Unknown tool name", "text": "Return an error listing the valid names. Never fuzzy-match to the nearest one." },
+              { "label": "Safe retries", "text": "Idempotency keys, or operations that are naturally idempotent — set-to-value, not increment-by." },
+              { "label": "Destructive tools", "text": "Dry run with affected counts, explicit confirmation, a server-side cap on blast radius." },
+              { "label": "Shared rate limits", "text": "A distributed token bucket or a queue. Per-process counters multiply the limit by replica count." }
+            ]
+          },
+          "concepts": ["error-handling", "rate-limiting"]
+        },
+        {
+          "title": "Test in layers",
+          "lede": "Fast, deterministic tests at the bottom; slow, judged, sampled evaluation at the top. Each layer catches what the others cannot.",
+          "visual": {
+            "type": "stack",
+            "top": "slow · judged · sampled",
+            "bottom": "fast · hermetic · every commit",
+            "layers": [
+              { "label": "Production", "sub": "Sampled automated proxies plus a human-reviewed slice" },
+              { "label": "Scheduled evaluation", "sub": "LLM-as-judge, RAG metrics, benchmarks, trends" },
+              { "label": "Integration", "sub": "Recorded tool fixtures; trajectory and state-transition assertions" },
+              { "label": "Unit / CI", "sub": "Stubbed model responses; exact tool calls and arguments; schema contracts" }
+            ]
+          },
+          "takeaway": "Temperature 0 is not reproducibility. Batching, kernels and model versions shift results — determinism comes from stubs and fixtures.",
+          "concepts": ["testing-agents"]
+        }
+      ]
+    },
+    {
+      "domain": "evaluation-tuning",
+      "hook": "Measure the right thing, trust the number only as far as it deserves, then pick the fix that matches the failure.",
+      "slides": [
+        {
+          "title": "Outcome is not enough",
+          "lede": "A correct final answer can hide a wasteful, risky or lucky path. Agent evaluation scores the trajectory too.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              {
+                "title": "Outcome evaluation",
+                "tag": "Was the answer right?",
+                "items": [
+                  "Final answer against a reference",
+                  "Cheap, easy to automate",
+                  "Blind to how the agent got there"
+                ]
+              },
+              {
+                "title": "Trajectory evaluation",
+                "tag": "Were the steps right?",
+                "items": [
+                  "Tool choice and argument correctness",
+                  "Number and order of calls",
+                  "Catches the right answer in 11 calls instead of 3"
+                ]
+              }
+            ]
+          },
+          "points": [
+            { "h": "Attribute the failure", "t": "Right tool, insufficient output: a tool or data gap. Malformed arguments: schema and prompting. Context lacks the answer: retrieval." }
+          ],
+          "concepts": ["agent-evaluation"]
+        },
+        {
+          "title": "The RAG triad",
+          "lede": "Three pairwise checks between question, retrieved context and answer. Whichever one fails tells you which stage is broken.",
+          "visual": {
+            "type": "triad",
+            "nodes": ["Question", "Context", "Answer"],
+            "edges": [
+              { "between": [0, 1], "label": "Context relevance", "sub": "Did retrieval fetch material about the question? Fails → fix retrieval." },
+              { "between": [1, 2], "label": "Groundedness", "sub": "Is every claim supported by the context? Fails → the model is inventing." },
+              { "between": [0, 2], "label": "Answer relevance", "sub": "Does the answer address what was asked? Fails → response targeting." }
+            ]
+          },
+          "takeaway": "None of the triad needs a reference answer. Context recall does — it checks retrieved context against the reference's claims.",
+          "concepts": ["rag-metrics"]
+        },
+        {
+          "title": "LLM-as-judge, done properly",
+          "lede": "A model can grade at scale, but only after you have checked that its grades agree with people.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Anchored rubric", "sub": "What each score means, with examples" },
+              { "label": "Reasoning first", "sub": "Judge explains before it scores" },
+              { "label": "Score", "sub": "Or a pairwise preference" },
+              { "label": "Calibrate", "sub": "Agreement with human labels" }
+            ]
+          },
+          "points": [
+            { "h": "Pairwise beats absolute", "t": "For open-ended comparison, ask which is better with randomized position, not for a 1–10 score." },
+            { "h": "Don't grade yourself", "t": "Reusing the generator model and prompt as the judge brings self-preference bias." }
+          ],
+          "concepts": ["llm-as-judge"]
+        },
+        {
+          "title": "How far to trust the number",
+          "lede": "Most evaluation questions are really about whether a metric means what it seems to.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "stat": "+4%", "label": "on 60 examples", "text": "Roughly two examples. Check run-to-run variance before believing it." },
+              { "stat": "84% / 50%", "label": "overall vs one task type", "text": "The aggregate hides a failing segment. Always disaggregate." },
+              { "stat": "91% → 68%", "label": "offline vs production", "text": "A stale eval set, overfitted. Mine production failures to refresh it." },
+              { "stat": "pass@k ≫ pass@1", "label": "right answer is in there", "text": "A selection problem: self-consistency, verification or reranking — not a bigger model." },
+              { "stat": "flat ≠ safe", "label": "aggregate score after quantizing", "text": "Benchmarks average across behaviours. Schema conformance or long-context recall can collapse underneath — re-test what the agent depends on." },
+              { "stat": "one number", "label": "for adversarial and routine traffic", "text": "Report the adversarial and high-consequence slices separately; they need different thresholds." }
+            ]
+          },
+          "concepts": ["experiment-design", "eval-datasets", "agent-evaluation", "quantization-eval"]
+        },
+        {
+          "title": "Match the fix to the failure",
+          "lede": "Fine-tuning is rarely the first answer. The questions reward the cheapest intervention that addresses the actual cause.",
+          "visual": {
+            "type": "map",
+            "left": "Problem",
+            "right": "Intervention",
+            "rows": [
+              ["Missing, stale or company-specific facts", "Retrieval"],
+              ["Wrong output format", "Constrained decoding"],
+              ["Wrong tool chosen", "Tool descriptions and schemas"],
+              ["Wrong terminology or style", "Fine-tune (LoRA / SFT)"],
+              ["Preference alignment", "DPO or RLHF"],
+              ["Agentic tool-use behaviour", "RL post-training in interactive environments"]
+            ]
+          },
+          "takeaway": "After narrow fine-tuning, watch for catastrophic forgetting: mix in general replay data, lower the rank and learning rate — and re-evaluate the capabilities you depend on.",
+          "concepts": ["intervention-choice", "tuning-techniques"]
+        },
+        {
+          "title": "Which benchmark measures what",
+          "lede": "Benchmark names come up as answer options. Know what each one actually tests — and which one is not what it is claimed to be.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Benchmark", "Measures"],
+            "rows": [
+              ["BFCL", "Function calling: selection, arguments, parallel calls, knowing when not to call"],
+              ["tau-bench", "Tool–agent–user interaction under domain policies"],
+              ["GAIA", "General assistant tasks needing tools and multi-step reasoning"],
+              ["SWE-bench", "Resolving real repository issues"],
+              ["WebArena / AgentBench", "Web and multi-environment agent tasks"],
+              ["MTEB", "Embedding and reranking quality"],
+              ["MMLU-Pro", "Knowledge and reasoning"]
+            ]
+          },
+          "takeaway": "CLASSic — Cost, Latency, Accuracy, Stability, Security — is Aisera's framework, not NVIDIA's. Some prep material gets this wrong.",
+          "concepts": ["agent-evaluation"]
+        }
+      ]
+    },
+    {
+      "domain": "deployment-scaling",
+      "hook": "Where the milliseconds and the gigabytes go, and the technique that fixes each.",
+      "slides": [
+        {
+          "title": "Anatomy of a request",
+          "lede": "An LLM request has two phases with different bottlenecks. Prefill reads the whole prompt at once and is compute-bound. Decode emits one token at a time and is bound by memory bandwidth.",
+          "visual": {
+            "type": "bar",
+            "segments": [
+              { "label": "Queue", "w": 10, "tone": "muted" },
+              { "label": "Prefill", "w": 26, "tone": "accent" },
+              { "label": "Decode — one token per step", "w": 64, "tone": "red", "tokens": 8 }
+            ],
+            "brackets": [
+              { "from": 0, "to": 36, "label": "TTFT" },
+              { "from": 36, "to": 44, "label": "TPOT" },
+              { "from": 0, "to": 100, "label": "End-to-end latency" }
+            ]
+          },
+          "points": [
+            { "h": "TTFT follows the prompt", "t": "Time to first token grows with prompt length and queueing. Prefix caching and shorter context attack it." },
+            { "h": "TPOT follows bandwidth", "t": "Time per output token is set by memory bandwidth and batch size. Speculative decoding and quantization attack it." },
+            { "h": "Goodput is the real number", "t": "Throughput that meets the latency SLO. Utilization can look excellent while every user waits." }
+          ],
+          "concepts": ["inference-latency"]
+        },
+        {
+          "title": "The KV cache is where memory goes",
+          "lede": "Every token in flight keeps its attention keys and values in GPU memory. At long context and high concurrency that cache outgrows the weights — and it is what runs out first.",
+          "visual": {
+            "type": "bar",
+            "segments": [
+              { "label": "Weights", "w": 36, "tone": "accent" },
+              { "label": "KV cache", "w": 54, "tone": "red" },
+              { "label": "Other", "w": 10, "tone": "muted" }
+            ],
+            "brackets": [
+              { "from": 0, "to": 36, "label": "fixed" },
+              { "from": 36, "to": 90, "label": "batch × sequence length × layers" }
+            ],
+            "note": "GPU memory, illustrative: a long-context deployment under load."
+          },
+          "points": [
+            { "h": "PagedAttention", "t": "Allocates the cache in pages, ending fragmentation and over-reservation, and lets requests share a prefix." },
+            { "h": "Prefix reuse", "t": "The system prompt and tool catalog are identical every turn. Cache their prefill once." },
+            { "h": "Route by cache", "t": "Session affinity or KV-aware routing keeps a conversation on the replica that already holds its prefix." }
+          ],
+          "concepts": ["kv-cache"]
+        },
+        {
+          "title": "Serving techniques and what each fixes",
+          "lede": "Most deployment questions name a symptom. Pick the technique aimed at that bottleneck, not the one that sounds most advanced.",
+          "visual": {
+            "type": "map",
+            "left": "Technique",
+            "right": "What it fixes",
+            "rows": [
+              ["Continuous (in-flight) batching", "Static batches idling until the longest sequence finishes"],
+              ["Chunked prefill + priority scheduling", "One huge prompt blocking short requests (head-of-line blocking)"],
+              ["Disaggregated serving", "Compute-bound prefill and bandwidth-bound decode fighting over one GPU"],
+              ["Quantization — FP8, INT8, INT4, NVFP4", "Weight memory and bandwidth; precision-critical behaviour must be re-tested"],
+              ["Multi-LoRA", "N fine-tuned variants without N full deployments"]
+            ]
+          },
+          "concepts": ["inference-latency", "quantization"]
+        },
+        {
+          "title": "Speculative decoding",
+          "lede": "Verifying several proposed tokens costs about one forward pass of the big model. So let a cheap drafter guess, and keep the guesses the target agrees with.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Draft", "sub": "Small model or extra heads propose k tokens", "tone": "alt" },
+              { "label": "Verify", "sub": "Target model checks all k in one pass" },
+              { "label": "Accept", "sub": "Keep the longest agreeing prefix" },
+              { "label": "Continue", "sub": "Output identical to the target alone" }
+            ],
+            "loop": "repeat from the first rejected token"
+          },
+          "points": [
+            { "h": "Acceptance rate decides it", "t": "Predictable output — boilerplate, structured formats, code — gains most. Highly variable text rejects most drafts." },
+            { "h": "Decode only", "t": "If the cost is in a long prompt, it attacks the wrong phase. Multi-token prediction applies the same idea inside one model." }
+          ],
+          "concepts": ["decode-acceleration"]
+        },
+        {
+          "title": "Parallelism: fitting versus scaling",
+          "lede": "Three strategies split one model so it fits; one copies the whole model so you can serve more. Questions test which is which.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Strategy", "Splits", "Use"],
+            "rows": [
+              ["Tensor (TP)", "Each layer across GPUs", "Fit a large model at low latency — keep inside one NVLink domain"],
+              ["Pipeline (PP)", "Groups of layers into stages", "Span nodes; adds pipeline-bubble overhead"],
+              ["Expert (EP)", "MoE experts across GPUs", "Mixture-of-experts models only"],
+              ["Data (DP)", "Nothing — full replicas", "Throughput, not fitting"]
+            ]
+          },
+          "takeaway": "MoE sizing: compute like the active parameters, memory like the total. Every expert has to be resident.",
+          "concepts": ["parallelism-sizing"]
+        },
+        {
+          "title": "Running it on Kubernetes",
+          "lede": "GPU inference breaks several defaults that work for ordinary web services.",
+          "visual": {
+            "type": "map",
+            "left": "Default that fails",
+            "right": "What to do instead",
+            "rows": [
+              ["Autoscale on CPU utilization", "Scale on queue depth, pending requests or GPU metrics"],
+              ["Scale to zero for bursty traffic", "Warm baseline replicas plus fast scale-out; cold starts take minutes"],
+              ["Standard startup probe", "Generous startup probe for weight loading; weights cached on the node"],
+              ["Load test with stubbed tools", "Include real tool and retrieval dependencies, or capacity is overstated"],
+              ["Reuse the engine on new GPUs", "Rebuild: TensorRT-LLM engines are specific to model, precision and GPU"]
+            ]
+          },
+          "concepts": ["kubernetes-ops"]
+        },
+        {
+          "title": "Cost is a design decision",
+          "lede": "The big savings are architectural and made before launch, not found by tuning afterwards.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Cascade and route", "text": "A small model for easy intents, a large one for hard reasoning. Cost is usually dominated by easy traffic." },
+              { "label": "Cache", "text": "Prompt-prefix caching for repeated context; a semantic cache for repeated questions." },
+              { "label": "Context discipline", "text": "Every token of tool output and history is paid for again on every step of the loop." },
+              { "label": "Self-hosting", "text": "Buys data residency and version control. Cheaper only at high utilization." }
+            ]
+          },
+          "concepts": ["cost-architecture"]
+        }
+      ]
+    },
+    {
+      "domain": "cognition-planning-memory",
+      "hook": "How agents reason, plan, remember and manage what they can see.",
+      "slides": [
+        {
+          "title": "Reasoning patterns",
+          "lede": "From one chain of thought to search with feedback. Each step right spends more compute to handle harder, less predictable problems.",
+          "visual": {
+            "type": "spectrum",
+            "from": "One pass",
+            "to": "Search and feedback",
+            "items": [
+              { "label": "Chain-of-Thought", "sub": "Intermediate steps before the answer" },
+              { "label": "Self-consistency", "sub": "Several chains, majority answer" },
+              { "label": "Least-to-most", "sub": "Ordered sub-problems, solved in turn" },
+              { "label": "ReAct", "sub": "Thought, action, observation, interleaved" },
+              { "label": "Tree of Thoughts", "sub": "Search with evaluation and backtracking" },
+              { "label": "Reflexion", "sub": "Verbal self-feedback conditions the retry" }
+            ]
+          },
+          "points": [
+            { "h": "A trace is not an explanation", "t": "Chain-of-thought is not a faithful account of the model's computation. A fluent chain can rationalize a wrong answer." },
+            { "h": "Thinking budget is a dial", "t": "Reasoning models improve with more thinking tokens on hard tasks and gain nothing on easy ones. Tune per task class." }
+          ],
+          "concepts": ["reasoning-patterns", "test-time-compute"]
+        },
+        {
+          "title": "How much to plan up front",
+          "lede": "Planning trades adaptability against cost. The right choice depends on how much the world can change between steps.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "ReAct", "tag": "decide every step", "items": ["Most adaptive", "Most model calls", "Can drift from the goal on long tasks"] },
+              { "title": "Plan-and-Execute", "tag": "plan once", "items": ["One planning call, cheap execution", "Fewest expensive calls", "Brittle when facts change mid-run"] },
+              { "title": "Plan–Act–Replan", "tag": "plan to the next decision", "items": ["Plan only as far as is known", "Re-plan on new observations", "The usual answer under uncertainty"] }
+            ]
+          },
+          "points": [
+            { "h": "Re-planning is event-driven", "t": "Triggered by an invalidated assumption, a failed step or new information — not a fixed cadence, and not every step." },
+            { "h": "Keep the plan in state", "t": "Goal drift over long horizons is fixed by an explicit plan in durable state, not by a longer context." }
+          ],
+          "concepts": ["planning"]
+        },
+        {
+          "title": "Reflexion: learning without weights",
+          "lede": "An agent can improve across attempts without any training. The learning lives in memory, as written feedback on what went wrong.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Attempt", "sub": "Act on the task" },
+              { "label": "Failure signal", "sub": "Test, evaluator or environment" },
+              { "label": "Reflect", "sub": "Write why it failed", "tone": "alt" },
+              { "label": "Store", "sub": "Episodic memory, the attempt log" },
+              { "label": "Retry", "sub": "With the reflection in context" }
+            ],
+            "loop": "no weight updates at any point"
+          },
+          "points": [
+            { "h": "Repeating a failed strategy", "t": "Means no accessible attempt log — an episodic-memory gap, not a context-size problem." },
+            { "h": "Errors compound", "t": "A wrong inference stored as fact is retrieved and reinforced. Tag confidence, keep provenance, allow expiry." }
+          ],
+          "concepts": ["reflection"]
+        },
+        {
+          "title": "Kinds of memory",
+          "lede": "Borrowed from cognitive science, and useful because each kind needs a different store and a different write rule.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Memory", "Holds", "Example"],
+            "rows": [
+              ["Working", "The current context, bounded by the window", "The live conversation"],
+              ["Episodic", "Specific past events and attempts", "What was tried, and what happened"],
+              ["Semantic", "Facts and concepts", "User preferences, domain facts"],
+              ["Procedural", "How-to knowledge, reusable skills", "A Voyager-style skill library"],
+              ["Parametric", "Knowledge in the weights", "Fixed at training — uncitable, no update path"]
+            ]
+          },
+          "takeaway": "Anything that must be current, citable or correctable belongs in retrieval, not in the weights. Tell the model to prefer provided context when the two conflict.",
+          "concepts": ["memory-types", "grounding"]
+        },
+        {
+          "title": "Memory is decided at write time",
+          "lede": "A memory store is only as good as what gets written to it and how stale entries are retired.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Write policy", "text": "Store durable, future-relevant facts — not raw turns or transient task state." },
+              { "label": "Supersession", "text": "A new fact invalidates the old one it contradicts. Without a rule, stale advice resurfaces." },
+              { "label": "Retrieval scoring", "text": "Relevance alone surfaces stale memories. Weigh relevance, recency and importance." },
+              { "label": "System of record", "text": "Mutable state such as balances or order status is read live, not remembered." }
+            ]
+          },
+          "concepts": ["memory-management"]
+        },
+        {
+          "title": "Managing the context window",
+          "lede": "Long runs outgrow any window. Good compaction is selective, not positional — it decides what survives by what it is, not where it sits.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Summarize", "tone": "", "tag": "safe to compress", "items": ["Narrative history of the conversation", "Old tool outputs already acted on", "Reasoning that led to settled decisions"] },
+              { "title": "Keep verbatim", "tag": "never compress", "items": ["The goal and its constraints", "Open sub-tasks", "Exact identifiers — IDs, amounts, file paths", "The most recent observations"] }
+            ]
+          },
+          "points": [
+            { "h": "Lost in the middle", "t": "Models use the start and end of a long context more reliably than the middle. Put the best material at the edges." },
+            { "h": "Offload", "t": "Page detail out to external memory and retrieve it on demand, rather than carrying everything in the window." }
+          ],
+          "concepts": ["context-management"]
+        }
+      ]
+    },
+    {
+      "domain": "knowledge-data",
+      "hook": "Getting the right, current, permitted evidence in front of the model — and knowing which layer failed when you don't.",
+      "slides": [
+        {
+          "title": "The retrieval pipeline",
+          "lede": "Half the pipeline runs at ingest time, half at query time. Most retrieval failures trace back to one specific stage.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Extract & chunk", "sub": "Layout-aware; structure-aware splits", "tone": "alt" },
+              { "label": "Embed & index", "sub": "Bi-encoder into a vector index", "tone": "alt" },
+              { "label": "Retrieve", "sub": "Hybrid: dense + BM25, filtered" },
+              { "label": "Rerank", "sub": "Cross-encoder over a shortlist" },
+              { "label": "Assemble", "sub": "Order, fence, cite" }
+            ],
+            "legend": [
+              { "tone": "alt", "label": "ingest time" },
+              { "tone": "code", "label": "query time" }
+            ]
+          },
+          "concepts": ["chunking", "retrieval-strategies"]
+        },
+        {
+          "title": "Diagnose by symptom",
+          "lede": "Name the failing layer before choosing a fix. Tuning the generator cannot fix a retrieval problem.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Symptom", "Layer", "Fix"],
+            "rows": [
+              ["Right topic, answer cut off", "Chunking", "Structure-aware splits, overlap, parent-document retrieval"],
+              ["Exact codes and SKUs not found", "Dense-only retrieval", "Add BM25 and fuse — hybrid search"],
+              ["Right documents, wrong order", "Ranking", "Cross-encoder reranker"],
+              ["Multi-hop question fails", "Flat top-k", "GraphRAG: entities and relations"],
+              ["Top-k full of near-duplicates", "Ingestion", "Dedupe at ingest; MMR for diversity"],
+              ["Answers from superseded documents", "Governance", "Effective-date metadata and query-time filters"]
+            ]
+          },
+          "concepts": ["chunking", "retrieval-strategies", "data-freshness"]
+        },
+        {
+          "title": "Embeddings and indexes",
+          "lede": "Retrieve broad and cheap, then rank narrow and precise. Two encoder types do those two jobs.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Bi-encoder", "tag": "retrieve", "items": ["Encodes query and document separately", "Documents embedded once, ahead of time", "Fast approximate search over millions"] },
+              { "title": "Cross-encoder", "tag": "rerank", "items": ["Reads query and document together", "Far better relevance judgements", "Too costly beyond a shortlist"] }
+            ]
+          },
+          "points": [
+            { "h": "HNSW or IVF-PQ", "t": "HNSW: high recall and low latency, large memory. IVF-PQ: compressed and smaller, some recall loss — for sets that outgrow RAM." },
+            { "h": "Filter before, not after", "t": "Post-filtering discards results after retrieval, so a selective filter silently returns almost nothing." },
+            { "h": "Embedders don't swap", "t": "A new embedding model invalidates the whole index. Generators swap freely." }
+          ],
+          "concepts": ["embeddings-indexes"]
+        },
+        {
+          "title": "Beyond plain top-k",
+          "lede": "RAG variants each patch a specific weakness of retrieve-once-and-generate.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "HyDE", "text": "Embed a hypothetical answer instead of the raw question, so the query looks like the documents." },
+              { "label": "Self-RAG", "text": "Decide whether to retrieve at all; critique and grade what comes back." },
+              { "label": "Corrective RAG", "text": "Grade the retrieved documents; rewrite the query or fall back when they are poor." },
+              { "label": "RAPTOR", "text": "Recursively cluster and summarize into a tree; serve detail or synthesis by question scope." },
+              { "label": "GraphRAG", "text": "Extract entities and relations so multi-hop links can be traversed." }
+            ]
+          },
+          "concepts": ["retrieval-strategies"]
+        },
+        {
+          "title": "Not everything is similarity search",
+          "lede": "Some data loses its meaning when flattened into text chunks, and some questions are computations, not lookups.",
+          "visual": {
+            "type": "map",
+            "left": "Data or question",
+            "right": "Right primitive",
+            "rows": [
+              ["Scanned PDFs, tables, charts", "Layout-aware extraction: OCR, table structure, figure captions"],
+              ["“What was the total by region?”", "A query tool over a table — embeddings cannot compute a sum"],
+              ["Telemetry and time series", "A time-series store behind range and aggregate query tools"],
+              ["Text inside images", "Extracted as untrusted data, fenced like any retrieved content"]
+            ]
+          },
+          "concepts": ["multimodal-and-tabular"]
+        },
+        {
+          "title": "Current, permitted, citable",
+          "lede": "Relevance is not enough. Evidence also has to be the current version, allowed for this user, and traceable to its source.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Freshness", "text": "Effective-date metadata, query-time filters, tombstones for superseded versions; content hashes for incremental updates." },
+              { "label": "Permissions", "text": "Tenant and per-user access enforced inside the query, server-side, before anything reaches the prompt." },
+              { "label": "PII", "text": "Redact or tokenize at ingestion. If it is never embedded, it cannot be retrieved or leaked." },
+              { "label": "Citations", "text": "Stable chunk IDs carried into the prompt, cited per claim, and checked after generation." }
+            ]
+          },
+          "concepts": ["data-freshness", "citations"]
+        }
+      ]
+    },
+    {
+      "domain": "nvidia-platform",
+      "hook": "Which NVIDIA component does what — and the pairs that are easy to confuse.",
+      "slides": [
+        {
+          "title": "The model lifecycle, product by product",
+          "lede": "NeMo splits the model lifecycle into services. Know which stage each one owns.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "NeMo Curator", "sub": "Curate, filter, dedupe data" },
+              { "label": "Data Designer", "sub": "Generate synthetic data" },
+              { "label": "NeMo Customizer", "sub": "Fine-tune: SFT, PEFT, LoRA" },
+              { "label": "NeMo Evaluator", "sub": "Benchmarks, LLM-as-judge" },
+              { "label": "NIM", "sub": "Serve behind an OpenAI-compatible API", "tone": "alt" },
+              { "label": "NeMo Guardrails", "sub": "Rails around it at runtime", "tone": "alt" }
+            ]
+          },
+          "takeaway": "Curator vs Customizer vs Evaluator: data in, weights changed, quality measured. RL post-training in tool-using environments is NeMo Gym with NeMo RL.",
+          "concepts": ["nvidia-product-map"]
+        },
+        {
+          "title": "The serving stack",
+          "lede": "Four serving products that sound alike and sit at different levels.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Component", "What it is", "Not to be confused with"],
+            "rows": [
+              ["NIM", "A packaged, versioned microservice for one model, with a standard API", "Triton — a NIM may use Triton or TensorRT-LLM inside"],
+              ["TensorRT-LLM", "Builds and runs the optimized inference engine", "NIM, which wraps an engine into a deployable container"],
+              ["Triton Inference Server", "A general multi-model, multi-framework server, with ensembles", "A single-model microservice"],
+              ["Dynamo", "A distributed serving framework: disaggregates prefill from decode and routes by KV cache", "A per-GPU engine optimization — it works across nodes and GPUs"]
+            ]
+          },
+          "concepts": ["serving-platforms"]
+        },
+        {
+          "title": "Around the agent",
+          "lede": "The rest of the product map, by the job you need done.",
+          "visual": {
+            "type": "map",
+            "left": "You need to…",
+            "right": "Component",
+            "rows": [
+              ["Extract, embed and rerank documents for RAG", "NeMo Retriever (NV-Ingest for extraction)"],
+              ["GPU-accelerate vector index build and search", "cuVS — CAGRA, IVF-PQ"],
+              ["GPU-accelerate dataframes and ETL", "RAPIDS cuDF"],
+              ["Compose and profile agents across frameworks", "NeMo Agent Toolkit"],
+              ["Start from a working reference workflow", "AI Blueprints"],
+              ["Try models with no GPU, then self-host the winner", "build.nvidia.com"],
+              ["Supported, patched, certified builds on-prem", "NVIDIA AI Enterprise"]
+            ]
+          },
+          "takeaway": "NeMo Retriever is not a vector database. It provides the extraction, embedding and reranking services; the index itself is Milvus, Elasticsearch, pgvector or similar.",
+          "concepts": ["nvidia-product-map"]
+        },
+        {
+          "title": "Choosing hardware",
+          "lede": "Most hardware questions come down to memory: how much there is, and how fast GPUs share it.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "stat": "H100 → H200", "label": "80 GB → 141 GB", "text": "Same Hopper compute. More HBM and bandwidth means a bigger KV cache: more concurrency, longer context per GPU." },
+              { "stat": "NVLink", "label": "GPU-to-GPU interconnect", "text": "Tensor parallelism all-reduces every layer, so it stays inside one NVLink domain." },
+              { "stat": "MIG", "label": "one GPU, isolated slices", "text": "Co-host small models — embedder, reranker, guardrail — with guaranteed quality of service." },
+              { "stat": "Blackwell", "label": "GB200", "text": "Adds FP4 arithmetic; Grace-based superchips couple a CPU tightly to the GPU." }
+            ]
+          },
+          "concepts": ["gpu-hardware"]
+        },
+        {
+          "title": "Nemotron",
+          "lede": "NVIDIA's open-weight model family, and the architecture choices behind it.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "stat": "Nano · Super · Ultra", "label": "one family", "text": "A cascade across sizes shares prompting behaviour and toolchain." },
+              { "stat": "Mamba + attention", "label": "hybrid architecture", "text": "Mamba layers scale linearly with length; attention layers keep precise recall." },
+              { "stat": "MoE", "label": "a fraction of parameters active", "text": "Computes like a small model; memory is still sized by total parameters." },
+              { "stat": "1M", "label": "tokens of native context", "text": "Trained with NVFP4 and multi-token prediction; RL post-trained with NeMo Gym." },
+              { "stat": "Open Model License", "label": "open weights", "text": "Commercial use under its terms — not a permissive OSI licence." }
+            ]
+          },
+          "concepts": ["nemotron"]
+        },
+        {
+          "title": "Many variants, one base model",
+          "lede": "Fine-tuned variants that differ by a sliver of their parameters should not each cost a full deployment.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Full deployment each", "tone": "bad", "items": ["Forty variants, forty copies of the base weights", "GPU cost multiplied by forty", "Each scaled and patched separately"] },
+              { "title": "Multi-LoRA", "tone": "good", "items": ["Variants trained as small LoRA adapters", "One base model loaded once", "The adapter is picked per request"] }
+            ]
+          },
+          "takeaway": "Train the adapters with NeMo Customizer; serve them with NIM's multi-LoRA support. MIG and Curator are distractors here.",
+          "concepts": ["multi-lora"]
+        }
+      ]
+    },
+    {
+      "domain": "run-monitor-maintain",
+      "hook": "Seeing what the agent did, noticing when it degrades, and changing it without breaking it.",
+      "slides": [
+        {
+          "title": "A trace is a tree, not a log",
+          "lede": "One root span per task, with a child span for every model call, retrieval and tool call. Flat logs lose which step caused which.",
+          "visual": {
+            "type": "trace",
+            "kinds": { "task": "task", "llm": "model call", "retrieval": "retrieval", "tool": "tool call", "error": "error" },
+            "spans": [
+              { "label": "task: refund request", "meta": "12.4k tokens · 6.1 s", "depth": 0, "kind": "task", "start": 0, "dur": 100 },
+              { "label": "llm: plan", "meta": "2.1k tokens", "depth": 1, "kind": "llm", "start": 0, "dur": 14 },
+              { "label": "retrieve: policy", "meta": "top-k 8", "depth": 1, "kind": "retrieval", "start": 14, "dur": 11 },
+              { "label": "tool: orders.lookup", "meta": "timeout", "depth": 1, "kind": "error", "start": 25, "dur": 22 },
+              { "label": "tool: orders.lookup", "meta": "retry · 200", "depth": 1, "kind": "tool", "start": 47, "dur": 9 },
+              { "label": "llm: decide", "meta": "3.4k tokens", "depth": 1, "kind": "llm", "start": 56, "dur": 18 },
+              { "label": "tool: refunds.create", "meta": "idempotency key", "depth": 1, "kind": "tool", "start": 74, "dur": 10 },
+              { "label": "llm: reply", "meta": "1.2k tokens", "depth": 1, "kind": "llm", "start": 84, "dur": 16 }
+            ]
+          },
+          "points": [
+            { "h": "Standard attributes", "t": "OpenTelemetry's GenAI semantic conventions name spans and attributes — model, tokens, latency, status — so traces port across vendors." },
+            { "h": "Traces are sensitive data", "t": "They hold prompts and tool arguments. Redact at capture, restrict access, set retention." }
+          ],
+          "concepts": ["observability"]
+        },
+        {
+          "title": "SLIs for agents",
+          "lede": "An HTTP 200 says nothing about whether the task got done. Agent indicators are measured per task, across the whole trajectory.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Indicator", "Agentic version"],
+            "rows": [
+              ["Success rate", "Task success against a defined acceptance criterion"],
+              ["Latency", "p95 end-to-end task completion, across every step"],
+              ["Cost", "Cost per completed task, prompt and completion tokens split"],
+              ["Efficiency", "Steps and tool calls per task; how often runs hit the step limit"]
+            ]
+          },
+          "takeaway": "Leading indicators: step-limit terminations and tool-error or retry rates rise before users complain.",
+          "concepts": ["agent-telemetry"]
+        },
+        {
+          "title": "Drift: the stack is frozen, the world isn't",
+          "lede": "Quality can fall with no deploy at all. The traffic and the corpus moved, even though the code didn't.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Slow decline, no change", "text": "With a frozen stack, that is drift. Compare today's inputs and retrievals against the eval set's." },
+              { "label": "Pin model versions", "text": "A floating “latest” alias changes behaviour with no change on your side." },
+              { "label": "Scheduled re-evaluation", "text": "Re-run the eval suite on a cadence and on fresh production samples, not only at release." },
+              { "label": "Close the loop", "text": "Production failures become eval cases and training data — the data flywheel." }
+            ]
+          },
+          "concepts": ["drift-alerting"]
+        },
+        {
+          "title": "Responding to an incident",
+          "lede": "A sharp change in behaviour has a time boundary. Find it and find what changed there, before touching anything.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Find the boundary", "sub": "When did the metric move?" },
+              { "label": "Correlate", "sub": "Deploys, prompt edits, model or dependency changes" },
+              { "label": "Diff traces", "sub": "Same task type, either side of it" },
+              { "label": "Fix the layer", "sub": "Prompt, tool, retrieval or model" },
+              { "label": "Lock it in", "sub": "Add the case to the regression suite" }
+            ]
+          },
+          "points": [
+            { "h": "No blind rollbacks", "t": "Rolling back without a diagnosis can remove the wrong change and hide the real one." },
+            { "h": "Parse strictly", "t": "Error on missing or unexpected fields at tool boundaries. Silent nulls make agents confidently wrong." }
+          ],
+          "concepts": ["incident-response"]
+        },
+        {
+          "title": "Version everything that shapes behaviour",
+          "lede": "An agent's behaviour is the joint product of six things. To reproduce or audit a past decision you need all of them.",
+          "visual": {
+            "type": "stack",
+            "uniform": true,
+            "layers": [
+              { "label": "Code", "sub": "Orchestration, graph, tool implementations" },
+              { "label": "Prompts", "sub": "System prompt, templates, few-shot examples" },
+              { "label": "Tool schemas", "sub": "Names, descriptions, argument types" },
+              { "label": "Model version", "sub": "Pinned, never a floating alias" },
+              { "label": "Index snapshot", "sub": "Which documents retrieval could see" },
+              { "label": "Guardrail config", "sub": "Which rails were in force" }
+            ]
+          },
+          "takeaway": "An audit record needs the full trajectory on top: inputs, retrieved sources with versions, every tool call and result, and any human approvals.",
+          "concepts": ["release-management", "auditability"]
+        },
+        {
+          "title": "Releasing a change",
+          "lede": "Each stage exposes the change to more reality at more risk, and each has a comparison against control.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Offline eval", "sub": "Regression suite and adversarial slice" },
+              { "label": "Shadow mode", "sub": "Proposes actions, executes none" },
+              { "label": "Canary", "sub": "Small share of the same traffic mix" },
+              { "label": "Progressive rollout", "sub": "Widen while metrics hold" },
+              { "label": "Rollback ready", "sub": "All six versions pinned together", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "What the canary compares", "t": "Task success, tool-error rate, cost per task and latency against control — held long enough to see real variety." }
+          ],
+          "concepts": ["release-management"]
+        }
+      ]
+    },
+    {
+      "domain": "safety-ethics-compliance",
+      "hook": "Assume the model can be talked into anything, and bound what it can do anyway.",
+      "slides": [
+        {
+          "title": "Where the rails sit",
+          "lede": "Guardrails intercept at five points in a request. Each sees different content and stops different things.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Input rails", "sub": "User message, before the model" },
+              { "label": "Dialog rails", "sub": "Conversation flow and topic limits" },
+              { "label": "Retrieval rails", "sub": "Retrieved chunks, before the prompt" },
+              { "label": "Execution rails", "sub": "Actions and tool invocations" },
+              { "label": "Output rails", "sub": "The response, before the user" }
+            ]
+          },
+          "takeaway": "Output filtering protects what the user sees, not what the system did. An agent that already sent the money has caused the harm — consequential actions need authorization before execution.",
+          "concepts": ["guardrails"]
+        },
+        {
+          "title": "Injection: content is data",
+          "lede": "An agent reads text from places attackers can write to. Anything it reads can contain instructions — only the channel differs.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Direct", "tag": "the user types it", "items": ["“Ignore previous instructions…”", "Input rails and jailbreak classifiers", "Assume bypass; bound consequences at the tool layer"] },
+              { "title": "Indirect", "tag": "it arrives in content", "items": ["Documents, web pages, email, text in images", "Fence and label as untrusted data", "Retrieval rails; never promote it into the system prompt"] },
+              { "title": "Supply chain", "tag": "it arrives in tools", "items": ["Poisoned tool descriptions or MCP servers", "Pin and review tool definitions", "Verify provenance; alert on metadata changes"] }
+            ]
+          },
+          "concepts": ["prompt-injection"]
+        },
+        {
+          "title": "Bound the blast radius",
+          "lede": "Detection always misses something. The controls that hold are the ones enforced outside the model.",
+          "visual": {
+            "type": "map",
+            "left": "Threat",
+            "right": "Control enforced outside the model",
+            "rows": [
+              ["Excessive agency", "Least-privilege credentials; approval enforced by the orchestrator for irreversible actions"],
+              ["Confused deputy", "Act with the requesting user's authority, not the agent's service account"],
+              ["Data exfiltration", "Tools scoped to allowlists, proxied egress, no ambient credentials"],
+              ["Model-written code", "A sandbox: no credentials, no network, minimal mounts, hard resource limits"],
+              ["Knowledge-base poisoning", "Moderated contributions, provenance tracking, filtering at the retrieval rail"]
+            ]
+          },
+          "concepts": ["least-privilege", "sandboxing"]
+        },
+        {
+          "title": "The EU AI Act's risk tiers",
+          "lede": "Obligations scale with the risk of the use case, not the capability of the model.",
+          "visual": {
+            "type": "ladder",
+            "from": "Fewer obligations",
+            "to": "Banned",
+            "items": [
+              { "label": "Minimal risk", "sub": "Most applications; voluntary codes" },
+              { "label": "Limited risk", "sub": "Transparency: say it is an AI" },
+              { "label": "High risk", "sub": "e.g. recruitment screening; strict duties" },
+              { "label": "Prohibited", "sub": "Practices banned outright" }
+            ]
+          },
+          "points": [
+            { "h": "Transparency applies everywhere", "t": "People must be told they are dealing with an AI unless it is obvious — whatever the risk tier." },
+            { "h": "Other frameworks", "t": "NIST AI RMF is Govern, Map, Measure, Manage — not the Cybersecurity Framework's Identify/Protect/Detect/Respond. Also OWASP LLM Top 10 and MITRE ATLAS." }
+          ],
+          "concepts": ["governance-frameworks"]
+        },
+        {
+          "title": "Privacy and fairness",
+          "lede": "Both fail quietly: personal data that is reachable when it shouldn't be, and disparate impact hidden inside a good average.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Privacy", "items": ["Minimize at ingestion — redact PII before embedding", "Self-hosting keeps prompts inside your boundary", "Erasure: index entries delete cleanly; tuned weights need retraining", "Trace stores are personal data too"] },
+              { "title": "Fairness", "items": ["Break metrics out by group", "Counterfactual tests that vary only group-linked attributes", "Removing a field does not remove its proxies", "The retrieval path can carry bias too"] }
+            ]
+          },
+          "concepts": ["privacy", "bias-fairness"]
+        }
+      ]
+    },
+    {
+      "domain": "human-ai-oversight",
+      "hook": "Human oversight that actually controls something, rather than signing off on it.",
+      "slides": [
+        {
+          "title": "In, on or out of the loop",
+          "lede": "How much a human is involved should follow the stakes of the action, not habit.",
+          "visual": {
+            "type": "spectrum",
+            "from": "Human decides",
+            "to": "Agent decides",
+            "items": [
+              { "label": "Human in the loop", "sub": "Approves before anything happens. Irreversible or high-consequence actions." },
+              { "label": "Human on the loop", "sub": "Monitors and can intervene. High-volume, reversible actions." },
+              { "label": "Human out of the loop", "sub": "Fully autonomous. Only with measured reliability on that action." }
+            ]
+          },
+          "takeaway": "Autonomy is set by potential harm × irreversibility, weighed against measured reliability on that specific action — not by frequency, duration, or whether the API is internal.",
+          "concepts": ["hitl-design"]
+        },
+        {
+          "title": "Autonomy is earned per action",
+          "lede": "Reliability measured on one kind of case says nothing about another. Widen autonomy one measured scope at a time.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Shadow", "sub": "Agent proposes, humans decide; measure agreement" },
+              { "label": "Approve each", "sub": "Human in the loop on every action" },
+              { "label": "Approve by exception", "sub": "Human on the loop; sampled audit" },
+              { "label": "Autonomous", "sub": "Only inside the measured scope", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "Scope is part of the evidence", "t": "Accuracy on sub-$50 refunds does not transfer to $500 ones. Out-of-scope cases route back to a lower-autonomy path." }
+          ],
+          "concepts": ["autonomy-governance"]
+        },
+        {
+          "title": "Oversight theatre",
+          "lede": "Rubber-stamping is the default failure of human review. Forty pending items at four seconds each is accountability without control.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Rubber stamp", "tone": "bad", "items": ["The agent's choice is pre-selected", "Confidence score shown first", "Rejecting takes more effort than approving", "No reason captured"] },
+              { "title": "Real review", "tone": "good", "items": ["Evidence first, recommendation second", "States exactly what approval will do, and whether it can be undone", "Rejecting is as cheap as approving", "The reason is recorded"] }
+            ]
+          },
+          "concepts": ["automation-bias"]
+        },
+        {
+          "title": "Escalate on signals you can verify",
+          "lede": "A model's own confidence is poorly calibrated. Escalation triggers should be facts the system can check.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Verifiable", "tone": "good", "items": ["No relevant evidence was retrieved", "Tool failures or conflicting results", "Disagreement across repeated samples", "The request matches an out-of-scope rule"] },
+              { "title": "Unreliable", "tone": "bad", "items": ["Self-reported confidence", "How fluent the answer sounds", "How long the reasoning was"] }
+            ]
+          },
+          "concepts": ["escalation"]
+        },
+        {
+          "title": "Make it recoverable",
+          "lede": "Logging records harm; recoverability limits it. Every destructive action gets guard rails before it runs and an undo path after.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Dry run", "sub": "Report what would be affected, and how much" },
+              { "label": "Confirm", "sub": "An explicit confirmation parameter" },
+              { "label": "Cap", "sub": "A server-side limit on blast radius" },
+              { "label": "Capture", "sub": "Record the before-state at execution" },
+              { "label": "Undo window", "sub": "A compensating action before finality", "tone": "alt" }
+            ]
+          },
+          "concepts": ["destructive-actions"]
+        },
+        {
+          "title": "Handoffs and feedback",
+          "lede": "When the agent passes work to a person, pass understanding, not a transcript. When the person corrects it, treat that as data.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Handoff package", "tone": "good", "items": ["The user's goal", "Actions already taken", "Evidence gathered", "What was tried and failed", "The specific reason for escalating"] },
+              { "title": "Raw transcript", "tone": "bad", "items": ["The human reconstructs the goal", "Repeats work the agent already did", "Re-gathers evidence it already had"] }
+            ]
+          },
+          "points": [
+            { "h": "Feedback with a reason and a trace", "t": "A thumbs-down with a reason category and a trace ID points to the failing step. Fix prompts, tools or retrieval first; tune last." },
+            { "h": "Measure the handoff", "t": "Time for the human to decide, and how often they must re-gather context the agent already had." }
+          ],
+          "concepts": ["handoff", "user-feedback"]
+        },
+        {
+          "title": "What users are owed",
+          "lede": "Transparency means the things that affect a user's decisions and rights — not the system's internals.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "It's an AI", "text": "Disclosed unless obvious. Required regardless of risk tier." },
+              { "label": "Where claims come from", "text": "Sources the user can check, and what the agent could not verify." },
+              { "label": "A route to a human", "text": "A clear way out when the agent is not the right answer." }
+            ]
+          },
+          "takeaway": "Not owed, and usually a distractor: parameter counts, the system prompt, or narrated chain-of-thought presented as an explanation.",
+          "concepts": ["transparency"]
+        }
+      ]
+    }
+  ]
+}

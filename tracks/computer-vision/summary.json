@@ -1,0 +1,866 @@
+{
+  "title": "Computer vision at a glance",
+  "intro": "Each chapter in a few visual slides: the mental model, the distinctions the questions turn on, and the concepts to practise next.",
+  "chapters": [
+    {
+      "domain": "image-fundamentals",
+      "hook": "Pixels, filters and transforms — and the silent bugs that live in between.",
+      "slides": [
+        {
+          "title": "The traps that never raise an error",
+          "lede": "Most image-pipeline bugs do not crash. The model still runs; accuracy just quietly drops.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Trap", "What happens"],
+            "rows": [
+              ["BGR vs RGB", "OpenCV loads BGR; most models expect RGB. Channels swap silently."],
+              ["uint8 overflow", "200 + 100 = 44 in NumPy. cv2.add saturates at 255; plain + wraps."],
+              ["Normalisation mismatch", "0–255 input to a model trained on ImageNet-normalised data saturates it."],
+              ["EXIF orientation", "PIL may rotate the image, cv2 does not: same file, different pixels."],
+              ["Mask interpolation", "Bilinear resizing of a label mask invents class 1.5."]
+            ]
+          },
+          "takeaway": "Accurate in the notebook, poor in production with identical weights? It is almost always preprocessing parity. Compare the intermediate tensors of both paths first.",
+          "concepts": ["colour-and-channels", "image-data-hygiene"]
+        },
+        {
+          "title": "Pick the filter by the problem",
+          "lede": "Each filter is the answer to a specific kind of noise or defect. Questions describe the defect.",
+          "visual": {
+            "type": "map",
+            "left": "Problem",
+            "right": "Filter",
+            "rows": [
+              ["Salt-and-pepper noise", "Median filter — keeps edges sharp"],
+              ["General smoothing", "Gaussian blur — separable into two 1D passes, blurs edges too"],
+              ["Smooth but keep edges", "Bilateral filter, at higher cost"],
+              ["Small bright specks", "Opening: erode, then dilate"],
+              ["Small dark holes and gaps", "Closing: dilate, then erode"]
+            ]
+          },
+          "takeaway": "Blur radius is relative to image scale. The same kernel in pixels smooths differently at different resolutions.",
+          "concepts": ["filtering"]
+        },
+        {
+          "title": "Thresholding and contrast",
+          "lede": "Separating foreground from background depends on how the lighting behaves across the image.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Otsu", "text": "An automatic global threshold. Works when the histogram is bimodal." },
+              { "label": "Adaptive threshold", "text": "A local threshold per region, for uneven illumination where one global value fails." },
+              { "label": "CLAHE", "text": "Local contrast enhancement that limits noise amplification in flat regions." },
+              { "label": "HSV", "text": "Threshold on hue for colour under changing light — hue survives brightness changes." }
+            ]
+          },
+          "points": [
+            { "h": "Grayscale is weighted", "t": "Luma is roughly 0.299 R + 0.587 G + 0.114 B, not a flat average — the eye weights green most." }
+          ],
+          "concepts": ["thresholding", "colour-and-channels"]
+        },
+        {
+          "title": "Geometric transforms and resizing",
+          "lede": "Two transform families with different degrees of freedom, and a resizing choice that depends on direction.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Affine", "tag": "6 DOF · 3 point pairs", "items": ["Rotation, scale, shear, translation", "Parallel lines stay parallel"] },
+              { "title": "Homography", "tag": "8 DOF · 4 point pairs", "items": ["Maps a rectangle to any quadrilateral", "Valid only for a planar scene or a purely rotating camera"] }
+            ]
+          },
+          "points": [
+            { "h": "Interpolate by direction", "t": "Shrinking: INTER_AREA, to avoid aliasing. Enlarging: linear or cubic. Label masks: always nearest-neighbour." },
+            { "h": "Letterbox, don't squash", "t": "Stretching to a square distorts every object. Pad instead — and undo both scale and padding when mapping boxes back." }
+          ],
+          "concepts": ["geometric-transforms"]
+        }
+      ]
+    },
+    {
+      "domain": "classical-cv",
+      "hook": "Edges, features and camera geometry — still the right tool in controlled settings.",
+      "slides": [
+        {
+          "title": "From pixels to matched features",
+          "lede": "The classical pipeline for finding the same points in two images.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Gradients", "sub": "Intensity change per pixel" },
+              { "label": "Edges", "sub": "Canny: thin, then hysteresis" },
+              { "label": "Keypoints", "sub": "Corners pin both axes" },
+              { "label": "Descriptors", "sub": "A signature for each keypoint" },
+              { "label": "Match", "sub": "Nearest descriptors across images" }
+            ]
+          },
+          "points": [
+            { "h": "Canny's two thresholds", "t": "Hysteresis: the high threshold starts an edge; the low one extends it along connected pixels." },
+            { "h": "The aperture problem", "t": "An edge is ambiguous along its own direction. A corner is not — which is why keypoints are corners." }
+          ],
+          "concepts": ["edges-and-features"]
+        },
+        {
+          "title": "RANSAC: fitting through outliers",
+          "lede": "Feature matches always include gross errors. RANSAC finds the model most of the data agrees with and ignores the rest.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Sample", "sub": "A random minimal subset — 4 pairs for a homography" },
+              { "label": "Fit", "sub": "Solve the model from just those" },
+              { "label": "Score", "sub": "Count matches within tolerance — the inliers" },
+              { "label": "Keep the best", "sub": "Most inliers wins" }
+            ],
+            "loop": "repeat for a fixed number of iterations, then refit on all inliers"
+          },
+          "takeaway": "A homography cannot explain parallax. Two viewpoints of a 3D scene give low inlier counts however long RANSAC runs — the model, not the fit, is wrong.",
+          "concepts": ["robust-geometry"]
+        },
+        {
+          "title": "Cameras, calibration and depth",
+          "lede": "To measure anything in the world, first model how the camera maps the world onto pixels.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Intrinsics", "text": "Focal length, principal point, skew: the camera-to-pixel mapping." },
+              { "label": "Extrinsics", "text": "Where the camera sits and points in the world." },
+              { "label": "Radial distortion", "text": "Straight lines bow near the edges. Calibrate and undistort before measuring." },
+              { "label": "Rectification", "text": "Aligns stereo epipolar lines with image rows, turning a 2D search into 1D." },
+              { "stat": "Z = f·B / d", "label": "Depth from disparity", "text": "Focal length times baseline over disparity. Far points have tiny disparity, so far depth is imprecise." }
+            ]
+          },
+          "concepts": ["camera-geometry"]
+        },
+        {
+          "title": "Where classical methods still win",
+          "lede": "With controlled lighting, fixed cameras and simple shapes, a classical method can be faster, cheaper and more predictable than a learned one.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Hough transform", "text": "Edge pixels vote in parameter space for lines or circles. Robust to gaps and partial occlusion." },
+              { "label": "Template matching", "text": "Finds a known, fixed appearance. Breaks under changes in scale, rotation or lighting." },
+              { "label": "Contour shape descriptors", "text": "Describe silhouettes from a clean segmentation — good on a controlled production line." }
+            ]
+          },
+          "concepts": ["classical-methods"]
+        }
+      ]
+    },
+    {
+      "domain": "cnn-architectures",
+      "hook": "How convolutional networks see, and how to choose and reuse one.",
+      "slides": [
+        {
+          "title": "Convolution mechanics",
+          "lede": "A handful of choices decide what a convolutional layer can see and what it costs.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Weight sharing", "text": "One kernel slides everywhere: few parameters, and translation equivariance for free." },
+              { "label": "Receptive field", "text": "The input region that can influence a unit. It compounds with depth." },
+              { "stat": "2 × 3×3 = 5×5", "label": "stacked small kernels", "text": "Same receptive field as one 5×5, fewer parameters, one more non-linearity." },
+              { "label": "Stride 2", "text": "Downsamples while convolving, instead of a separate pooling step." },
+              { "label": "Dilation", "text": "Widens the receptive field with no extra parameters and no loss of resolution." },
+              { "label": "1×1 convolution", "text": "Mixes channels at each position — a cheap way to change depth." }
+            ]
+          },
+          "concepts": ["convolution-mechanics"]
+        },
+        {
+          "title": "What each depth learns",
+          "lede": "Early layers learn features that are useful for almost any image. Later layers become specific to the task.",
+          "visual": {
+            "type": "spectrum",
+            "from": "Early layers — generic",
+            "to": "Late layers — task-specific",
+            "items": [
+              { "label": "Edges", "sub": "Oriented gradients" },
+              { "label": "Textures", "sub": "Repeated local patterns" },
+              { "label": "Parts", "sub": "Wheels, eyes, windows" },
+              { "label": "Objects", "sub": "Whole-object evidence" },
+              { "label": "Task head", "sub": "Your classes and outputs" }
+            ]
+          },
+          "points": [
+            { "h": "Why transfer learning works", "t": "The generic early layers carry over to a new task; only the specific top needs to change." },
+            { "h": "Feature pyramids", "t": "An FPN's top-down path gives every scale both deep semantics and fine resolution." }
+          ],
+          "concepts": ["feature-hierarchy"]
+        },
+        {
+          "title": "Backbone building blocks",
+          "lede": "Modern backbones are assembled from a few ideas. Each one solved a specific limit.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Idea", "What it solves"],
+            "rows": [
+              ["Residual connection", "Very deep stacks become trainable — a direct path for the gradient"],
+              ["Depthwise separable convolution", "Cost: a per-channel spatial filter plus 1×1 mixing (MobileNet)"],
+              ["Global average pooling", "Replaces flatten-plus-dense; tolerates variable input size"],
+              ["Compound scaling", "Scale depth, width and resolution together, not one axis (EfficientNet)"]
+            ]
+          },
+          "takeaway": "CNNs are translation-equivariant by construction but not rotation-invariant. Rotation robustness has to come from augmentation or the data.",
+          "concepts": ["backbone-design"]
+        },
+        {
+          "title": "BatchNorm has two modes",
+          "lede": "A layer that behaves differently in training and in inference, and a classic source of train/serve mismatch.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Training", "tag": "model.train()", "items": ["Normalises with the current batch's statistics", "Updates the running mean and variance"] },
+              { "title": "Inference", "tag": "model.eval()", "items": ["Uses the stored running statistics", "Forgetting eval() gives batch-dependent outputs"] }
+            ]
+          },
+          "points": [
+            { "h": "Tiny batches", "t": "Batch statistics become noisy. GroupNorm normalises within each example instead." },
+            { "h": "ReLU is the default", "t": "It does not saturate for positive inputs, so gradients survive depth." }
+          ],
+          "concepts": ["normalisation-layers"]
+        },
+        {
+          "title": "Transfer learning: how much to unfreeze",
+          "lede": "The less data you have and the closer your domain is to the pretraining data, the more of the network you keep frozen.",
+          "visual": {
+            "type": "ladder",
+            "from": "Little data, similar domain",
+            "to": "Lots of data, distant domain",
+            "items": [
+              { "label": "Freeze backbone, train head", "sub": "A few hundred images" },
+              { "label": "Unfreeze the top blocks", "sub": "Task-specific layers adapt" },
+              { "label": "Gradual unfreezing", "sub": "Top to bottom, lower learning rates below" },
+              { "label": "Full fine-tune", "sub": "Everything adapts from pretrained weights" },
+              { "label": "Train from scratch", "sub": "Only with very large or very different data" }
+            ]
+          },
+          "concepts": ["transfer-learning"]
+        }
+      ]
+    },
+    {
+      "domain": "training-vision",
+      "hook": "Augmentation, losses, schedules and the curves that tell you what went wrong.",
+      "slides": [
+        {
+          "title": "Augment for the world you deploy in",
+          "lede": "An augmentation should simulate a variation the model will actually meet. One that cannot occur only teaches it about images it will never see.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Match the domain", "text": "Vertical flip is wrong for street scenes — gravity fixes orientation — and fine for satellite imagery." },
+              { "label": "Transform the labels", "text": "Detection boxes and masks move with the image. Handle boxes cropped away or made degenerate." },
+              { "label": "Mixup vs mosaic", "text": "Mixup blends images and label distributions — for classification. Detection uses mosaic, which tiles images spatially." },
+              { "label": "Training set only", "text": "Validation is a measuring instrument. Augmenting it changes what you measure." }
+            ]
+          },
+          "concepts": ["augmentation"]
+        },
+        {
+          "title": "Read the training curves",
+          "lede": "Training and validation loss together tell you which problem you have. Diagnose before adding capacity or data.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Symptom", "Diagnosis"],
+            "rows": [
+              ["Train loss falls, validation rises", "Overfitting: stop at the validation minimum; add data, augmentation or regularisation"],
+              ["Both plateau high from the start", "Underfitting or a pipeline bug: check labels, normalisation and learning rate before capacity"],
+              ["99% train, 55% validation on a tiny set", "Expected memorisation — but also check for leakage across the split"]
+            ]
+          },
+          "points": [
+            { "h": "Regularisers", "t": "Weight decay and dropout constrain the model; more and more varied data is usually the strongest regulariser." }
+          ],
+          "concepts": ["regularisation"]
+        },
+        {
+          "title": "Losses for imbalanced data",
+          "lede": "In detection, most candidate locations are easy background. Left alone, they dominate the loss.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Cross-entropy", "items": ["Every example weighted equally", "Thousands of easy negatives swamp the gradient", "Rare hard cases barely register"] },
+              { "title": "Focal loss", "items": ["Down-weights examples already classified confidently", "Hard cases drive learning", "Made one-stage detectors competitive (RetinaNet)"] }
+            ]
+          },
+          "points": [
+            { "h": "Long-tailed classes", "t": "Re-weight or re-sample the rare classes, and always report them separately." },
+            { "h": "Label smoothing", "t": "Softens one-hot targets so the model is less over-confident." }
+          ],
+          "concepts": ["loss-functions"]
+        },
+        {
+          "title": "Keeping optimisation stable",
+          "lede": "Four settings that stop a training run from diverging or silently learning nothing.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Warmup", "text": "Ramp the learning rate up so early, noisy gradients cannot destabilise training." },
+              { "label": "Loss scaling", "text": "Mixed precision needs it: small FP16 gradients otherwise underflow to zero." },
+              { "label": "Gradient clipping", "text": "Caps the gradient norm so one pathological batch cannot wreck the run." },
+              { "label": "Batch size and LR", "text": "A larger batch means less gradient noise and fewer steps. Scale the learning rate with it." }
+            ]
+          },
+          "concepts": ["optimisation"]
+        },
+        {
+          "title": "Throughput and experiment hygiene",
+          "lede": "Two ways to waste compute: a GPU waiting for data, and results you cannot reproduce or trust.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Starved GPU", "tag": "sawtooth utilisation", "items": ["The data pipeline is the bottleneck, not the model", "More loader workers, faster decoding, caching", "A bigger GPU changes nothing"] },
+              { "title": "Honest experiments", "tag": "reproducible", "items": ["Fixed seeds, versioned data and code", "Splits decided once, before training", "The test set touched only at the end"] }
+            ]
+          },
+          "concepts": ["training-throughput", "experiment-hygiene"]
+        }
+      ]
+    },
+    {
+      "domain": "detection",
+      "hook": "The heaviest topic: how detectors work, how they are scored, and how they fail.",
+      "slides": [
+        {
+          "title": "Three families of detector",
+          "lede": "Detectors differ in whether they propose regions first, predict densely in one pass, or predict a set directly.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Two-stage", "tag": "Faster R-CNN", "items": ["Propose regions, then classify and refine", "Accurate, slower", "Strong on small objects"] },
+              { "title": "One-stage", "tag": "YOLO, RetinaNet", "items": ["Boxes and classes predicted densely in one pass", "Fast; the real-time default", "Needs NMS afterwards"] },
+              { "title": "Set prediction", "tag": "DETR", "items": ["A transformer predicts a fixed set of boxes", "Bipartite matching to ground truth in training", "No anchors, no NMS"] }
+            ]
+          },
+          "concepts": ["detector-architecture"]
+        },
+        {
+          "title": "Inside a one-stage detector",
+          "lede": "From image to boxes in five stages. Post-processing is part of the model's behaviour, not an afterthought.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Backbone", "sub": "Features at several scales" },
+              { "label": "Neck", "sub": "FPN merges the scales" },
+              { "label": "Head", "sub": "Box, objectness, class per location" },
+              { "label": "NMS", "sub": "Suppress duplicate boxes", "tone": "alt" },
+              { "label": "Map back", "sub": "Undo resize and letterbox padding", "tone": "alt" }
+            ],
+            "legend": [
+              { "tone": "code", "label": "network" },
+              { "tone": "alt", "label": "post-processing" }
+            ]
+          },
+          "points": [
+            { "h": "NMS vs Soft-NMS", "t": "NMS deletes boxes overlapping the top one. In crowds that deletes real objects; Soft-NMS decays their scores instead." },
+            { "h": "Boxes all offset?", "t": "The letterbox padding was not undone when mapping back to original coordinates." }
+          ],
+          "concepts": ["detector-architecture", "nms"]
+        },
+        {
+          "title": "Anchors, or not",
+          "lede": "How a detector parameterises boxes decides what it can find easily.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Anchor-based", "items": ["Preset box priors at each location", "The network predicts an offset from a prior", "Priors that do not match object shapes cost recall"] },
+              { "title": "Anchor-free", "tag": "FCOS, CenterNet", "items": ["Regress distances to the box edges, or a centre heatmap", "No anchor shapes to tune", "Now the common design"] }
+            ]
+          },
+          "points": [
+            { "h": "Objectness × class", "t": "Is anything here, separate from which class. The final score often multiplies the two." },
+            { "h": "IoU loss", "t": "Optimises the overlap that evaluation measures, and is scale-invariant — unlike L1 on coordinates." }
+          ],
+          "concepts": ["anchors"]
+        },
+        {
+          "title": "IoU, and the three places it appears",
+          "lede": "Intersection over union measures box overlap. It is used three times in a detector's life, each with its own threshold and meaning.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "stat": "IoU = ∩ / ∪", "label": "the measure", "text": "Area of overlap divided by area of union. 1 is a perfect match." },
+              { "label": "Anchor assignment", "text": "In training: which prior is responsible for which ground-truth box." },
+              { "label": "NMS", "text": "In post-processing: how much overlap makes two boxes duplicates." },
+              { "label": "Evaluation", "text": "In scoring: how much overlap counts as a correct detection." }
+            ]
+          },
+          "concepts": ["nms", "detection-metrics"]
+        },
+        {
+          "title": "Reading mAP",
+          "lede": "Mean average precision is the standard score and is easy to misread.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "stat": "COCO < VOC", "label": "same model, different numbers", "text": "COCO averages IoU 0.5 to 0.95; VOC uses 0.5 alone. Never compare them directly." },
+              { "stat": "all thresholds", "label": "not your operating point", "text": "mAP averages over confidence thresholds. You deploy at one — choose it from the PR curve." },
+              { "stat": "per class", "label": "then averaged", "text": "A good mean can hide a class that fails. Read the per-class table." }
+            ]
+          },
+          "concepts": ["detection-metrics"]
+        },
+        {
+          "title": "Why detectors fail",
+          "lede": "Match the symptom to its usual cause before retraining anything.",
+          "visual": {
+            "type": "map",
+            "left": "Failure",
+            "right": "Likely cause",
+            "rows": [
+              ["Small objects missed", "Input resolution too low, or no shallow pyramid level for small scales"],
+              ["High precision, low recall", "Confidence threshold too high, or anchor priors that do not fit the shapes"],
+              ["Objects in crowds deleted", "NMS threshold too aggressive — try Soft-NMS"],
+              ["Good on validation, poor on a new camera", "Domain shift: new viewpoint, scale distribution, lighting"],
+              ["Unstable results on similar images", "Inconsistent labels in the training data"]
+            ]
+          },
+          "concepts": ["detection-failures"]
+        }
+      ]
+    },
+    {
+      "domain": "segmentation",
+      "hook": "Labelling every pixel: which task, which architecture, and which number to trust.",
+      "slides": [
+        {
+          "title": "Three kinds of segmentation",
+          "lede": "They differ in whether they separate individual objects and whether they cover every pixel.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Semantic", "tag": "class per pixel", "items": ["Every pixel gets a class", "Two touching cars merge into one region", "Cannot count objects"] },
+              { "title": "Instance", "tag": "mask per object", "items": ["A separate mask for each object", "Countable things only", "Traditionally ignores amorphous ‘stuff’ like sky or road"] },
+              { "title": "Panoptic", "tag": "both", "items": ["Every pixel gets a class", "Countable things also get an instance ID", "The complete scene description"] }
+            ]
+          },
+          "points": [
+            { "h": "Segment or detect?", "t": "Segment when shape, area or boundary matters. A box is enough when you only need presence and position." }
+          ],
+          "concepts": ["segmentation-types"]
+        },
+        {
+          "title": "Encoder, decoder and skips",
+          "lede": "Downsampling builds meaning but loses detail. The decoder has to restore resolution, and skip connections hand it the detail back.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Encoder", "sub": "Downsample: semantics grow, resolution shrinks" },
+              { "label": "Bottleneck", "sub": "Coarsest, most semantic features" },
+              { "label": "Decoder", "sub": "Upsample back to input size", "tone": "alt" },
+              { "label": "Per-pixel classes", "sub": "One prediction per pixel", "tone": "alt" }
+            ],
+            "loop": "U-Net skip connections carry each encoder level's high-resolution detail across to the decoder"
+          },
+          "points": [
+            { "h": "Checkerboard artefacts", "t": "A transposed convolution whose stride does not divide its kernel size. Resize, then convolve." },
+            { "h": "ASPP", "t": "Parallel dilated convolutions at several rates, for multi-scale context without downsampling." }
+          ],
+          "concepts": ["segmentation-architecture"]
+        },
+        {
+          "title": "Instance masks: Mask R-CNN and SAM",
+          "lede": "Instance segmentation usually starts from a detector and adds a mask per region.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Backbone + FPN", "sub": "Multi-scale features" },
+              { "label": "Region proposals", "sub": "Candidate object boxes" },
+              { "label": "RoIAlign", "sub": "Bilinear sampling, no rounding" },
+              { "label": "Box + class", "sub": "Refined detection" },
+              { "label": "Mask branch", "sub": "A mask per region", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "Why RoIAlign", "t": "Quantised RoI pooling misaligns features by up to a pixel — invisible for boxes, visible in masks." },
+            { "h": "Promptable masks", "t": "SAM produces class-agnostic masks from a point, a box or a rough mask." }
+          ],
+          "concepts": ["segmentation-architecture"]
+        },
+        {
+          "title": "Which number to trust",
+          "lede": "Segmentation metrics that look alike report very different things.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "stat": "0.8 Dice ≈ 0.67 IoU", "label": "Dice = 2·IoU / (1 + IoU)", "text": "They rank models identically but report different numbers. Check which a paper used." },
+              { "stat": "97% / 0.41", "label": "pixel accuracy vs mIoU", "text": "A few large classes dominate the pixel count. mIoU averages per class and refuses to hide failures." },
+              { "stat": "≠ 0.5", "label": "the best threshold", "text": "Under class imbalance, sweep the binary threshold on validation." },
+              { "label": "Dice loss", "text": "Stays sensitive when the foreground is tiny. Often summed with cross-entropy." }
+            ]
+          },
+          "concepts": ["segmentation-metrics"]
+        },
+        {
+          "title": "Segmentation in practice",
+          "lede": "Masks, large images and new sites each bring their own failure.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Augment masks with images", "text": "Apply the identical geometric transform, and resize masks with nearest-neighbour only." },
+              { "label": "Tile large images", "text": "Too big for memory? Tile with overlap, segment, and blend the overlaps to avoid seams." },
+              { "label": "Across sites", "text": "Scanners, cameras and protocols differ. Split and evaluate by site to see the generalisation gap." }
+            ]
+          },
+          "concepts": ["segmentation-practice"]
+        }
+      ]
+    },
+    {
+      "domain": "vision-transformers",
+      "hook": "Images as sequences, images with text, and images from noise.",
+      "slides": [
+        {
+          "title": "An image as a sequence of patches",
+          "lede": "A vision transformer cuts the image into patches and treats them like words.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Image", "sub": "224 × 224 pixels" },
+              { "label": "Patches", "sub": "16 × 16 each → 196 tokens" },
+              { "label": "Embed + position", "sub": "Attention has no built-in order" },
+              { "label": "+ class token", "sub": "A learnable summary token" },
+              { "label": "Encoder", "sub": "Self-attention across all patches" },
+              { "label": "Head", "sub": "Reads the class token's output", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "Inductive bias", "t": "CNNs get locality and translation equivariance for free; ViTs must learn them — hence their appetite for data." },
+            { "h": "New resolution", "t": "Fine-tuning at another size means interpolating the positional embeddings onto the new patch grid." }
+          ],
+          "concepts": ["vit-basics"]
+        },
+        {
+          "title": "Why resolution is expensive",
+          "lede": "One arithmetic fact explains most efficient-attention designs.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "stat": "tokens ∝ side²", "label": "resolution to tokens", "text": "Doubling the image side quadruples the patch count." },
+              { "stat": "attention ∝ tokens²", "label": "tokens to cost", "text": "Every token attends to every other token." },
+              { "stat": "cost ∝ side⁴", "label": "together", "text": "Double the side length, pay sixteen times for attention." }
+            ]
+          },
+          "takeaway": "Swin's answer: attend within local windows, shift the windows between layers, and merge patches into a hierarchy — cost grows linearly with image size.",
+          "concepts": ["efficient-attention"]
+        },
+        {
+          "title": "CLIP and zero-shot recognition",
+          "lede": "Train an image encoder and a text encoder so that matching pairs land close together. Classes become text you can change at inference.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Image–caption pairs", "sub": "Collected at web scale" },
+              { "label": "Two encoders", "sub": "One for images, one for text" },
+              { "label": "Contrastive training", "sub": "Pull true pairs together, push others apart" },
+              { "label": "Zero-shot", "sub": "Embed class names; pick the nearest", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "A new class is a string", "t": "Open-vocabulary detection extends this: categories are named in text at inference, not fixed at training." },
+            { "h": "Limits", "t": "Weak on fine-grained or specialised domains far from web imagery, and sensitive to prompt wording." }
+          ],
+          "concepts": ["multimodal-vision"]
+        },
+        {
+          "title": "Learning without labels",
+          "lede": "Self-supervised pretraining learns strong features from unlabelled images, so a small labelled set goes much further.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "DINO", "tag": "self-distillation", "items": ["A student matches a teacher across different views of the same image", "No labels anywhere", "Features that cluster by object"] },
+              { "title": "MAE", "tag": "masked autoencoding", "items": ["Hide most patches of the image", "Reconstruct the missing pixels", "Cheap: the encoder sees only visible patches"] }
+            ]
+          },
+          "takeaway": "With a few thousand labelled images, fine-tune or freeze a pretrained backbone. Never train a ViT from scratch at that scale.",
+          "concepts": ["self-supervised-vision"]
+        },
+        {
+          "title": "Diffusion: images from noise",
+          "lede": "A diffusion model learns to remove noise. Generation runs that in reverse, from pure noise to an image, guided by a prompt.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Encode", "sub": "Into a compressed latent space" },
+              { "label": "Add noise", "sub": "Step by step, in training" },
+              { "label": "Learn to denoise", "sub": "Conditioned on the text prompt" },
+              { "label": "Sample", "sub": "Start from noise, denoise repeatedly", "tone": "alt" },
+              { "label": "Decode", "sub": "Latent back to pixels", "tone": "alt" }
+            ],
+            "legend": [
+              { "tone": "code", "label": "training" },
+              { "tone": "alt", "label": "generation" }
+            ]
+          },
+          "points": [
+            { "h": "Why latent", "t": "Denoising a compressed latent is far cheaper than working at full pixel resolution." },
+            { "h": "Classifier-free guidance", "t": "A dial between prompt adherence and diversity." }
+          ],
+          "concepts": ["generative-vision"]
+        }
+      ]
+    },
+    {
+      "domain": "video-tracking",
+      "hook": "Motion, identity over time, and pipelines that keep up with the cameras.",
+      "slides": [
+        {
+          "title": "Tracking by detection",
+          "lede": "Detect objects in each frame, then decide which detection belongs to which existing track.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Detect", "sub": "Boxes in the new frame" },
+              { "label": "Predict", "sub": "Kalman filter: where each track should be" },
+              { "label": "Associate", "sub": "Hungarian matching on a cost matrix" },
+              { "label": "Update", "sub": "Fuse prediction with measurement" }
+            ],
+            "loop": "every frame; unmatched tracks coast briefly on prediction, then retire"
+          },
+          "points": [
+            { "h": "What goes in the cost", "t": "Box overlap, and an appearance embedding when objects cross or disappear." },
+            { "h": "Detect less often", "t": "Frames are highly redundant: detect periodically and propagate cheaply in between." }
+          ],
+          "concepts": ["tracking"]
+        },
+        {
+          "title": "Identity is the hard part",
+          "lede": "Finding objects is detection's job. Keeping their identities straight over time is where trackers fail.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Identity switch", "text": "Two tracks swap IDs where paths cross. Appearance re-identification fixes it." },
+              { "label": "Re-ID embeddings", "text": "Trained so identity, not category, sets the distance. Survive occlusion and camera changes." },
+              { "stat": "30 → 5 FPS", "label": "frame rate matters", "text": "At low frame rates objects move too far for IoU association and constant-velocity prediction." },
+              { "label": "Count on crossings", "text": "Count a track crossing a line with direction and hysteresis — not per-frame presence in a region." }
+            ]
+          },
+          "concepts": ["tracking"]
+        },
+        {
+          "title": "Scoring a tracker",
+          "lede": "Two standard metrics that answer different questions. A tracker can score well on one and badly on the other.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "MOTA", "tag": "overall accuracy", "items": ["Misses, false positives and identity switches in one number", "Dominated by detection quality", "Barely notices a few ID switches"] },
+              { "title": "IDF1", "tag": "identity consistency", "items": ["How long each object keeps the right ID", "Isolates association quality", "The one to read when identity matters"] }
+            ]
+          },
+          "concepts": ["tracking-metrics"]
+        },
+        {
+          "title": "Motion and optical flow",
+          "lede": "Optical flow estimates how each pixel moved between frames. It measures apparent motion, not true motion.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Sparse", "tag": "Lucas–Kanade", "items": ["Tracks selected keypoints", "Fast", "Motion only where there are features"] },
+              { "title": "Dense", "tag": "Farnebäck, learned", "items": ["A motion vector for every pixel", "Costlier", "Full motion field"] }
+            ]
+          },
+          "points": [
+            { "h": "Brightness constancy", "t": "Flow assumes a point keeps its brightness. Lighting changes, highlights and occlusion break it." },
+            { "h": "Apparent motion", "t": "Object motion, camera motion and lighting change all look alike in the flow field." }
+          ],
+          "concepts": ["optical-flow"]
+        },
+        {
+          "title": "Time carries meaning",
+          "lede": "Some things cannot be read from a single frame. Sitting down and standing up look identical in a still.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Single frame", "items": ["Appearance only", "Ambiguous for actions", "Cannot tell direction or speed"] },
+              { "title": "Temporal model", "items": ["Change over time is the signal", "Two-stream: appearance plus motion from flow", "Or clip-level 3D or video-transformer models"] }
+            ]
+          },
+          "concepts": ["temporal-models"]
+        },
+        {
+          "title": "A multi-camera pipeline",
+          "lede": "At scale, video decoding and data movement often cost more than the model itself.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Camera streams", "sub": "Many sources, fixed frame rates" },
+              { "label": "GPU decode", "sub": "CPU H.264 decode often costs more than inference" },
+              { "label": "Batch across cameras", "sub": "One inference call, many frames" },
+              { "label": "Detect + track", "sub": "Detect periodically, track in between" },
+              { "label": "Events", "sub": "Crossings, counts, alerts", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "Backpressure", "t": "When processing falls behind, drop stale frames rather than let queues grow without bound — old frames are worthless." }
+          ],
+          "concepts": ["video-pipelines"]
+        }
+      ]
+    },
+    {
+      "domain": "data-evaluation",
+      "hook": "What your labels, splits and metrics can and cannot tell you.",
+      "slides": [
+        {
+          "title": "Labels set the ceiling",
+          "lede": "A model cannot be measured as more accurate than the labels it is scored against.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Inter-annotator agreement", "text": "The ceiling on measured performance. Where humans disagree, the ground truth is noise." },
+              { "label": "Guidelines", "text": "State the occlusion rule and how to treat depictions — posters, screens, reflections." },
+              { "label": "Confusion is often taxonomy", "text": "Two classes confused with each other often means an unclear class definition, not a weak model." },
+              { "label": "Pseudo-labels", "text": "Inherit the teacher's systematic errors — and random spot checks cannot see consistent errors." }
+            ]
+          },
+          "concepts": ["annotation"]
+        },
+        {
+          "title": "Split without leaking",
+          "lede": "If near-duplicate images land on both sides of a split, the test score measures memory, not generalisation.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Random split", "tone": "bad", "items": ["Adjacent video frames on both sides", "Same patient or site in train and test", "Inflated scores that collapse in deployment"] },
+              { "title": "Grouped split", "tone": "good", "items": ["Split by video, patient, site or session", "Near-duplicates removed across splits", "Cross-validation by group on small data"] }
+            ]
+          },
+          "concepts": ["splitting"]
+        },
+        {
+          "title": "Choosing and reading the metric",
+          "lede": "Pick the curve that stays honest under imbalance, then pick the one point you will actually deploy at.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "ROC", "items": ["False-positive rate divides by all negatives", "A huge negative class makes it look excellent", "Flatters imbalanced problems"] },
+              { "title": "Precision–recall", "items": ["Precision counts false positives against predictions", "Shows the cost of each extra detection", "The right curve for rare positives"] }
+            ]
+          },
+          "points": [
+            { "h": "Is the difference real?", "t": "0.812 vs 0.807 mAP on 400 images is noise. Check variance across seeds before declaring a winner." },
+            { "h": "Confusion matrix", "t": "Shows which classes are confused with which — the first place to look after a headline number." }
+          ],
+          "concepts": ["metric-choice"]
+        },
+        {
+          "title": "Report the slices",
+          "lede": "An aggregate score can improve while the cases you care most about get worse.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Per class", "text": "Rare and safety-critical classes reported on their own." },
+              { "label": "Per capture condition", "text": "Night, rain, glare, each camera and site." },
+              { "label": "Regression suite", "text": "Known-hard cases that once failed, run on every change." },
+              { "label": "Benchmarks", "text": "Rank architectures. They do not predict your accuracy on your domain." }
+            ]
+          },
+          "concepts": ["reporting"]
+        },
+        {
+          "title": "When the world moves",
+          "lede": "Deployed data drifts away from the training data. Name the kind of shift before choosing a response.",
+          "visual": {
+            "type": "matrix",
+            "head": ["Shift", "What changes", "Example"],
+            "rows": [
+              ["Covariate shift", "The inputs; the task stays the same", "A new camera, lighting or season — the common one"],
+              ["Label shift", "How often each class occurs", "A defect becomes rarer after a process fix"],
+              ["Concept drift", "The link between input and label", "What counts as a defect is redefined"]
+            ]
+          },
+          "takeaway": "Vision models degrade silently. Monitor input statistics and prediction counts, and re-run the regression suite on fresh samples.",
+          "concepts": ["drift"]
+        }
+      ]
+    },
+    {
+      "domain": "deployment-edge",
+      "hook": "Getting a trained model onto real hardware, fast, and keeping it honest there.",
+      "slides": [
+        {
+          "title": "From checkpoint to engine",
+          "lede": "Each conversion step can change the model's behaviour silently. Validate against the original after every one.",
+          "visual": {
+            "type": "flow",
+            "nodes": [
+              { "label": "Trained model", "sub": "PyTorch or similar" },
+              { "label": "ONNX export", "sub": "Declare dynamic axes" },
+              { "label": "Validate", "sub": "Same inputs, compare outputs", "tone": "alt" },
+              { "label": "TensorRT build", "sub": "Tuned to one GPU architecture" },
+              { "label": "Calibrate INT8", "sub": "Representative data" },
+              { "label": "Validate again", "sub": "Accuracy on the tasks that matter", "tone": "alt" }
+            ]
+          },
+          "points": [
+            { "h": "Tracing freezes Python", "t": "Control flow and computed shapes become constants in the exported graph. Test several input shapes." },
+            { "h": "Engines don't travel", "t": "A TensorRT engine is built for one GPU architecture. Rebuild for each target." }
+          ],
+          "concepts": ["export", "compilation"]
+        },
+        {
+          "title": "Precision and what it costs",
+          "lede": "Lower precision is faster and smaller. Whether it is safe depends on what the output feeds.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "FP16", "items": ["Floating point, with an exponent", "No calibration needed", "Usually safe"] },
+              { "title": "INT8", "items": ["Needs a calibration pass over representative data", "Sets per-tensor scales", "Faster still, riskier"] }
+            ]
+          },
+          "takeaway": "INT8 often keeps classification accuracy while hurting detection mAP: only the argmax matters for a class, but box coordinates feed straight into IoU. Keep sensitive layers at higher precision.",
+          "concepts": ["compilation"]
+        },
+        {
+          "title": "Compression that actually speeds things up",
+          "lede": "Fewer parameters does not automatically mean faster inference. The hardware has to be able to use the savings.",
+          "visual": {
+            "type": "compare",
+            "cols": [
+              { "title": "Pruning", "items": ["Remove weights or channels, then fine-tune to recover", "Structured pruning — whole channels — gives real speedups", "Scattered zeros often do not, on dense hardware"] },
+              { "title": "Distillation", "items": ["A small student learns a large teacher's soft outputs", "The soft outputs carry more than hard labels", "A genuinely smaller, faster architecture"] }
+            ]
+          },
+          "concepts": ["compression"]
+        },
+        {
+          "title": "Where the frame time goes",
+          "lede": "A model benchmarked alone at 28 FPS can run at 9 FPS in the application. The model is only one stage of the loop.",
+          "visual": {
+            "type": "bar",
+            "segments": [
+              { "label": "Decode", "w": 24, "tone": "muted" },
+              { "label": "Preprocess", "w": 12, "tone": "muted" },
+              { "label": "Inference", "w": 34, "tone": "accent" },
+              { "label": "NMS", "w": 10, "tone": "muted" },
+              { "label": "Draw + encode", "w": 20, "tone": "muted" }
+            ],
+            "brackets": [
+              { "from": 36, "to": 70, "label": "what the benchmark measured" },
+              { "from": 0, "to": 100, "label": "what the user waits for" }
+            ],
+            "note": "One frame's time, illustrative."
+          },
+          "points": [
+            { "h": "Latency vs throughput", "t": "Batching raises frames per second and raises each frame's wait. One live camera cannot batch without adding the latency it hoped to avoid." },
+            { "h": "Stay on the GPU", "t": "Decode, preprocess and infer without host round trips; copies often cost more than the model." }
+          ],
+          "concepts": ["serving-performance"]
+        },
+        {
+          "title": "Monitoring without labels",
+          "lede": "In the field there is no ground truth. Vision models fail silently, so watch what you can measure.",
+          "visual": {
+            "type": "cards",
+            "items": [
+              { "label": "Preprocessing parity", "text": "Training and serving must resize, pad, normalise and order channels identically." },
+              { "label": "Input statistics", "text": "Brightness, contrast, sharpness — a dirty lens or a new camera shows up here first." },
+              { "label": "Output statistics", "text": "Detections per frame and confidence distributions. A sudden change is a signal." },
+              { "label": "Validate every build", "text": "Compare the exported or quantised model with the original on fixed inputs." }
+            ]
+          },
+          "concepts": ["production-monitoring"]
+        }
+      ]
+    }
+  ]
+}

@@ -66,6 +66,8 @@ def collect(track) -> dict:
         "cheats": cheats,
         "cards": cards,
         "concepts": json.loads(track.concepts_path.read_text())["concepts"],
+        "summary": (json.loads(track.summary_path.read_text())
+                    if track.summary_path.is_file() else None),
     }
 
 

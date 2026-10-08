@@ -32,6 +32,7 @@ class Track:
         self.blueprint_path = self.dir / "blueprint.json"
         self.concepts_path = self.dir / "concepts.json"
         self.cheats_path = self.dir / "cheatsheet.json"
+        self.summary_path = self.dir / "summary.json"
         self.bank_dir = self.dir / "bank"
         self.case_dir = self.dir / "cases"
         self.progress_path = PROGRESS_DIR / f"{track_id}.json"
